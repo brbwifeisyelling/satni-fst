@@ -5,7 +5,8 @@ import sqlite3
 import tkinter as tk
 from tkinter import ttk
 import webbrowser
-from PIL import Image, ImageTk
+from urllib.parse import quote
+from PIL import Image, ImageDraw, ImageFont, ImageTk
 
 try:
     from version import VERSION
@@ -168,6 +169,29 @@ def get_word_details(word_id):
     except Exception as e:
         print(f"Merkitysvirhe tietokannasta: {e}")
     return meanings, notes
+
+# Giellateknon taivutusgeneraattori (gtweb.uit.no); pos-kenttä hyväksyy vain nämä sanaluokat
+GIELLATEKNO_URL = "https://gtweb.uit.no/cgi-bin/smi/smi.cgi?text={word}&pos={pos}&lang=sme&mode=full&action=paradigm"
+GIELLATEKNO_POS = {"N": "N", "V": "V", "A": "A", "ADV": "Adv", "NUM": "Num", "PRON": "Pron"}
+
+
+def giellatekno_url(lemma, pos):
+    return GIELLATEKNO_URL.format(word=quote(lemma), pos=GIELLATEKNO_POS.get(pos.upper(), "Any"))
+
+
+def make_giellatekno_icon(size=20):
+    """Pieni "gt"-merkki napin kuvakkeeksi (piirretään koodissa, ei erillistä kuvatiedostoa)."""
+    scale = 4  # piirretään isona ja pienennetään, jotta reunat ovat pehmeät
+    big = size * scale
+    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.rounded_rectangle((0, 0, big - 1, big - 1), radius=5 * scale, fill="#9f1239")
+    try:
+        font = ImageFont.load_default(size=12 * scale)
+    except TypeError:  # vanha Pillow ilman koon valintaa
+        font = ImageFont.load_default()
+    draw.text((big / 2, big / 2 + scale), "gt", fill="#ffffff", font=font, anchor="mm")
+    return ImageTk.PhotoImage(img.resize((size, size), Image.Resampling.LANCZOS))
 
 # Sanakirjan aluekoodit (<geo>): missä maassa sana on käytössä
 GEO_NAMES = {"N": "Norjassa", "S": "Suomessa", "R": "Ruotsissa"}
@@ -390,6 +414,25 @@ class SatniGUI:
 
         self.meta_frame = tk.Frame(root, bg="#ffffff", height=65, relief=tk.SOLID, bd=1)
         self.meta_frame.pack(fill=tk.X, padx=20, pady=5)
+
+        # Avaa valitun sanan taivutuksen Giellateknon sivulla oletusselaimessa
+        self.giellatekno_icon = make_giellatekno_icon()
+        self.giellatekno_button = tk.Button(
+            self.meta_frame,
+            text=" Giellatekno ↗",
+            image=self.giellatekno_icon,
+            compound=tk.LEFT,
+            font=("Sans", 9, "bold"),
+            bg="#fff1f2",
+            fg="#9f1239",
+            activebackground="#ffe4e6",
+            activeforeground="#9f1239",
+            relief=tk.FLAT,
+            padx=8,
+            pady=3,
+            cursor="hand2",
+            command=self.open_giellatekno
+        )
         
         self.meta_label = tk.Label(
             self.meta_frame, 
@@ -610,6 +653,7 @@ class SatniGUI:
 
         if not self.current_results:
             self.meta_label.config(text=f"Ei osumia haulle: '{query}'")
+            self.giellatekno_button.place_forget()
             self.render_gradation(None)
             self.behavior_label.config(text="")
             self.clear_tables()
@@ -669,6 +713,8 @@ class SatniGUI:
     def select_word_option(self, selected_idx):
         self.selected_idx = selected_idx
         word_id, lemma, pos, subtype, trans = self.current_results[selected_idx]
+        self.giellatekno_button.place(relx=1.0, x=-10, y=6, anchor="ne")
+        self.giellatekno_button.lift()  # otsikkorivin label on luotu myöhemmin ja peittäisi napin
         for idx, widget in enumerate(self.buttons_inner_frame.winfo_children()):
             if idx == selected_idx:
                 widget.config(bg="#2563eb", fg="#ffffff")
@@ -943,6 +989,12 @@ class SatniGUI:
         self.meanings_text.configure(state=tk.NORMAL)
         self.meanings_text.delete("1.0", tk.END)
         self.meanings_text.configure(state=tk.DISABLED)
+
+    def open_giellatekno(self):
+        if not self.current_results:
+            return
+        _, lemma, pos, _, _ = self.current_results[self.selected_idx]
+        webbrowser.open(giellatekno_url(lemma, pos))
 
     def show_about(self):
         about_win = tk.Toplevel(self.root)
