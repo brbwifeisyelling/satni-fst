@@ -2,8 +2,11 @@ import sqlite3
 import subprocess
 import os
 import glob
+import sys
 import threading
 import xml.etree.ElementTree as ET
+
+import gradation
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 GENERATOR = os.path.join(SCRIPT_DIR, "src", "fst", "generator-gt-norm.hfst")
@@ -300,6 +303,42 @@ def forms_for(pos, prefix):
     return []
 
 
+def add_gradation(cursor):
+    """Päättelee astevaihtelun (GD/HD) jokaiselle sanalle ja muodolle, ks. gradation.py."""
+    print("Päätellään astevaihtelu (GD/HD)...")
+    cols = [r[1] for r in cursor.execute("PRAGMA table_info(dictionary)")]
+    for col in ("gradation", "gd_cluster", "hd_cluster", "gradation_group", "gradation_row"):
+        if col not in cols:
+            cursor.execute(f"ALTER TABLE dictionary ADD COLUMN {col} TEXT")
+    cols = [r[1] for r in cursor.execute("PRAGMA table_info(paradigms)")]
+    if "grade" not in cols:
+        cursor.execute("ALTER TABLE paradigms ADD COLUMN grade TEXT")
+
+    forms = {}
+    for rowid, word_id, tag, surface in cursor.execute("SELECT rowid, word_id, tag, surface FROM paradigms"):
+        forms.setdefault(word_id, []).append((rowid, tag, surface))
+
+    word_updates, form_updates = [], []
+    for word_id, lemma in cursor.execute("SELECT id, sme_lemma FROM dictionary").fetchall():
+        rows = forms.get(word_id)
+        if not rows:
+            continue
+        info, grades = gradation.analyse(lemma, [(tag, surf) for _, tag, surf in rows])
+        info = info or {}
+        word_updates.append((info.get("summary"), info.get("strong"), info.get("weak"),
+                             info.get("group"), info.get("row"), word_id))
+        for rowid, tag, surf in rows:
+            grade = grades.get((tag, surf))
+            form_updates.append((grade[0] if grade else None, rowid))
+
+    cursor.executemany(
+        "UPDATE dictionary SET gradation = ?, gd_cluster = ?, hd_cluster = ?, gradation_group = ?, gradation_row = ? WHERE id = ?",
+        word_updates
+    )
+    cursor.executemany("UPDATE paradigms SET grade = ? WHERE rowid = ?", form_updates)
+    print(f"  astevaihtelu tunnistettiin {sum(1 for u in word_updates if u[0])} sanalle")
+
+
 def main():
     for path in (GENERATOR, ANALYSER):
         if not os.path.exists(path):
@@ -343,6 +382,7 @@ def main():
             word_id INTEGER,
             tag TEXT,
             surface TEXT,
+            grade TEXT,
             FOREIGN KEY(word_id) REFERENCES dictionary(id)
         )
     ''')
@@ -373,6 +413,8 @@ def main():
         if rows:
             s[1] += 1
 
+    add_gradation(cursor)
+
     print("Luodaan tietokantaan indeksit...")
     cursor.execute("CREATE INDEX idx_lemma ON dictionary(sme_lemma COLLATE NOCASE);")
     cursor.execute("CREATE INDEX idx_trans ON dictionary(finnish_translation);")
@@ -390,4 +432,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if "--vain-astevaihtelu" in sys.argv:
+        # Päivittää vain astevaihtelutiedot olemassa olevaan tietokantaan (nopea, ei FST-ajoa)
+        conn = sqlite3.connect(DB_FILE)
+        add_gradation(conn.cursor())
+        conn.commit()
+        conn.close()
+    else:
+        main()

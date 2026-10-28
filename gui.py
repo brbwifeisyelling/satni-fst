@@ -44,28 +44,40 @@ def query_database(query):
         cursor.execute(
             """
             SELECT * FROM (
-                SELECT id, sme_lemma, pos, subtype, finnish_translation, 1 AS rank
+                -- 1 = saamen perusmuoto; 6 = isolla kirjoitettu erisnimi, joka osui vain kirjainkoosta riippumatta
+                -- (suomen "tulla" ei saa nostaa naisen nimeä Tulla verbin boahtit edelle)
+                SELECT id, sme_lemma, pos, subtype, finnish_translation,
+                       CASE WHEN sme_lemma = ? OR PYLOWER(substr(sme_lemma, 1, 1)) = substr(sme_lemma, 1, 1)
+                            THEN 1 ELSE 6 END AS rank
                 FROM dictionary WHERE PYLOWER(sme_lemma) = ?
                 UNION ALL
-                SELECT id, sme_lemma, pos, subtype, finnish_translation, 2
+                -- 2 = ainoa suomennos, 3 = ensimmäinen suomennos, 4 = jokin muu suomennos
+                SELECT id, sme_lemma, pos, subtype, finnish_translation,
+                       CASE WHEN PYLOWER(finnish_translation) = ? THEN 2
+                            WHEN PYLOWER(finnish_translation) LIKE ? THEN 3 ELSE 4 END
                 FROM dictionary
                 WHERE PYLOWER(finnish_translation) = ?
                    OR PYLOWER(finnish_translation) LIKE ?
                    OR PYLOWER(finnish_translation) LIKE ?
                    OR PYLOWER(finnish_translation) LIKE ?
                 UNION ALL
-                SELECT DISTINCT d.id, d.sme_lemma, d.pos, d.subtype, d.finnish_translation, 3
+                -- 5 = taivutusmuoto (manan -> mannat)
+                SELECT DISTINCT d.id, d.sme_lemma, d.pos, d.subtype, d.finnish_translation, 5
                 FROM paradigms p JOIN dictionary d ON p.word_id = d.id
                 WHERE p.surface COLLATE NOCASE IN (?, ?, ?, ?)
                 UNION ALL
-                SELECT id, sme_lemma, pos, subtype, finnish_translation, 4
+                -- 7 = perusmuoto alkaa hakusanalla
+                SELECT id, sme_lemma, pos, subtype, finnish_translation, 7
                 FROM dictionary WHERE PYLOWER(sme_lemma) LIKE ?
             )
             ORDER BY rank, CASE WHEN pos = 'V' THEN 1 ELSE 2 END, sme_lemma
             LIMIT 60
             """,
             (
+                query.strip(),
                 q_lower,
+                q_lower,
+                f"{q_lower},%",
                 q_lower,
                 f"{q_lower},%",       # Alkaa sanalla
                 f"%, {q_lower},%",    # Keskellä listaa
@@ -95,29 +107,39 @@ def query_database(query):
     return results
 
 def get_paradigms_from_db(word_id):
-    paradigm = {}
+    """Palauttaa (taivutusmuodot {tagi: [muodot]}, asteet {(tagi, muoto): "GD"/"HD"}, astevaihtelutiedot)."""
+    paradigm, grades, gradation = {}, {}, {}
     if not os.path.exists(DB_FILE):
-        return paradigm
+        return paradigm, grades, gradation
 
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
         
         cursor.execute(
-            "SELECT tag, surface FROM paradigms WHERE word_id = ? ORDER BY rowid",
+            "SELECT tag, surface, grade FROM paradigms WHERE word_id = ? ORDER BY rowid",
             (word_id,)
         )
-        for tag, surface in cursor.fetchall():
+        for tag, surface, grade in cursor.fetchall():
             if tag not in paradigm:
                 paradigm[tag] = []
             if surface not in paradigm[tag]:
                 paradigm[tag].append(surface)
+            if grade:
+                grades[(tag, surface)] = grade
+
+        row = cursor.execute(
+            "SELECT gradation, gd_cluster, hd_cluster, gradation_group, gradation_row FROM dictionary WHERE id = ?",
+            (word_id,)
+        ).fetchone()
+        if row and row[0]:
+            gradation = dict(zip(("summary", "strong", "weak", "group", "row"), row))
                 
         conn.close()
     except Exception as e:
         print(f"Taivutusvirhe tietokannasta: {e}")
         
-    return paradigm
+    return paradigm, grades, gradation
 
 POS_NAMES = {
     "V": "Verbi",
@@ -180,13 +202,14 @@ NEG_AUX_IMPRT = {
     "Pl1": "allot", "Pl2": "allet", "Pl3": "alloset"
 }
 
+# Saamen koulukieliopin sijataulukko: genetiivi ja akkusatiivi samalla rivillä (Gen/Akk).
+# Akkusatiivin muoto ensin, koska genetiivillä on lisäksi usein harvinaisempi rinnakkaismuoto (vieso).
 CASE_ROWS = [
-    ("Nominatiivi (Nom)", "Nom"),
-    ("Genetiivi (Gen)", "Gen"),
-    ("Akkusatiivi (Acc)", "Acc"),
-    ("Illatiivi (Ill)", "Ill"),
-    ("Lokatiivi (Loc)", "Loc"),
-    ("Komitatiivi (Com)", "Com"),
+    ("Nom", ["Nom"]),
+    ("Gen/Akk", ["Acc", "Gen"]),
+    ("Ill", ["Ill"]),
+    ("Lok", ["Loc"]),
+    ("Kom", ["Com"]),
 ]
 
 VERB_NONFINITE_ROWS = [
@@ -203,13 +226,17 @@ VERB_NONFINITE_ROWS = [
     ("Aktio (Ess)", "Actio+Ess"),
 ]
 
+# Astevaihtelun värit: GD = gievrras dássi (vahva aste), HD = headju dássi (heikko aste)
+GD_BG, GD_FG = "#dcfce7", "#166534"
+HD_BG, HD_FG = "#ffedd5", "#9a3412"
+
 UNINFLECTED_POS = ["ADV", "CC", "CS", "INTERJ", "PCLE", "PO", "PR", "CMP", "MWE"]
 
 class SatniGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Sátni FST - Pohjoissaamen avoin sanakirja ja taivutin")
-        self.root.geometry("1150x800")
+        self.root.geometry("1250x820")
         self.root.configure(bg="#f8fafc")
 
         self.header_frame = tk.Frame(root, bg="#ffffff", height=70, relief=tk.FLAT, bd=1)
@@ -298,6 +325,21 @@ class SatniGUI:
         )
         self.info_button.pack(side=tk.RIGHT, padx=5)
 
+        # Astevaihtelu: GD = gievrras dássi (vahva aste), HD = headju dássi (heikko aste)
+        self.show_grade = tk.BooleanVar(value=True)
+        self.grade_check = tk.Checkbutton(
+            self.search_frame,
+            text="Näytä aste (GD/HD)",
+            variable=self.show_grade,
+            font=("Sans", 10),
+            bg="#f8fafc",
+            fg="#0f172a",
+            activebackground="#f8fafc",
+            highlightthickness=0,
+            command=self.refresh_selected
+        )
+        self.grade_check.pack(side=tk.LEFT, padx=10)
+
         self.selection_bar_frame = tk.Frame(root, bg="#e2e8f0")
         self.selection_bar_frame.pack(fill=tk.X, padx=20, pady=5)
 
@@ -312,6 +354,8 @@ class SatniGUI:
 
         self.buttons_inner_frame = tk.Frame(self.selection_bar_frame, bg="#e2e8f0")
         self.buttons_inner_frame.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=4)
+        # Hakutulosnapit rivitetään ikkunan leveyden mukaan, myös ikkunan kokoa muutettaessa
+        self.buttons_inner_frame.bind("<Configure>", lambda e: self.layout_result_buttons())
 
         self.meta_frame = tk.Frame(root, bg="#ffffff", height=65, relief=tk.SOLID, bd=1)
         self.meta_frame.pack(fill=tk.X, padx=20, pady=5)
@@ -325,6 +369,10 @@ class SatniGUI:
             anchor="w"
         )
         self.meta_label.pack(side=tk.TOP, fill=tk.X, padx=15, pady=(8, 2))
+
+        # Astevaihtelu (oahpa.no/sme/gramm/tabell_stadieveksling.html), esim. dahkat (GD) → dagan (HD)
+        self.gradation_frame = tk.Frame(self.meta_frame, bg="#ffffff")
+        self.gradation_frame.pack(side=tk.TOP, fill=tk.X, padx=15, pady=(2, 4))
 
         self.behavior_label = tk.Label(
             self.meta_frame, 
@@ -358,6 +406,9 @@ class SatniGUI:
         self.setup_raw_view()
 
         self.current_results = []
+        self.last_query = ""
+        self.selected_idx = 0
+        self.grades = {}
 
     def load_sami_flag_image(self):
         possible_paths = [
@@ -436,6 +487,7 @@ class SatniGUI:
         if not query:
             return
 
+        self.last_query = query
         self.current_results = query_database(query)
         
         for widget in self.buttons_inner_frame.winfo_children():
@@ -443,11 +495,11 @@ class SatniGUI:
 
         if not self.current_results:
             self.meta_label.config(text=f"Ei osumia haulle: '{query}'")
+            self.render_gradation(None)
             self.behavior_label.config(text="")
             self.clear_tables()
             return
 
-        col_max = 6
         for idx, (word_id, lemma, pos, subtype, trans) in enumerate(self.current_results):
             # Karsitaan käyttöliittymän chip-napeissa näkyviä käännöksiä tarvittaessa siistiksi
             short_trans = ""
@@ -468,13 +520,39 @@ class SatniGUI:
                 pady=3,
                 command=lambda i=idx: self.select_word_option(i)
             )
-            r = idx // col_max
-            c = idx % col_max
-            btn.grid(row=r, column=c, padx=3, pady=3, sticky="w")
 
+        self.layout_result_buttons()
         self.select_word_option(0)
 
+    def layout_result_buttons(self):
+        """Asettelee hakutulosnapit vasemmalta oikealle ja aloittaa uuden rivin, kun leveys loppuu."""
+        buttons = self.buttons_inner_frame.winfo_children()
+        if not buttons:
+            self.buttons_inner_frame.config(height=1)
+            return
+        width = self.buttons_inner_frame.winfo_width()
+        if width <= 1:
+            width = self.root.winfo_width() - 150
+        gap = 6
+        x = y = row_height = 0
+        for btn in buttons:
+            w, h = btn.winfo_reqwidth(), btn.winfo_reqheight()
+            if x > 0 and x + w > width:
+                x, y = 0, y + row_height + gap
+                row_height = 0
+            btn.place(x=x, y=y)
+            x += w + gap
+            row_height = max(row_height, h)
+        new_height = y + row_height
+        if int(self.buttons_inner_frame.cget("height")) != new_height:
+            self.buttons_inner_frame.config(height=new_height)
+
+    def refresh_selected(self):
+        if self.current_results:
+            self.select_word_option(self.selected_idx)
+
     def select_word_option(self, selected_idx):
+        self.selected_idx = selected_idx
         word_id, lemma, pos, subtype, trans = self.current_results[selected_idx]
         for idx, widget in enumerate(self.buttons_inner_frame.winfo_children()):
             if idx == selected_idx:
@@ -491,10 +569,94 @@ class SatniGUI:
             display_trans = ", ".join(trans_parts[:2])
 
         self.meta_label.config(text=f"Saamen perusmuoto: {lemma}  |  Suomeksi: {display_trans if display_trans else '(ei määritetty)'}  |  Sanaluokka: {pos}")
-        self.behavior_label.config(text=f"Tyyppi: {behavior}")
+        paradigm, self.grades, gradation = get_paradigms_from_db(word_id)
 
-        paradigm = get_paradigms_from_db(word_id)
+        info = f"Tyyppi: {behavior}"
+        self.render_gradation(self.gradation_view(pos, paradigm, gradation))
+
+        # Jos haettiin taivutettua muotoa (esim. dagan), kerrotaan sen muoto ja aste
+        query = fold(self.last_query)
+        matches = []
+        for tag, surfaces in paradigm.items():
+            for surface in surfaces:
+                if fold(surface) == query:
+                    grade = self.grades.get((tag, surface))
+                    matches.append(f"{tag}" + (f" {grade}" if grade else ""))
+        if matches and query != fold(lemma):
+            info += f"  |  Haettu muoto {self.last_query}: {', '.join(dict.fromkeys(matches))}"
+        self.behavior_label.config(text=info)
+
         self.populate_tables(pos, lemma, paradigm)
+
+    def gradation_view(self, pos, paradigm, gradation):
+        """Astevaihtelun näyttötiedot: None (ei näytetä), {} (ei näkyvää vaihtelua) tai
+        {"gd": "dahkat", "hd": "dagan", "strong": "hk", "weak": "g", "group": ..., "row": [(arvo, aste), ...]}"""
+        if pos.upper() in UNINFLECTED_POS or not paradigm:
+            return None
+        if not gradation:
+            return {}
+
+        # Esimerkkimuodot: perusmuoto ja tavallisin vastakkaisen asteen muoto (verbeillä Sg1, nomineilla akk./gen.)
+        # (genetiivillä on usein kaksi muotoa, joista akkusatiivin muoto on tavallisempi: juolggi eikä juolgge)
+        preferred = ["Inf", "Sg+Nom", "Nom", "Ind+Prs+Sg1", "Sg+Acc", "Acc", "Sg+Gen", "Pl+Nom"]
+        tags = preferred + [t for t in paradigm if t not in preferred]
+        examples = {}
+        # Haettu taivutusmuoto (esim. dagan) esimerkiksi omalle asteelleen
+        query = fold(self.last_query)
+        for (tag, surface), grade in self.grades.items():
+            if fold(surface) == query:
+                examples.setdefault(grade, surface)
+        for tag in tags:
+            for surface in paradigm.get(tag, []):
+                grade = self.grades.get((tag, surface))
+                if grade and grade not in examples:
+                    examples[grade] = surface
+
+        # "hkk (III) · hk (II) · g (I)" -> [("hkk", "III"), ("hk", "II"), ("g", "I")]
+        row = [tuple(part.rstrip(")").split(" (")) for part in gradation["row"].split(" · ")]
+        return {
+            "gd": examples.get("GD", "-"), "hd": examples.get("HD", "-"),
+            "strong": gradation["strong"], "weak": gradation["weak"],
+            "group": gradation["group"], "row": row,
+        }
+
+    def render_gradation(self, view):
+        """Piirtää astevaihtelurivin: [Astevaihtelu] [GD dahkat] → [HD dagan]  hk → g  |  oahpa: ryhmä [hkk III][hk II][g I]"""
+        for widget in self.gradation_frame.winfo_children():
+            widget.destroy()
+        if view is None:
+            return
+
+        def text(t, fg="#0f172a", font=("Sans", 10), padx=(0, 6)):
+            tk.Label(self.gradation_frame, text=t, fg=fg, bg="#ffffff", font=font).pack(side=tk.LEFT, padx=padx)
+
+        def chip(t, bg, fg, font=("Sans", 10, "bold"), padx=(0, 6)):
+            tk.Label(self.gradation_frame, text=t, bg=bg, fg=fg, font=font, padx=6, pady=1).pack(side=tk.LEFT, padx=padx)
+
+        text("Astevaihtelu:", font=("Sans", 10, "bold"))
+        if not view:
+            text("ei näkyvää astevaihtelua", fg="#64748b", font=("Sans", 10, "italic"))
+            return
+
+        chip(f"GD  {view['gd']}", GD_BG, GD_FG)
+        text("→", fg="#64748b")
+        chip(f"HD  {view['hd']}", HD_BG, HD_FG, padx=(0, 18))
+        text(view["strong"], fg=GD_FG, font=("Sans", 12, "bold"), padx=(0, 4))
+        text("→", fg="#64748b", padx=(0, 4))
+        text(view["weak"], fg=HD_FG, font=("Sans", 12, "bold"), padx=(0, 18))
+
+        text("oahpa:", fg="#64748b", font=("Sans", 9), padx=(0, 4))
+        text(view["group"], fg="#64748b", font=("Sans", 9), padx=(0, 8))
+        # Sama kirjoitusasu voi esiintyä kahdessa asteessa (ss III, ss II); korostetaan vain ensimmäinen
+        strong_done = False
+        for value, quantity in view["row"]:
+            if value == view["strong"] and not strong_done:
+                strong_done = True
+                chip(f"{value} {quantity}", GD_BG, GD_FG, font=("Sans", 9, "bold"), padx=(0, 3))
+            elif value == view["weak"]:
+                chip(f"{value} {quantity}", HD_BG, HD_FG, font=("Sans", 9, "bold"), padx=(0, 3))
+            else:
+                chip(f"{value} {quantity}", "#f1f5f9", "#64748b", font=("Sans", 9), padx=(0, 3))
 
     def set_columns(self, headings_widths):
         for i, col in enumerate(("col1", "col2", "col3", "col4", "col5")):
@@ -513,18 +675,44 @@ class SatniGUI:
         self.raw_text.delete("1.0", tk.END)
         pos_upper = pos.upper()
 
-        def forms(tag):
-            return ", ".join(paradigm.get(tag, [])) or "-"
+        show_grade = self.show_grade.get()
+
+        def mark(tag, surface):
+            grade = self.grades.get((tag, surface)) if show_grade else None
+            return f"{surface} ({grade})" if grade else surface
+
+        def pairs(*tags):
+            # [(tagi, muoto), ...] annetuista tageista, sama muoto vain kerran (Gen/Akk: viesu)
+            result, seen = [], set()
+            for tag in tags:
+                for v in paradigm.get(tag, []):
+                    if v not in seen:
+                        seen.add(v)
+                        result.append((tag, v))
+            return result
+
+        def joined(items):
+            # Rinnakkaismuodot kauttaviivalla ja yhteinen aste vain kerran: dagalin / dagašin (HD)
+            grades = {self.grades.get(item) for item in items} if show_grade else {None}
+            if len(grades) == 1:
+                grade = grades.pop()
+                return " / ".join(v for _, v in items) + (f" ({grade})" if grade else "")
+            return " / ".join(mark(tag, v) for tag, v in items)
+
+        def forms(*tags):
+            items = pairs(*tags)
+            return joined(items) if items else "-"
 
         def with_pronoun(pronoun, tag, aux=""):
-            vals = paradigm.get(tag, [])
-            if not vals:
+            items = pairs(tag)
+            if not items:
                 return "-"
             words = " ".join(w for w in (pronoun, aux) if w)
-            return ", ".join(f"{words} {v}" if words else v for v in vals)
+            return f"{words} {joined(items)}" if words else joined(items)
 
-        def section(title):
-            self.tree.insert("", tk.END, values=(f"— {title} —", "", "", "", ""), tags=("section",))
+        def section(title, second_title=""):
+            # Otsikko sarakkeen 2 kohdalle (ja toinen sarakkeen 4 kohdalle), ettei se katkea kapeaan 1. sarakkeeseen
+            self.tree.insert("", tk.END, values=("", title, "", second_title, ""), tags=("section",))
 
         self.tree.tag_configure("section", background="#e2e8f0", font=("Sans", 10, "bold"))
 
@@ -536,11 +724,11 @@ class SatniGUI:
 
         if pos_upper == "V":
             self.set_columns([
-                ("Persoona", 90), ("Myönteinen", 230), ("Kielteinen", 250),
-                ("Myönteinen", 230), ("Kielteinen", 250),
+                ("Persoona", 60), ("Myönteinen", 300), ("Kielteinen", 230),
+                ("Myönteinen", 270), ("Kielteinen", 230),
             ])
 
-            section("Indikatiivi: preesens (sarakkeet 2–3) ja preteriti (sarakkeet 4–5)")
+            section("Indikatiivi – preesens", "Indikatiivi – preteriti")
             for p in PERSONS:
                 pron = PRONOUNS[p]
                 self.tree.insert("", tk.END, values=(
@@ -551,7 +739,7 @@ class SatniGUI:
                     with_pronoun(pron, "Ind+Prt+ConNeg", NEG_AUX[p]),
                 ))
 
-            section("Konditionaali (sarakkeet 2–3) ja potentiaali (sarakkeet 4–5)")
+            section("Konditionaali", "Potentiaali")
             for p in PERSONS:
                 pron = PRONOUNS[p]
                 self.tree.insert("", tk.END, values=(
@@ -573,7 +761,19 @@ class SatniGUI:
 
             section("Nominaalimuodot")
             for name, tag in VERB_NONFINITE_ROWS:
-                self.tree.insert("", tk.END, values=(name, forms(tag), "", "", ""))
+                # Nimi leveään 2. sarakkeeseen ja rinnakkaismuodot (gerundilla jopa 6) kaksittain sarakkeisiin 3–5
+                items = pairs(tag)
+                grades = {self.grades.get(item) for item in items} if show_grade else {None}
+                uniform = len(grades) == 1
+                chunks = [items[i:i + 2] for i in range(0, len(items), 2)][:3] or [[]]
+                cells = [" / ".join(v if uniform else mark(t, v) for t, v in chunk) for chunk in chunks]
+                cells[0] = cells[0] or "-"
+                if uniform and items:
+                    grade = grades.pop()
+                    if grade:
+                        cells[-1] += f" ({grade})"
+                cells += [""] * (3 - len(cells))
+                self.tree.insert("", tk.END, values=("", name, *cells))
 
         elif pos_upper in UNINFLECTED_POS:
             self.set_columns([("Käyttö / Tyyppi", 200), ("Perusmuoto", 500)])
@@ -581,27 +781,34 @@ class SatniGUI:
 
         elif "Sg+Nom" not in paradigm and "Pl+Nom" not in paradigm and "Nom" in paradigm:
             # Persoona- ja refleksiivipronominit: luku ja persoona kuuluvat jo perusmuotoon
-            self.set_columns([("Sijamuoto", 200), ("Muoto", 500)])
-            for case_name, case in CASE_ROWS + [("Essiivi (Ess)", "Ess")]:
-                self.tree.insert("", tk.END, values=(case_name, forms(case)))
+            self.set_columns([("Sijamuoto", 120), ("Muoto", 500)])
+            for case_name, cases in CASE_ROWS + [("Ess", ["Ess"])]:
+                self.tree.insert("", tk.END, values=(case_name, forms(*cases)))
 
         else:
             # Substantiivit, adjektiivit, numeraalit ja muut pronominit
-            self.set_columns([("Sijamuoto / Käyttö", 200), ("Yksikkö (Sg)", 300), ("Monikko (Pl)", 300)])
+            # ol. = ovttaidlohku (yksikkö), ml. = máŋggaidlohku (monikko)
+            self.set_columns([("Sijamuoto", 120), ("ol. (yksikkö)", 340), ("ml. (monikko)", 340)])
 
             if "Attr" in paradigm:
-                self.tree.insert("", tk.END, values=("Attribuutti (Attr)", forms("Attr"), ""))
+                self.tree.insert("", tk.END, values=("Attr", forms("Attr"), ""))
 
-            for case_name, case in CASE_ROWS:
-                self.tree.insert("", tk.END, values=(case_name, forms(f"Sg+{case}"), forms(f"Pl+{case}")))
-            self.tree.insert("", tk.END, values=("Essiivi (Ess)", forms("Ess"), ""))
+            for case_name, cases in CASE_ROWS:
+                self.tree.insert("", tk.END, values=(
+                    case_name,
+                    forms(*[f"Sg+{c}" for c in cases]),
+                    forms(*[f"Pl+{c}" for c in cases]),
+                ))
+            self.tree.insert("", tk.END, values=("Ess", forms("Ess"), ""))
 
             if pos_upper == "A" and any(t.startswith(("Comp", "Superl")) for t in paradigm):
                 section("Vertailumuodot")
                 self.tree.insert("", tk.END, values=("Komparatiivi", forms("Comp+Sg+Nom"), f"attr. {forms('Comp+Attr')}"))
                 self.tree.insert("", tk.END, values=("Superlatiivi", forms("Superl+Sg+Nom"), f"attr. {forms('Superl+Attr')}"))
 
-        raw_output = [f"{tag:30} -> {', '.join(surfaces)}" for tag, surfaces in paradigm.items()]
+        raw_output = [f"{tag:30} -> {', '.join(mark(tag, v) for v in surfaces)}" for tag, surfaces in paradigm.items()]
+        if any(self.grades.values()) and show_grade:
+            raw_output.insert(0, "GD = gievrras dássi (vahva aste), HD = headju dássi (heikko aste)\n")
         self.raw_text.insert(tk.END, "\n".join(raw_output) if raw_output else lemma)
 
     def clear_tables(self):
