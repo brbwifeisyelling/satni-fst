@@ -33,7 +33,9 @@ docker run --rm \
 
 # 2. AppImage-paketointi isäntäkoneella
 mkdir -p dist
-OUT="dist/Satni_FST-$VERSION-x86_64.AppImage"
+# Kiinteä nimi: päivitys korvaa vanhan tiedoston ja työpöytäpikakuvake pysyy toimivana.
+# Versio näkyy ohjelman Tietoa-ikkunassa ja AppImagen sisäisessä .desktop-tiedostossa.
+OUT="dist/Satni_FST-x86_64.AppImage"
 ARCH=x86_64 "$APPIMAGETOOL" --no-appstream "$CACHE_DIR/AppDir" "$OUT" || exit 1
 
 ls -la "$OUT"
