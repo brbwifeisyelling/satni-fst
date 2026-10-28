@@ -1199,7 +1199,23 @@ class SatniGUI:
         )
         close_btn.pack(pady=15)
 
+def self_test_tts():
+    """--testaa-aani: hakee äänen ilman välimuistia ja ilman toistoa (HTTPS- ja varmennetarkistus)."""
+    import tempfile
+    os.environ["XDG_CACHE_HOME"] = tempfile.mkdtemp()
+    os.environ["LOCALAPPDATA"] = os.environ["XDG_CACHE_HOME"]
+    try:
+        path = tts.fetch("bures", tts.DEFAULT_VOICE)
+        print(f"OK: ääni haettu ({os.path.getsize(path)} tavua)")
+        return 0
+    except Exception as e:
+        print(f"VIRHE: {e}")
+        return 1
+
+
 if __name__ == "__main__":
+    if "--testaa-aani" in sys.argv:
+        sys.exit(self_test_tts())
     root = tk.Tk()
     app = SatniGUI(root)
     root.mainloop()

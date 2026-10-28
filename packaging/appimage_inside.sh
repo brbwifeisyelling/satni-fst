@@ -12,7 +12,7 @@ mkdir -p "$HOME" "$WORK"
 [ -x "$WORK/venv/bin/python3" ] || python3 -m venv "$WORK/venv"
 . "$WORK/venv/bin/activate"
 pip install --quiet --upgrade pip
-pip install --quiet "pyinstaller==6.11.1" "pillow==11.0.0"
+pip install --quiet "pyinstaller==6.11.1" "pillow==11.0.0" "certifi==2024.8.30"
 
 # Ohjelma kansiomuodossa (--onedir käynnistyy nopeammin kuin --onefile AppImagen sisällä)
 pyinstaller --clean --noconfirm --windowed --onedir -n satni-fst \

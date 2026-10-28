@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import shutil
+import ssl
 import subprocess
 import sys
 import urllib.request
@@ -23,6 +24,33 @@ LINUX_PLAYERS = [
     ["aplay", "-q"],
     ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet"],
 ]
+
+
+# Linuxin varmennetiedostot eri jakeluissa. Paketoitu Python (AppImage on käännetty Debian 11:ssä)
+# etsii varmenteita vain Debianin polusta /usr/lib/ssl, jota esim. Arch/CachyOS:ssa ei ole.
+SYSTEM_CA_FILES = [
+    "/etc/ssl/certs/ca-certificates.crt",                 # Debian, Ubuntu, Arch, Gentoo
+    "/etc/pki/tls/certs/ca-bundle.crt",                   # Fedora, RHEL
+    "/etc/ssl/ca-bundle.pem",                             # openSUSE
+    "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",  # CentOS, RHEL
+    "/etc/ssl/cert.pem",                                  # Alpine, macOS
+]
+
+
+def ssl_context():
+    """HTTPS-yhteyden varmenteet: ensisijaisesti ohjelman mukana tuleva certifi, sitten järjestelmän tiedosto."""
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except (ImportError, OSError):
+        pass
+    context = ssl.create_default_context()
+    if sys.platform != "win32":  # Windows käyttää omaa varmennevarastoaan
+        for path in SYSTEM_CA_FILES:
+            if os.path.exists(path):
+                context.load_verify_locations(cafile=path)
+                break
+    return context
 
 
 def cache_dir():
@@ -51,7 +79,7 @@ def fetch(text, voice=DEFAULT_VOICE):
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+    with urllib.request.urlopen(request, timeout=TIMEOUT, context=ssl_context()) as response:
         audio = response.read()
     if not audio.startswith(b"RIFF"):
         raise RuntimeError("palvelu ei palauttanut äänitiedostoa")
