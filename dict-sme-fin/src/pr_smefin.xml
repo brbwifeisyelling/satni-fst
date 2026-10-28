@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet media="screen"              title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary_XXE.css"     type="text/css"?>
+<?xml-stylesheet media="screen"              title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_XXE_alt.css" type="text/css" alternate="yes" ?>
+<?xml-stylesheet media="print,tv,projection" title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary.css"         type="text/css"?>
+<?xml-stylesheet media="print,tv,projection" title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_alt.css"     type="text/css" alternate="yes" ?>
+<!DOCTYPE r PUBLIC "-//DivvunGiellatekno//DTD Dictionaries//Multilingual" "../dtd/smefin.dtd">
+<r xmlns:xhtml="http://www.w3.org/1999/xhtml" id="smefin" xml:lang="sme">
+  <lics xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:space="preserve">
+      <lic xml:lang="en">
+This code is made available under a Creative Commons Attribution license
+<a>http://creativecommons.org/licenses/by/3.0/no/deed.en</a>.
+
+You are free to copy, distribute and adapt the work, as long as you always give
+proper attribution using the attribution text below.
+
+For the full license text, see the link above.</lic>
+      <ref>Work by Giellatekno at UiT, Kotus in Helsinki,
+          and members of the language communities. Source code
+          available at <a>https://victorio.uit.no/langtech/trunk/</a>.</ref>
+      <sourcenote>
+     THIS TEXT IS THE ORIGINAL SOURCE CODE. This is NOT a fully styled and
+     published dictionary. As such it can and
+     will contain unfinished entries, unpublished entries, entries with
+     objectionable translations, etc. If you find any errors or want to add more
+     words, download the file, edit it, and send it back to
+     <a>mailto:giellatekno@hum.uit.no</a>.
+     Please also note that the entries are not necessarily sorted,
+     or could be wrongly sorted.
+     </sourcenote>
+   </lics>
+  <e>
+    <lg>
+      <l pos="Pr">badjel</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pr">yli</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pr">birra</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pr">ympäri</t>
+        <t pos="Pr">ympärillä</t>
+        <xg>
+          <x>Sus lei vierru čuoigat birra ealu.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pr">maŋŋá</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pr">jälkeen</t>
+        <xg>
+          <x>Guossit buohccájedje dakka maŋŋá doaluid.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Ánde lei bargagoahtán snihkkárin dalá maŋŋá soađi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pr">ovdal</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pr">ennen</t>
+        <t pos="Pr">aikaisemmin</t>
+        <xg>
+          <x>Áddjá bođii juo ovdal juovllaid.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pr">guovdelaš</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Adv">keskellä</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pr">earret</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Po">paitsi</t>
+        <xg>
+          <x>Buohkat bohte earret Niillasa.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+</r>

@@ -1,0 +1,7 @@
+python3 bump_version.py || exit 1
+# PyInstallerin väliaikaiset tiedostot välimuistikansioon, ei Seafile-synkronoituun projektikansioon
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/satni-fst-build"
+mkdir -p "$CACHE_DIR" || exit 1
+wine python -m PyInstaller --clean --workpath "$(winepath -w "$CACHE_DIR/windows")" --noconsole --onefile -n satni-fst --icon="sami_icon.ico" --hidden-import="PIL._tkinter_finder" --add-data "satni.db;." --add-data "Sami_flag.svg.webp;." gui.py || exit 1
+# Linux-versio AppImagena (yksittäinen Linux-binääri: build_bin.sh, vain erikseen pyydettäessä)
+SKIP_VERSION_BUMP=1 ./build_appimage.sh || exit 1

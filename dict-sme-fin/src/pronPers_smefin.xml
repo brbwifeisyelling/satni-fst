@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet media="screen"              title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary_XXE.css"     type="text/css"?>
+<?xml-stylesheet media="screen"              title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_XXE_alt.css" type="text/css" alternate="yes" ?>
+<?xml-stylesheet media="print,tv,projection" title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary.css"         type="text/css"?>
+<?xml-stylesheet media="print,tv,projection" title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_alt.css"     type="text/css" alternate="yes" ?>
+<!DOCTYPE r PUBLIC "-//DivvunGiellatekno//DTD Dictionaries//Multilingual" "../dtd/smefin.dtd">
+<r xmlns:xhtml="http://www.w3.org/1999/xhtml" id="smefin" xml:lang="sme">
+  <lics xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:space="preserve">
+      <lic xml:lang="en">
+This code is made available under a Creative Commons Attribution license
+<a>http://creativecommons.org/licenses/by/3.0/no/deed.en</a>.
+
+You are free to copy, distribute and adapt the work, as long as you always give
+proper attribution using the attribution text below.
+
+For the full license text, see the link above.</lic>
+      <ref>Work by Giellatekno at UiT, Kotus in Helsinki,
+          and members of the language communities. Source code
+          available at <a>https://victorio.uit.no/langtech/trunk/</a>.</ref>
+      <sourcenote>
+     THIS TEXT IS THE ORIGINAL SOURCE CODE. This is NOT a fully styled and
+     published dictionary. As such it can and
+     will contain unfinished entries, unpublished entries, entries with
+     objectionable translations, etc. If you find any errors or want to add more
+     words, download the file, edit it, and send it back to
+     <a>mailto:giellatekno@hum.uit.no</a>.
+     Please also note that the entries are not necessarily sorted,
+     or could be wrongly sorted.
+     </sourcenote>
+   </lics>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">dat</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">se</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <re>puhek.</re>
+        <t pos="Pron">hän</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">dii</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">te</t>
+        <xg>
+          <x>dii lehpet</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Dis lea beana.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">doai</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">te kaksi</t>
+        <xg>
+          <x>doai leahppi</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Dudnos lea beana.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">don</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">sinä</t>
+        <xg>
+          <x>Dus lea gusto stuora beana.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">mii</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">me</t>
+        <xg>
+          <x>mii leat</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Mis lea beana.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">moai</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">me kaksi</t>
+        <xg>
+          <x>moai letne</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Munnos lea beana.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">mun</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">minä</t>
+        <xg>
+          <x>mun lean</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Mus lea beana.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">sii</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">he</t>
+        <xg>
+          <x>sii leat</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Sis lea beana.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">soai</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">he</t>
+        <xg>
+          <x>soai leaba</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Sudnos lea beana.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Pers">son</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">hän</t>
+        <xg>
+          <x>Son liiko stoahkat.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Sus lea ođđa beaivegirji.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+</r>

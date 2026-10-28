@@ -1,0 +1,19 @@
+# Generoidut tiedostot: luodaan uudelleen skripteillä, ei versionhallintaan
+
+# Tietokanta (import_full_dict.py luo XML:stä ja FST:stä, ~4 min)
+satni.db
+sanakirja.db
+
+# Buildien tulokset ja väliaikaiset tiedostot
+dist/
+build/
+*.spec
+version.py
+build_number.txt
+
+# Python
+__pycache__/
+*.pyc
+
+# Vanhat testitulosteet
+tulokset.txt

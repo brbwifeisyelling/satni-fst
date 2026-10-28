@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet media="screen"              title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary_XXE.css"     type="text/css"?>
+<?xml-stylesheet media="screen"              title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_XXE_alt.css" type="text/css" alternate="yes" ?>
+<?xml-stylesheet media="print,tv,projection" title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary.css"         type="text/css"?>
+<?xml-stylesheet media="print,tv,projection" title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_alt.css"     type="text/css" alternate="yes" ?>
+<!DOCTYPE r PUBLIC "-//DivvunGiellatekno//DTD Dictionaries//Multilingual" "../dtd/smefin.dtd">
+<r xmlns:xhtml="http://www.w3.org/1999/xhtml" id="smefin" xml:lang="sme">
+  <lics xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:space="preserve">
+      <lic xml:lang="en">
+This code is made available under a Creative Commons Attribution license
+<a>http://creativecommons.org/licenses/by/3.0/no/deed.en</a>.
+
+You are free to copy, distribute and adapt the work, as long as you always give
+proper attribution using the attribution text below.
+
+For the full license text, see the link above.</lic>
+      <ref>Work by Giellatekno at UiT, Kotus in Helsinki,
+          and members of the language communities. Source code
+          available at <a>https://victorio.uit.no/langtech/trunk/</a>.</ref>
+      <sourcenote>
+     THIS TEXT IS THE ORIGINAL SOURCE CODE. This is NOT a fully styled and
+     published dictionary. As such it can and
+     will contain unfinished entries, unpublished entries, entries with
+     objectionable translations, etc. If you find any errors or want to add more
+     words, download the file, edit it, and send it back to
+     <a>mailto:giellatekno@hum.uit.no</a>.
+     Please also note that the entries are not necessarily sorted,
+     or could be wrongly sorted.
+     </sourcenote>
+   </lics>
+  <e>
+    <lg>
+      <l pos="CC">ahte</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">että</t>
+        <xg>
+          <x>eanet ahte eanet</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Ruhta šaddá deaŧalaččat ahte deaŧalaččat.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">dahe</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">taikka</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">dahje</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">taikka</t>
+        <xg>
+          <x>Buohkat ledje gávdnan biktasiid dahje eará dávviriid maid háliidedje oastit.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">daihe</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">taikka</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">daikke</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">taikka</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">ja</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">ja</t>
+        <xg>
+          <x>Dat lea sihke buorre ja heittot.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">muhto</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">mutta</t>
+        <xg>
+          <x>Mun sáhtán áinnas veahkehit du, muhto odne in astta.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">vaikke</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">vaikka</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">vaikko</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">vaikka</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">sihke</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">sekä</t>
+        <xg>
+          <x>Dat lea sihke buorre ja heittot.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">dehe</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">tai</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">vai</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="CC">vai</t>
+        <xg>
+          <x>Leat go don dat guhte galgá boahtit, vai galgat go vuordit muhtun eará?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Siđat go gáfe vai deaja?</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">dainnago</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">sillä</t>
+        <t pos="Adv">koska</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">daningo</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Adv">koska</t>
+        <t pos="Pron">sillä</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">dannego</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Adv">koska</t>
+        <t pos="Pron">sillä</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">dasgo</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">sillä</t>
+        <t pos="Adv">koska</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">dassáigo</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Adv">kunnes</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">dassážiigo</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Adv">kunnes</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">duššego</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">josko</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="CC">gosa</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Adv">johon</t>
+        <t pos="Adv">jonne</t>
+        <t pos="Adv">mihin</t>
+        <t pos="Adv">minne</t>
+      </tg>
+    </mg>
+  </e>
+</r>

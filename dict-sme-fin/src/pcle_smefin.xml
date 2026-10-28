@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet media="screen"              title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary_XXE.css"     type="text/css"?>
+<?xml-stylesheet media="screen"              title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_XXE_alt.css" type="text/css" alternate="yes" ?>
+<?xml-stylesheet media="print,tv,projection" title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary.css"         type="text/css"?>
+<?xml-stylesheet media="print,tv,projection" title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_alt.css"     type="text/css" alternate="yes" ?>
+<!DOCTYPE r PUBLIC "-//DivvunGiellatekno//DTD Dictionaries//Multilingual" "../dtd/smefin.dtd">
+<r xmlns:xhtml="http://www.w3.org/1999/xhtml" id="smefin" xml:lang="sme">
+  <lics xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:space="preserve">
+      <lic xml:lang="en">
+This code is made available under a Creative Commons Attribution license
+<a>http://creativecommons.org/licenses/by/3.0/no/deed.en</a>.
+
+You are free to copy, distribute and adapt the work, as long as you always give
+proper attribution using the attribution text below.
+
+For the full license text, see the link above.</lic>
+      <ref>Work by Giellatekno at UiT, Kotus in Helsinki,
+          and members of the language communities. Source code
+          available at <a>https://victorio.uit.no/langtech/trunk/</a>.</ref>
+      <sourcenote>
+     THIS TEXT IS THE ORIGINAL SOURCE CODE. This is NOT a fully styled and
+     published dictionary. As such it can and
+     will contain unfinished entries, unpublished entries, entries with
+     objectionable translations, etc. If you find any errors or want to add more
+     words, download the file, edit it, and send it back to
+     <a>mailto:giellatekno@hum.uit.no</a>.
+     Please also note that the entries are not necessarily sorted,
+     or could be wrongly sorted.
+     </sourcenote>
+   </lics>
+  <e>
+    <lg>
+      <l pos="Pcle">aitto</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">-pa</t>
+        <t pos="Pcle">-pä</t>
+        <t pos="Pcle">-han</t>
+        <t pos="Pcle">-hän</t>
+        <xg>
+          <x>Mo dal aitto geavvá?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Lean aitto doaibmagoahtán hárjeheaddjin, ja in leat vuos nu čeahppi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">ammal</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">juo</t>
+        <t t_type="phrase">kyllä kai</t>
+        <xg>
+          <x>Smihtten ahte ammal dál lea mu vuorru vuoitit fatnasa.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Mun vuolggán krossabánii,	ammal dál leat doppe olbmot.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Muhto ammal sii háliidedje addit turisttaide eksohtalaš vásáhusa.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">goit</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">kuitenkin</t>
+        <xg>
+          <x>Máret goit boahtá.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">ainakin</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">goittotge</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">kuitenkin</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">ainakin</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">mis</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">tosiaan</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">na</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">no</t>
+        <xg>
+          <x>Almmuhuvvo go girji sámegillii, na dan ii dieđe oktage.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Muhto eat doaivvo guhká gal vejolažžan na dahkat, leaš go šat vejolaš obanassiige.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Jus dus nai lea muhtun geasa áiggut skeaŋkka oastit, na de heive hui bures odne oastit girjji ja
+               ruvssu.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">no</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">no</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">nuba</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">niinpä</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">nai</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">myös</t>
+        <xg>
+          <x>Máret nai boahtá.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">amas</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">jotta</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <re>kiellon yhteydessä</re>
+        <t pos="Pcle">että</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">jottei</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">ammat</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">eikös</t>
+        <t t_type="phrase">eikös niin</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <re>sitä on tapana</re>
+        <t pos="Pcle">niinhän</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">gait</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">kaikkein</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">gis</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">puolestaan</t>
+        <xg>
+          <x>de son gis</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Kárášjogas oahppit fitne maiddái duoddaris, Oslos gis besse fitnat erenoamáš turistabáikkiin.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">vuorostaan</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">taas</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">-kin</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">hal</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <re>painottomana</re>
+        <t pos="Pcle">nyt</t>
+        <xg>
+          <x>amma hal lea nu, ahte… </x>
+          <xt>eiköhän ole niin, että</xt>
+        </xg>
+        <xg>
+          <x>Máhtte logai ahte ii hal son goit dan oaivvildan.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Ii hal dohko goit vuolgge?</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">hás</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">-ko</t>
+        <xg>
+          <x>Hás it njuike fárrui!</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Hás moai vulge duohko.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t t_type="phrase">-kö sittenkin</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t t_type="phrase">-kä tosiaan</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t t_type="phrase">saat uskoa, että</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">joska</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">ammahal</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t>eiköhän</t>
+        <t pos="Adv">varmaankin</t>
+        <xg>
+          <x>Son leaikkastallá vel ahte ammahal Norgga stáda ii oba dovdda ge dála márkaniid.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Ammahal dál rohkkáha mu?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Ammahal sii galget diehtit gos leat ovddeš johtolagat.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Ammahal dál doaibmá go measta buohkat stivrras leat eret seamma báikkis.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">-ba</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t>-pa</t>
+        <t>-pä</t>
+        <xg>
+          <x>leabahan dat lossat</x>
+          <xt>onpa se painava</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">-bat</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t>-kos</t>
+        <t>-kös</t>
+        <xg>
+          <x>boahtábat son deike?</x>
+          <xt>tuleekos hän tänne?</xt>
+        </xg>
+        <xg>
+          <x>finaibat Sire dáppe?</x>
+          <xt>kävikös Siiri täällä?</xt>
+        </xg>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t>-ko</t>
+        <t>-kö</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">dat</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">se</t>
+        <xg>
+          <x>Dievasčoahkkin dat mearrida bušeahta.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">hän</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">galahan</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Adv">kyllähän</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">goittot</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">kuitenkin</t>
+        <xg>
+          <x>vulggii goittot</x>
+          <xt>lähti kuitenkin</xt>
+        </xg>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Adv">ainakin</t>
+      </tg>
+    </mg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pcle">vähintään</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">-han</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t>-han</t>
+        <t>-hän</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">lági</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Po">päinsä</t>
+        <xg>
+          <x>geavvat lági</x>
+          <xt>käydä päinsä</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">-mes</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t>-pa</t>
+        <t>-pä</t>
+        <t pos="Pcle">oikeastaan</t>
+        <xg>
+          <x>muitalmes!</x>
+          <xt>kerropa!</xt>
+        </xg>
+        <xg>
+          <x>nuhan datmes leige</x>
+          <xt>niinhän se oikeastaan olikin</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">-nai</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t>-kin</t>
+        <xg>
+          <x>sunai oidnen doppe</x>
+          <xt>hänetkin näin siellä</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">nu</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Adv">niin</t>
+        <xg>
+          <x>aiddo nu</x>
+          <xt>juuri niin</xt>
+        </xg>
+        <xg>
+          <x>amma nu?</x>
+          <xt>eikö niin?</xt>
+        </xg>
+        <xg>
+          <x>nu fal!</x>
+          <xt>juuri niin!</xt>
+        </xg>
+        <xg>
+          <x>mii nu</x>
+          <xt>jokin (esineistä)</xt>
+        </xg>
+        <xg>
+          <x>gii nu</x>
+          <xt>joku (ihmisestä)</xt>
+        </xg>
+        <xg>
+          <x>gokko nu</x>
+          <xt>jotakin kautta</xt>
+        </xg>
+        <xg>
+          <x>geasa nu</x>
+          <xt>jollekin (ihmisestä)</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">son</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">hän</t>
+        <xg>
+          <x>Maid son Issát jurddaša?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Boahtá go son Ánne ihttin?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Lea go son dát riekta?</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pcle">-son</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <re>kysymyksissä</re>
+        <t>-han</t>
+        <t>-hän</t>
+        <xg>
+          <x>gosason dat manai?</x>
+          <xt>mihinkähän se meni?</xt>
+        </xg>
+        <xg>
+          <x>geasason mun muitalivččen?</x>
+          <xt>kenelleköhän minä kertoisin?</xt>
+        </xg>
+        <xg>
+          <x>iigoson dat ordnašuva?</x>
+          <xt>eiköhän se järjesty?</xt>
+        </xg>
+        <xg>
+          <x>leagoson dat duohta?</x>
+          <xt>onkohan se totta?</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+</r>
