@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # Kasvattaa build-numeroa ja kirjoittaa version.py-tiedoston, jonka gui.py lukee.
-# Versio on muotoa 0.1.VVVVKKPP.N, jossa N on päivän juokseva build-numero (1, 2, 3...).
+# Versio on muotoa 0.2.VVVVKKPP.N, jossa N on päivän juokseva build-numero (1, 2, 3...).
 import os
 import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_VERSION = "0.1"
+BASE_VERSION = "0.2"
 COUNTER_FILE = os.path.join(SCRIPT_DIR, "build_number.txt")
 VERSION_FILE = os.path.join(SCRIPT_DIR, "version.py")
 
