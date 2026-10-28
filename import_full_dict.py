@@ -90,8 +90,58 @@ def detect_pos(raw_pos, filename):
     return "N"
 
 
+XML_LANG = '{http://www.w3.org/XML/1998/namespace}lang'
+
+
+def _clean(text):
+    return " ".join(text.split()) if text else ""
+
+
+def parse_meaning(mg):
+    """Yksi merkitysryhmä <mg>: suomennokset, selitykset, käyttörajoitus (<re>), tunnisteet (<gramm>),
+    alue (<geo>: N = Norja, S = Suomi, R = Ruotsi) ja esimerkkilauseet (<xg>)."""
+    meaning = {"translations": [], "explanations": [], "restrictions": [], "labels": [], "geo": [], "examples": []}
+    for tg in mg.findall('tg'):
+        lang = tg.get(XML_LANG)
+        if lang and lang != "fin":
+            continue
+        for t_elem in tg.findall('t'):
+            text = fix_finnish_text(_clean(t_elem.text))
+            if not text:
+                continue
+            # t_type="expl" on selitys (esim. "naisen nimi"), ei varsinainen käännös
+            target = meaning["explanations"] if t_elem.get('t_type') == "expl" else meaning["translations"]
+            if t_elem.get('dial'):
+                text += f" ({t_elem.get('dial')})"
+            if text not in target:
+                target.append(text)
+        for re_elem in tg.findall('re'):
+            text = fix_finnish_text(_clean(re_elem.text))
+            if text and text not in meaning["restrictions"]:
+                meaning["restrictions"].append(text)
+        for gramm in tg.findall('gramm'):
+            text = _clean(gramm.text)
+            # gramm-kentässä toistuu usein aluekoodi (N/S/R) tai pelkkä "-"
+            if text and text not in ("-", "N", "S", "R") and text not in meaning["labels"]:
+                meaning["labels"].append(text)
+        for geo in tg.findall('geo'):
+            text = _clean(geo.text)
+            if text and text not in meaning["geo"]:
+                meaning["geo"].append(text)
+        for xg in tg.findall('xg'):
+            sme = _clean(xg.findtext('x'))
+            fin = fix_finnish_text(_clean(xg.findtext('xt')))
+            if fin == "_FIN_":  # käännöspaikka, jota ei ole täytetty
+                fin = ""
+            src = _clean((xg.find('x').get('src') if xg.find('x') is not None else "") or "")
+            if sme:
+                meaning["examples"].append((sme, fin, src))
+    return meaning
+
+
 def parse_xml_dictionaries():
-    # Sama lemma + sanaluokka + alaluokka yhdistetään yhdeksi riviksi, käännökset kerätään yhteen
+    """Palauttaa (sanat, lisätiedot). Sama lemma + sanaluokka + alaluokka yhdistetään yhdeksi riviksi,
+    käännökset kerätään yhteen. Lisätiedot: {(lemma, pos, alaluokka): {"meanings": [...], "freq": n, "notes": [...]}}"""
     entries = {}
     xml_files = sorted(glob.glob(os.path.join(XML_DIR, "*.xml")))
 
@@ -117,26 +167,41 @@ def parse_xml_dictionaries():
 
             key = (lemma, pos, subtype)
             if key not in entries:
-                entries[key] = {"sem_type": sem_type, "translations": []}
-            translations = entries[key]["translations"]
+                entries[key] = {"sem_type": sem_type, "translations": [], "meanings": [], "freq": None, "notes": []}
+            data = entries[key]
 
-            for tg in entry.findall('mg/tg'):
-                lang = tg.get('{http://www.w3.org/XML/1998/namespace}lang')
-                if lang and lang != "fin":
-                    continue
-                for t_elem in tg.findall('t'):
-                    if t_elem.text:
-                        t_text = fix_finnish_text(" ".join(t_elem.text.split()))
-                        if t_text and t_text not in translations:
-                            translations.append(t_text)
+            for mg in entry.findall('mg'):
+                meaning = parse_meaning(mg)
+                if any(meaning[k] for k in ("translations", "explanations", "examples")):
+                    data["meanings"].append(meaning)
+                for text in meaning["translations"] + meaning["explanations"]:
+                    if text not in data["translations"]:
+                        data["translations"].append(text)
 
-    return [
+            # Sanatason tiedot: yleisyys, murre, johdos, monikkosana
+            freq = entry.find('lg').get('freq')
+            if freq and freq.isdigit():
+                data["freq"] = max(int(freq), data["freq"] or 0)
+            notes = []
+            if lemma_elem.get('dial'):
+                notes.append(f"murre: {lemma_elem.get('dial')}")
+            if lemma_elem.get('ader'):
+                notes.append(f"johdettu sanasta {lemma_elem.get('ader')}")
+            if lemma_elem.get('nr') == "Pl":
+                notes.append("monikkosana")
+            for note in notes:
+                if note not in data["notes"]:
+                    data["notes"].append(note)
+
+    words = [
         (lemma, pos, subtype, data["sem_type"], ", ".join(data["translations"]))
         for (lemma, pos, subtype), data in entries.items()
     ]
+    details = {key: {k: data[k] for k in ("meanings", "freq", "notes")} for key, data in entries.items()}
+    return words, details
 
 
-def apply_corrections(words):
+def apply_corrections(words, details):
     """Soveltaa korjaukset.tsv-tiedoston käsin tehdyt korjaukset XML:stä luettuihin sanoihin."""
     if not os.path.exists(CORRECTIONS_FILE):
         return words
@@ -164,12 +229,19 @@ def apply_corrections(words):
             if corrections[key] == "-":
                 continue
             trans = corrections[key]
+            # Korjattu suomennos korvaa XML:n merkitykset
+            details.setdefault((lemma, pos, subtype), {"freq": None, "notes": []})["meanings"] = [
+                {"translations": [trans], "explanations": [], "restrictions": [], "labels": [], "geo": [], "examples": []}
+            ]
         result.append((lemma, pos, subtype, sem_type, trans))
 
     # Korjaustiedoston sanat, joita XML:ssä ei ollut, lisätään uusina
     for (lemma, pos), trans in corrections.items():
         if (lemma, pos) not in applied and trans != "-":
             result.append((lemma, pos, "", "", trans))
+            details[(lemma, pos, "")] = {"freq": None, "notes": [], "meanings": [
+                {"translations": [trans], "explanations": [], "restrictions": [], "labels": [], "geo": [], "examples": []}
+            ]}
     print(f"Sovellettiin {len(corrections)} korjausta tiedostosta korjaukset.tsv.")
     return result
 
@@ -345,7 +417,8 @@ def main():
             print(f"FST-tiedostoa ei löydy: {path}")
             return
 
-    words_list = apply_corrections(parse_xml_dictionaries())
+    words_list, details = parse_xml_dictionaries()
+    words_list = apply_corrections(words_list, details)
     print(f"Löytyi yhteensä {len(words_list)} uniikkia sanaa XML-tiedostoista.")
     if not words_list:
         return
@@ -374,7 +447,32 @@ def main():
             pos TEXT,
             subtype TEXT,
             fst_tags TEXT,
-            finnish_translation TEXT
+            finnish_translation TEXT,
+            freq INTEGER,
+            notes TEXT
+        )
+    ''')
+    # Merkitysryhmät (<mg>) ja niiden esimerkkilauseet (<xg>)
+    cursor.execute('''
+        CREATE TABLE meanings (
+            word_id INTEGER,
+            nr INTEGER,
+            translations TEXT,
+            explanations TEXT,
+            restrictions TEXT,
+            labels TEXT,
+            geo TEXT,
+            FOREIGN KEY(word_id) REFERENCES dictionary(id)
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE examples (
+            word_id INTEGER,
+            meaning_nr INTEGER,
+            sme TEXT,
+            fin TEXT,
+            source TEXT,
+            FOREIGN KEY(word_id) REFERENCES dictionary(id)
         )
     ''')
     cursor.execute('''
@@ -391,11 +489,25 @@ def main():
     stats = {}
     for lemma, pos, subtype, _, trans in sorted(words_list):
         word_prefixes = prefixes.get((lemma, pos, subtype), [])
+        info = details.get((lemma, pos, subtype), {})
         cursor.execute(
-            "INSERT INTO dictionary (sme_lemma, pos, subtype, fst_tags, finnish_translation) VALUES (?, ?, ?, ?, ?)",
-            (lemma, pos, subtype, " | ".join(word_prefixes), trans)
+            "INSERT INTO dictionary (sme_lemma, pos, subtype, fst_tags, finnish_translation, freq, notes) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (lemma, pos, subtype, " | ".join(word_prefixes), trans, info.get("freq"), "; ".join(info.get("notes", [])))
         )
         w_id = cursor.lastrowid
+
+        for nr, meaning in enumerate(info.get("meanings", []), 1):
+            cursor.execute(
+                "INSERT INTO meanings (word_id, nr, translations, explanations, restrictions, labels, geo) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (w_id, nr, ", ".join(meaning["translations"]), ", ".join(meaning["explanations"]),
+                 "; ".join(meaning["restrictions"]), ", ".join(meaning["labels"]), ",".join(meaning["geo"]))
+            )
+            cursor.executemany(
+                "INSERT INTO examples (word_id, meaning_nr, sme, fin, source) VALUES (?, ?, ?, ?, ?)",
+                [(w_id, nr, sme, fin, src) for sme, fin, src in meaning["examples"]]
+            )
 
         rows = []
         for prefix in word_prefixes:
@@ -419,6 +531,8 @@ def main():
     cursor.execute("CREATE INDEX idx_lemma ON dictionary(sme_lemma COLLATE NOCASE);")
     cursor.execute("CREATE INDEX idx_trans ON dictionary(finnish_translation);")
     cursor.execute("CREATE INDEX idx_paradigms_word_id ON paradigms(word_id);")
+    cursor.execute("CREATE INDEX idx_meanings_word_id ON meanings(word_id);")
+    cursor.execute("CREATE INDEX idx_examples_word_id ON examples(word_id);")
     cursor.execute("CREATE INDEX idx_paradigms_surface ON paradigms(surface COLLATE NOCASE);")
 
     conn.commit()

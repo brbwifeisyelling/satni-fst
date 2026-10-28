@@ -141,6 +141,37 @@ def get_paradigms_from_db(word_id):
         
     return paradigm, grades, gradation
 
+def get_word_details(word_id):
+    """Palauttaa (merkitykset, sanatason huomautukset). Merkitys:
+    {"nr", "translations", "explanations", "restrictions", "labels", "geo", "examples": [(saame, suomi, lähde)]}"""
+    meanings, notes = [], ""
+    if not os.path.exists(DB_FILE):
+        return meanings, notes
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        examples = {}
+        for nr, sme, fin, source in cursor.execute(
+            "SELECT meaning_nr, sme, fin, source FROM examples WHERE word_id = ? ORDER BY rowid", (word_id,)
+        ):
+            examples.setdefault(nr, []).append((sme, fin, source))
+        for row in cursor.execute(
+            "SELECT nr, translations, explanations, restrictions, labels, geo FROM meanings WHERE word_id = ? ORDER BY nr",
+            (word_id,)
+        ):
+            meaning = dict(zip(("nr", "translations", "explanations", "restrictions", "labels", "geo"), row))
+            meaning["examples"] = examples.get(meaning["nr"], [])
+            meanings.append(meaning)
+        row = cursor.execute("SELECT notes FROM dictionary WHERE id = ?", (word_id,)).fetchone()
+        notes = (row[0] or "") if row else ""
+        conn.close()
+    except Exception as e:
+        print(f"Merkitysvirhe tietokannasta: {e}")
+    return meanings, notes
+
+# Sanakirjan aluekoodit (<geo>): missä maassa sana on käytössä
+GEO_NAMES = {"N": "Norjassa", "S": "Suomessa", "R": "Ruotsissa"}
+
 POS_NAMES = {
     "V": "Verbi",
     "N": "Substantiivi (Yleisnimi)",
@@ -399,10 +430,14 @@ class SatniGUI:
         self.tab_table = tk.Frame(self.notebook, bg="#ffffff")
         self.notebook.add(self.tab_table, text=" Taulukkonäkymä ")
 
+        self.tab_meanings = tk.Frame(self.notebook, bg="#ffffff")
+        self.notebook.add(self.tab_meanings, text=" Merkitykset ja esimerkit ")
+
         self.tab_raw = tk.Frame(self.notebook, bg="#ffffff")
         self.notebook.add(self.tab_raw, text=" Muut taivutukset / Raakateksti ")
 
         self.setup_table_view()
+        self.setup_meanings_view()
         self.setup_raw_view()
 
         self.current_results = []
@@ -463,6 +498,86 @@ class SatniGUI:
 
         self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    def setup_meanings_view(self):
+        container = tk.Frame(self.tab_meanings, bg="#ffffff")
+        container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        self.meanings_text = tk.Text(
+            container,
+            font=("Sans", 11),
+            bg="#ffffff",
+            fg="#0f172a",
+            relief=tk.FLAT,
+            wrap=tk.WORD,
+            padx=12,
+            pady=8,
+            spacing1=2,
+            cursor="arrow"
+        )
+        scrollbar = ttk.Scrollbar(container, orient=tk.VERTICAL, command=self.meanings_text.yview)
+        self.meanings_text.configure(yscrollcommand=scrollbar.set)
+        self.meanings_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        t = self.meanings_text
+        t.tag_configure("title", font=("Sans", 14, "bold"), spacing3=6)
+        t.tag_configure("notes", font=("Sans", 10, "italic"), foreground="#64748b", spacing3=8)
+        t.tag_configure("nr", font=("Sans", 11, "bold"), foreground="#2563eb", spacing1=12)
+        t.tag_configure("trans", font=("Sans", 11, "bold"), spacing1=12)
+        t.tag_configure("expl", font=("Sans", 11, "italic"))
+        t.tag_configure("restr", font=("Sans", 10, "italic"), foreground="#475569")
+        t.tag_configure("label", font=("Sans", 9), foreground="#64748b", background="#f1f5f9")
+        t.tag_configure("ex_sme", font=("Sans", 10), lmargin1=28, lmargin2=28, spacing1=4)
+        t.tag_configure("ex_fin", font=("Sans", 10), foreground="#64748b", lmargin1=28, lmargin2=28)
+        t.tag_configure("src", font=("Sans", 8), foreground="#94a3b8")
+        t.configure(state=tk.DISABLED)
+
+    def populate_meanings(self, lemma, pos, meanings, notes):
+        t = self.meanings_text
+        t.configure(state=tk.NORMAL)
+        t.delete("1.0", tk.END)
+        t.insert(tk.END, f"{lemma}  ", "title")
+        t.insert(tk.END, f"({pos})\n", "notes")
+        if notes:
+            t.insert(tk.END, notes + "\n", "notes")
+
+        numbered = len(meanings) > 1
+        for meaning in meanings:
+            t.insert(tk.END, "\n")
+            if numbered:
+                t.insert(tk.END, f"{meaning['nr']}.  ", "nr")
+            if meaning["translations"]:
+                t.insert(tk.END, meaning["translations"], "trans")
+            if meaning["explanations"]:
+                sep = "  " if meaning["translations"] else ""
+                t.insert(tk.END, f"{sep}({meaning['explanations']})", "expl")
+            if meaning["restrictions"]:
+                t.insert(tk.END, f"  – {meaning['restrictions']}", "restr")
+            labels = [l for l in (meaning["labels"] or "").split(", ") if l]
+            labels += [f"käytössä {GEO_NAMES.get(g, g)} ({g})" for g in (meaning["geo"] or "").split(",") if g]
+            for label in labels:
+                t.insert(tk.END, "  ")
+                t.insert(tk.END, f" {label} ", "label")
+            t.insert(tk.END, "\n")
+            for sme, fin, source in meaning["examples"]:
+                t.insert(tk.END, f"{sme}\n", "ex_sme")
+                if fin:
+                    t.insert(tk.END, f"{fin}", "ex_fin")
+                if source:
+                    t.insert(tk.END, f"   ({source})", "src")
+                if fin or source:
+                    t.insert(tk.END, "\n")
+
+        if not meanings:
+            t.insert(tk.END, "\nEi merkitystietoja.", "notes")
+        t.configure(state=tk.DISABLED)
+
+        examples = sum(len(m["examples"]) for m in meanings)
+        tab_text = f" Merkitykset ({len(meanings)})"
+        if examples:
+            tab_text += f" ja esimerkit ({examples})"
+        self.notebook.tab(self.tab_meanings, text=tab_text + " ")
 
     def setup_raw_view(self):
         raw_container = tk.Frame(self.tab_raw, bg="#ffffff")
@@ -562,10 +677,19 @@ class SatniGUI:
 
         behavior = analyze_word_behavior(lemma, pos, subtype)
         
-        # Rajataan tarvittaessa näytettävät käännökset kahden ensimmäisen mittaisiksi myös otsikkopalkissa
-        display_trans = trans
-        if trans:
-            trans_parts = [p.strip() for p in trans.split(",")]
+        meanings, notes = get_word_details(word_id)
+
+        # Otsikkoon ensimmäinen merkitys käyttörajoituksineen (esim. hyppiä – paksussa lumessa, porosta)
+        if meanings:
+            first = meanings[0]
+            parts = [p.strip() for p in (first["translations"] or first["explanations"] or "").split(",") if p.strip()]
+            display_trans = ", ".join(parts[:3])
+            if first["restrictions"]:
+                display_trans += f" ({first['restrictions']})"
+            if len(meanings) > 1:
+                display_trans += f"  +{len(meanings) - 1} merkitystä"
+        else:
+            trans_parts = [p.strip() for p in (trans or "").split(",") if p.strip()]
             display_trans = ", ".join(trans_parts[:2])
 
         self.meta_label.config(text=f"Saamen perusmuoto: {lemma}  |  Suomeksi: {display_trans if display_trans else '(ei määritetty)'}  |  Sanaluokka: {pos}")
@@ -573,6 +697,7 @@ class SatniGUI:
 
         info = f"Tyyppi: {behavior}"
         self.render_gradation(self.gradation_view(pos, paradigm, gradation))
+        self.populate_meanings(lemma, pos, meanings, notes)
 
         # Jos haettiin taivutettua muotoa (esim. dagan), kerrotaan sen muoto ja aste
         query = fold(self.last_query)
@@ -815,6 +940,9 @@ class SatniGUI:
         for row in self.tree.get_children():
             self.tree.delete(row)
         self.raw_text.delete("1.0", tk.END)
+        self.meanings_text.configure(state=tk.NORMAL)
+        self.meanings_text.delete("1.0", tk.END)
+        self.meanings_text.configure(state=tk.DISABLED)
 
     def show_about(self):
         about_win = tk.Toplevel(self.root)
