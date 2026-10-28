@@ -17,6 +17,13 @@ except ImportError:
 
 if getattr(sys, 'frozen', False):
     SCRIPT_DIR = sys._MEIPASS
+    # PyInstaller ohjaa LD_LIBRARY_PATH:n omiin kirjastoihinsa. Palautetaan alkuperäinen, jotta
+    # käynnistettävät ohjelmat (selain, äänisoitin) käyttävät järjestelmän kirjastoja.
+    if sys.platform.startswith("linux"):
+        if "LD_LIBRARY_PATH_ORIG" in os.environ:
+            os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH_ORIG"]
+        else:
+            os.environ.pop("LD_LIBRARY_PATH", None)
 else:
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
