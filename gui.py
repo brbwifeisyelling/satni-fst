@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import os
 import sys
+import re
 import sqlite3
+import threading
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import webbrowser
 from urllib.parse import quote
 from PIL import Image, ImageDraw, ImageFont, ImageTk
+
+import tts
 
 try:
     from version import VERSION
@@ -17,6 +21,13 @@ except ImportError:
 
 if getattr(sys, 'frozen', False):
     SCRIPT_DIR = sys._MEIPASS
+    # PyInstaller ohjaa LD_LIBRARY_PATH:n omiin kirjastoihinsa. Palautetaan alkuperäinen, jotta
+    # käynnistettävät ohjelmat (selain, äänisoitin) käyttävät järjestelmän kirjastoja.
+    if sys.platform.startswith("linux"):
+        if "LD_LIBRARY_PATH_ORIG" in os.environ:
+            os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH_ORIG"]
+        else:
+            os.environ.pop("LD_LIBRARY_PATH", None)
 else:
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -179,6 +190,21 @@ def giellatekno_url(lemma, pos):
     return GIELLATEKNO_URL.format(word=quote(lemma), pos=GIELLATEKNO_POS.get(pos.upper(), "Any"))
 
 
+def make_speaker_icon(size=18, color="#1d4ed8"):
+    """Kaiutinkuvake (piirretään koodissa; emoji ei piirry Tk:ssa luotettavasti)."""
+    scale = 4
+    big = size * scale
+    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    u = big / 18
+    draw.polygon([(2 * u, 6.5 * u), (5.5 * u, 6.5 * u), (10 * u, 2.5 * u), (10 * u, 15.5 * u),
+                  (5.5 * u, 11.5 * u), (2 * u, 11.5 * u)], fill=color)
+    for r in (3.5, 6.5):
+        draw.arc((10 * u - r * u, 9 * u - r * u, 10 * u + r * u, 9 * u + r * u),
+                 start=-50, end=50, fill=color, width=int(1.6 * u))
+    return ImageTk.PhotoImage(img.resize((size, size), Image.Resampling.LANCZOS))
+
+
 def make_giellatekno_icon(size=20):
     """Pieni "gt"-merkki napin kuvakkeeksi (piirretään koodissa, ei erillistä kuvatiedostoa)."""
     scale = 4  # piirretään isona ja pienennetään, jotta reunat ovat pehmeät
@@ -284,6 +310,8 @@ VERB_NONFINITE_ROWS = [
 # Astevaihtelun värit: GD = gievrras dássi (vahva aste), HD = headju dássi (heikko aste)
 GD_BG, GD_FG = "#dcfce7", "#166534"
 HD_BG, HD_FG = "#ffedd5", "#9a3412"
+
+NONFINITE_NAMES = {name for name, _ in VERB_NONFINITE_ROWS}
 
 UNINFLECTED_POS = ["ADV", "CC", "CS", "INTERJ", "PCLE", "PO", "PR", "CMP", "MWE"]
 
@@ -395,6 +423,15 @@ class SatniGUI:
         )
         self.grade_check.pack(side=tk.LEFT, padx=10)
 
+        # Ääntämisen ääni (Divvunin puhesynteesi)
+        tk.Label(self.search_frame, text="Ääni:", font=("Sans", 10), bg="#f8fafc", fg="#0f172a").pack(side=tk.LEFT, padx=(10, 4))
+        self.voice = tk.StringVar(value=tts.DEFAULT_VOICE)
+        self.voice_menu = ttk.Combobox(
+            self.search_frame, textvariable=self.voice, values=list(tts.VOICES),
+            state="readonly", width=8, font=("Sans", 10)
+        )
+        self.voice_menu.pack(side=tk.LEFT)
+
         self.selection_bar_frame = tk.Frame(root, bg="#e2e8f0")
         self.selection_bar_frame.pack(fill=tk.X, padx=20, pady=5)
 
@@ -414,6 +451,25 @@ class SatniGUI:
 
         self.meta_frame = tk.Frame(root, bg="#ffffff", height=65, relief=tk.SOLID, bd=1)
         self.meta_frame.pack(fill=tk.X, padx=20, pady=5)
+
+        # Kuuntele: valitun sanan perusmuoto puhesynteesillä
+        self.speaker_icon = make_speaker_icon()
+        self.speak_button = tk.Button(
+            self.meta_frame,
+            text=" Kuuntele",
+            image=self.speaker_icon,
+            compound=tk.LEFT,
+            font=("Sans", 9, "bold"),
+            bg="#eff6ff",
+            fg="#1d4ed8",
+            activebackground="#dbeafe",
+            activeforeground="#1d4ed8",
+            relief=tk.FLAT,
+            padx=8,
+            pady=3,
+            cursor="hand2",
+            command=self.speak_lemma
+        )
 
         # Avaa valitun sanan taivutuksen Giellateknon sivulla oletusselaimessa
         self.giellatekno_icon = make_giellatekno_icon()
@@ -539,8 +595,15 @@ class SatniGUI:
         scrollbar = ttk.Scrollbar(table_container, orient=tk.VERTICAL, command=self.tree.yview)
         self.tree.configure(yscrollcommand=scrollbar.set)
 
+        hint = tk.Label(
+            self.tab_table, text="Kaksoisnapsauta muotoa kuullaksesi sen ääntämisen.",
+            font=("Sans", 9, "italic"), fg="#64748b", bg="#ffffff", anchor="w"
+        )
+        hint.pack(side=tk.BOTTOM, fill=tk.X, padx=12, pady=(0, 6))
+
         self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tree.bind("<Double-1>", self.on_table_double_click)
 
     def setup_meanings_view(self):
         container = tk.Frame(self.tab_meanings, bg="#ffffff")
@@ -654,6 +717,7 @@ class SatniGUI:
         if not self.current_results:
             self.meta_label.config(text=f"Ei osumia haulle: '{query}'")
             self.giellatekno_button.place_forget()
+            self.speak_button.place_forget()
             self.render_gradation(None)
             self.behavior_label.config(text="")
             self.clear_tables()
@@ -715,6 +779,9 @@ class SatniGUI:
         word_id, lemma, pos, subtype, trans = self.current_results[selected_idx]
         self.giellatekno_button.place(relx=1.0, x=-10, y=6, anchor="ne")
         self.giellatekno_button.lift()  # otsikkorivin label on luotu myöhemmin ja peittäisi napin
+        self.root.update_idletasks()
+        self.speak_button.place(relx=1.0, x=-18 - self.giellatekno_button.winfo_reqwidth(), y=6, anchor="ne")
+        self.speak_button.lift()
         for idx, widget in enumerate(self.buttons_inner_frame.winfo_children()):
             if idx == selected_idx:
                 widget.config(bg="#2563eb", fg="#ffffff")
@@ -990,6 +1057,59 @@ class SatniGUI:
         self.meanings_text.delete("1.0", tk.END)
         self.meanings_text.configure(state=tk.DISABLED)
 
+    def speak_lemma(self):
+        if self.current_results:
+            self.speak(self.current_results[self.selected_idx][1])
+
+    def speak(self, text):
+        """Hakee äänen taustalla (3–5 s ensimmäisellä kerralla, sitten välimuistista) ja soittaa sen."""
+        text = text.strip()
+        if not text:
+            return
+        voice = self.voice.get()
+        self.speak_button.config(text=" Haetaan…", state=tk.DISABLED)
+
+        def done(path, error):
+            self.speak_button.config(text=" Kuuntele", state=tk.NORMAL)
+            if error:
+                messagebox.showwarning(
+                    "Ääntäminen",
+                    f"Ääntämistä ei saatu sanalle \"{text}\".\n\n{error}\n\n"
+                    "Ääni haetaan Divvunin palvelusta (api-giellalt.uit.no), joten ensimmäinen "
+                    "kuuntelu vaatii verkkoyhteyden."
+                )
+                return
+            try:
+                tts.play(path)
+            except Exception as e:
+                messagebox.showwarning("Ääntäminen", f"Äänen toisto epäonnistui: {e}")
+
+        def worker():
+            try:
+                path, error = tts.fetch(text, voice), None
+            except Exception as e:
+                path, error = None, e
+            self.root.after(0, done, path, error)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def on_table_double_click(self, event):
+        """Kaksoisnapsautus taulukon solussa ääntää solun muodon (esim. "mun dagan")."""
+        row = self.tree.identify_row(event.y)
+        column = self.tree.identify_column(event.x)
+        if not row or column in ("", "#1") or "section" in self.tree.item(row, "tags"):
+            return
+        values = self.tree.item(row, "values")
+        index = int(column[1:]) - 1
+        if index >= len(values):
+            return
+        text = str(values[index])
+        if text in NONFINITE_NAMES:
+            return
+        text = re.sub(r"\s*\((GD|HD)\)", "", text).replace("attr. ", "").replace(" / ", ", ").strip()
+        if text and text != "-":
+            self.speak(text)
+
     def open_giellatekno(self):
         if not self.current_results:
             return
@@ -999,7 +1119,7 @@ class SatniGUI:
     def show_about(self):
         about_win = tk.Toplevel(self.root)
         about_win.title("Tietoa ohjelmasta")
-        about_win.geometry("520x380")
+        about_win.geometry("520x460")
         about_win.configure(bg="#ffffff")
         about_win.resizable(False, False)
 
@@ -1026,6 +1146,9 @@ class SatniGUI:
             "Sanakirjadata ja kieliteknologiapohja ovat peräisin Giellateknolta ja Divvunilta. "
             "Kielidata ja taivutussäännöt on laskettu ja tuotettu Giellateknon / Divvunin "
             "avoimilla FST-malleilla ja XML-sanakirjoilla.\n\n"
+            "Ääntäminen: Divvunin ja Giellateknon puhesynteesi (UiT Norjan arktinen yliopisto), "
+            "äänet Biret, Máhtte ja Sunná. Äänet haetaan palvelusta api-giellalt.uit.no samaan tapaan "
+            "kuin sátni.org-sivustolla.\n\n"
             "Ohjelma on tuore ja voi sisältää huomattavia virheitä, eikä sille ole virallista tukea.\n\n"
             "Tekijä: Juha Somby"
         )
