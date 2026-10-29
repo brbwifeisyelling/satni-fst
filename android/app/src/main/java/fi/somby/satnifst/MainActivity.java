@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
 import android.view.WindowInsets;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -54,21 +56,24 @@ public class MainActivity extends Activity {
         // Reunus asetetaan ympäröivälle kehykselle, koska WebView ei huomioi omaa reunustaan.
         FrameLayout root = new FrameLayout(this);
         root.addView(web, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        // Tilarivin alue yläpalkin värillä, jottei se näy erillisenä harmaana raitana
+        View statusBar = new View(this);
+        statusBar.setBackgroundColor(getColor(R.color.topbar));
+        root.addView(statusBar, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 0, Gravity.TOP));
+        root.setClipToPadding(false);  // tilarivin väri piirretään reunuksen alueelle
         setContentView(root);
         root.setOnApplyWindowInsetsListener((view, insets) -> {
-            // Kameran lovi (display cutout) voi olla tilariviä korkeampi: otetaan mukaan erikseen
+            // Yläreunassa vain tilarivin korkeus (puhelimissa tilarivi kattaa myös kameran loven)
             if (Build.VERSION.SDK_INT >= 30) {
-                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars()
-                        | WindowInsets.Type.displayCutout() | WindowInsets.Type.ime());
+                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.ime());
                 view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             } else {
-                int top = insets.getSystemWindowInsetTop();
-                if (Build.VERSION.SDK_INT >= 28 && insets.getDisplayCutout() != null) {
-                    top = Math.max(top, insets.getDisplayCutout().getSafeInsetTop());
-                }
-                view.setPadding(insets.getSystemWindowInsetLeft(), top,
+                view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
                         insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
             }
+            statusBar.getLayoutParams().height = view.getPaddingTop();
+            statusBar.setTranslationY(-view.getPaddingTop());  // reunuksen alueelle, WebViewin yläpuolelle
+            statusBar.requestLayout();
             return insets;
         });
 

@@ -8,4 +8,6 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
     <color name="background">#f4f6fa</color>
+    <!-- Yläpalkin väri (sama kuin web/styles.css: surface), tilarivin taustana -->
+    <color name="topbar">#ffffff</color>
 </resources>

@@ -38,9 +38,9 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-/* Sivu ei saa olla näyttöä leveämpi eikä venyä reunojen yli (puhelin: tausta paljastui) */
+/* Sivu ei saa olla näyttöä leveämpi eikä venyä reunojen yli (puhelin: tausta paljastui). Vain html:lle:
+   body:n overflow tekisi siitä oman vierityslaatikon, ja puhelimessa sivu ei enää vierinyt lainkaan. */
 html { background: var(--bg); overflow-x: hidden; overscroll-behavior: none; }
-body { overflow-x: hidden; overscroll-behavior: none; }
 body {
   background: var(--bg); color: var(--text);
   font: 15px/1.45 "Noto Sans", "Segoe UI", system-ui, -apple-system, "DejaVu Sans", sans-serif;
