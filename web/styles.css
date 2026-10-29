@@ -38,6 +38,9 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
+/* Sivu ei saa olla näyttöä leveämpi eikä venyä reunojen yli (puhelin: tausta paljastui) */
+html { background: var(--bg); overflow-x: hidden; overscroll-behavior: none; }
+body { overflow-x: hidden; overscroll-behavior: none; }
 body {
   background: var(--bg); color: var(--text);
   font: 15px/1.45 "Noto Sans", "Segoe UI", system-ui, -apple-system, "DejaVu Sans", sans-serif;
@@ -124,7 +127,7 @@ select {
   border: 1px solid var(--border); background: var(--surface); outline: none;
 }
 #search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
-.search-options { display: flex; gap: 16px; align-items: center; margin-left: auto; color: var(--text); }
+.search-options { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-left: auto; color: var(--text); }
 .check, .voice { display: flex; gap: 6px; align-items: center; font-size: 14px; white-space: nowrap; }
 .check input { accent-color: var(--accent); width: 16px; height: 16px; }
 .suggestions {
@@ -285,7 +288,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
   .tabs button { white-space: nowrap; padding: 10px 10px; font-size: 14px; }
   .topbar, .searchbar { padding-left: 12px; padding-right: 12px; }
   #theme-select { max-width: 112px; padding: 5px 4px; }
-  .search-options { margin-left: 0; width: 100%; justify-content: space-between; }
+  .search-options { margin-left: 0; width: 100%; justify-content: flex-start; gap: 8px 14px; }
   .card { padding: 14px 16px; }
   .lang-switch { float: none; margin-bottom: 10px; }
   .word-title h1 { font-size: 27px; }
