@@ -2,9 +2,11 @@
 <resources>
     <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/background</item>
-        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:statusBarColor">@color/topbar</item>
         <item name="android:navigationBarColor">@color/background</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
     <color name="background">#0f141b</color>
+    <!-- Yläpalkin väri (sama kuin web/styles.css: surface), tilarivin taustana -->
+    <color name="topbar">#171e27</color>
 </resources>

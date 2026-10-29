@@ -38,9 +38,9 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-/* Sivu ei saa olla näyttöä leveämpi eikä venyä reunojen yli (puhelin: tausta paljastui) */
+/* Sivu ei saa olla näyttöä leveämpi eikä venyä reunojen yli (puhelin: tausta paljastui). Vain html:lle:
+   body:n overflow tekisi siitä oman vierityslaatikon, ja puhelimessa sivu ei enää vierinyt lainkaan. */
 html { background: var(--bg); overflow-x: hidden; overscroll-behavior: none; }
-body { overflow-x: hidden; overscroll-behavior: none; }
 body {
   background: var(--bg); color: var(--text);
   font: 15px/1.45 "Noto Sans", "Segoe UI", system-ui, -apple-system, "DejaVu Sans", sans-serif;
@@ -59,6 +59,8 @@ b.hd, .hd { color: var(--hd); }
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   background: var(--surface); padding: 10px 20px; padding-top: max(10px, env(safe-area-inset-top));
 }
+/* Android-sovelluksessa tilarivin tila on jo sovelluksen reunuksessa (muuten tyhjä alue kahteen kertaan) */
+.android-app .topbar { padding-top: 10px; }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; overflow: hidden; }
 .brand > div { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .brand-icon { width: 36px; height: 36px; border-radius: 8px; }
