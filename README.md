@@ -12,6 +12,8 @@ Sátni FST combines the open dictionaries and morphology of [GiellaLT](https://g
 [Divvun](https://divvun.no/) and [Giellatekno](https://giellatekno.uit.no/) into one app.
 **All language data comes from them — see [CREDITS.md](CREDITS.md).**
 
+**Home page and web version:** <https://brbwifeisyelling.github.io/satni-fst/> — try the dictionary in your browser, nothing to install.
+
 ## Features
 
 - About 80 000 North Sámi words, about 74 000 of them with full inflection tables
@@ -66,6 +68,7 @@ The finished apps are built from these steps. Most build steps run in Docker, so
 | 3. Desktop apps (AppImage + Windows) | `./build.sh` | Docker; a Windows VM for the Windows build (see `build_qt_exe.sh`) |
 | 4. Android app (APK) | `./build_apk.sh` | Docker |
 | 5. Release | attach `dist/Satni_FST-x86_64.AppImage`, `dist/satni-fst-windows.zip` and `dist/satni-fst.apk` to a GitHub release | — |
+| 6. Home page (GitHub Pages) | `./julkaise_sivu.sh` (`--vain-kokoa` builds it without publishing) | git |
 
 The web version (`web/`) needs only `python3 export_web_data.py` and any static web server.
 
