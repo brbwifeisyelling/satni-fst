@@ -166,11 +166,13 @@ def get_word_details(word_id):
         cursor = conn.cursor()
         examples = {}
         for nr, sme, fin, source in cursor.execute(
-            "SELECT meaning_nr, sme, fin, source FROM examples WHERE word_id = ? ORDER BY rowid", (word_id,)
+            "SELECT meaning_nr, sme, translation, source FROM examples WHERE word_id = ? AND lang = 'fin' ORDER BY rowid",
+            (word_id,)
         ):
             examples.setdefault(nr, []).append((sme, fin, source))
         for row in cursor.execute(
-            "SELECT nr, translations, explanations, restrictions, labels, geo FROM meanings WHERE word_id = ? ORDER BY nr",
+            "SELECT nr, translations, explanations, restrictions, labels, geo FROM meanings "
+            "WHERE word_id = ? AND lang = 'fin' ORDER BY nr",
             (word_id,)
         ):
             meaning = dict(zip(("nr", "translations", "explanations", "restrictions", "labels", "geo"), row))

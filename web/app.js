@@ -18,6 +18,16 @@ const SUBTYPE_NAMES = {
   Rel: "Relatiivipronomini", Ord: "Järjestysluku", Coll: "Kollektiivi",
 };
 const GEO_NAMES = { N: "Norjassa", S: "Suomessa", R: "Ruotsissa" };
+// Käännöskielet (GiellaLT:n dict-sme-*-sanakirjat) ja niiden sarakkeet tietokannassa
+const LANGUAGES = {
+  fin: { name: "suomi", in: "Suomeksi", col: "finnish_translation" },
+  nob: { name: "norja", in: "Norjaksi", col: "nob_translation" },
+  eng: { name: "englanti", in: "Englanniksi", col: "eng_translation" },
+  smn: { name: "inarinsaame", in: "Inarinsaameksi", col: "smn_translation" },
+  smj: { name: "luulajansaame", in: "Luulajansaameksi", col: "smj_translation" },
+  sma: { name: "eteläsaame", in: "Eteläsaameksi", col: "sma_translation" },
+};
+const TRANS_COLS = Object.values(LANGUAGES).map((l) => l.col).join(", ");
 
 const PERSONS = ["Sg1", "Sg2", "Sg3", "Du1", "Du2", "Du3", "Pl1", "Pl2", "Pl3"];
 const PRONOUNS = { Sg1: "mun", Sg2: "don", Sg3: "son", Du1: "moai", Du2: "doai", Du3: "soai", Pl1: "mii", Pl2: "dii", Pl3: "sii" };
@@ -40,7 +50,7 @@ const state = { query: "", results: [], index: 0, word: null, paradigm: null, gr
 
 // --- Asetukset, historia ja suosikit (selaimen localStorage) ---
 
-const DEFAULT_SETTINGS = { theme: "auto", voice: "Biret", showGrade: true, history: [], favourites: [] };
+const DEFAULT_SETTINGS = { theme: "auto", voice: "Biret", lang: "fin", showGrade: true, history: [], favourites: [] };
 let settings = loadSettings();
 
 function loadSettings() {
@@ -78,6 +88,22 @@ function toast(text, ms = 3500) {
   el.hidden = false;
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => (el.hidden = true), ms);
+}
+
+// Valitun kielen käännös; jos sitä ei ole, ensimmäinen muu (kielen nimi suluissa): "talo" tai "(norja) hus"
+function translationOf(row, max) {
+  const order = [settings.lang, ...Object.keys(LANGUAGES).filter((l) => l !== settings.lang)];
+  for (const lang of order) {
+    const parts = splitList(row[LANGUAGES[lang].col]);
+    if (parts.length) return (lang === settings.lang ? "" : `(${LANGUAGES[lang].name}) `) + parts.slice(0, max).join(", ");
+  }
+  return "";
+}
+
+// Merkitykset kielittäin, valittu kieli ensin
+function meaningsByLanguage(meanings) {
+  const groups = Object.keys(LANGUAGES).map((lang) => [lang, meanings.filter((m) => m.lang === lang)]).filter(([, ms]) => ms.length);
+  return groups.sort(([a], [b]) => (b === settings.lang) - (a === settings.lang));
 }
 
 function wordClassLabel(pos, subtype) {
@@ -128,25 +154,25 @@ function queryDatabase(query) {
     const prev = found.get(row.id);
     if (!prev || rank < prev.rank) found.set(row.id, { ...row, rank });
   };
-  const cols = "id, sme_lemma, pos, subtype, finnish_translation";
+  const cols = `id, sme_lemma, pos, subtype, ${TRANS_COLS}`;
 
   // 1 = saamen perusmuoto; 6 = isolla kirjoitettu erisnimi, joka osui vain kirjainkoosta riippumatta
   for (const r of all(`SELECT ${cols} FROM dictionary WHERE lemma_fold = ?`, [q])) {
     const first = r.sme_lemma.charAt(0);
     add(r, r.sme_lemma === query.trim() || first === first.toLowerCase() ? 1 : 6);
   }
-  // 2 = ainoa suomennos, 3 = ensimmäinen suomennos, 4 = jokin muu
+  // 2 = ainoa käännös, 3 = ensimmäinen käännös, 4 = jokin muu; muun kuin valitun kielen osuma hieman alempana
   for (const r of all(
-    `SELECT ${cols}, trans_fold FROM dictionary
-     WHERE trans_fold = ? OR trans_fold LIKE ? OR trans_fold LIKE ? OR trans_fold LIKE ?`,
+    `SELECT d.${cols.split(", ").join(", d.")}, t.fold, t.lang FROM trans_search t JOIN dictionary d ON d.id = t.word_id
+     WHERE t.fold = ? OR t.fold LIKE ? OR t.fold LIKE ? OR t.fold LIKE ?`,
     [q, `${q},%`, `%, ${q},%`, `%, ${q}`]
   )) {
-    add(r, r.trans_fold === q ? 2 : r.trans_fold.startsWith(`${q},`) ? 3 : 4);
+    add(r, (r.fold === q ? 2 : r.fold.startsWith(`${q},`) ? 3 : 4) + (r.lang === settings.lang ? 0 : 0.5));
   }
   // 5 = taivutusmuoto (manan -> mannat)
   const forms = [q, capitalize(q), nordic(q), capitalize(nordic(q))];
   for (const r of all(
-    `SELECT DISTINCT d.id, d.sme_lemma, d.pos, d.subtype, d.finnish_translation
+    `SELECT DISTINCT d.${cols.split(", ").join(", d.")}
      FROM paradigms p JOIN dictionary d ON d.id = p.word_id WHERE p.surface IN (?, ?, ?, ?)`, forms
   )) add(r, 5);
   // 7 = perusmuoto alkaa hakusanalla
@@ -161,13 +187,15 @@ function suggestWords(prefix) {
   const q = fold(prefix.trim());
   if (q.length < 2) return [];
   const rows = all(
-    `SELECT sme_lemma, pos, finnish_translation FROM dictionary
+    `SELECT sme_lemma, pos, ${TRANS_COLS} FROM dictionary
      WHERE lemma_fold >= ? AND lemma_fold < ? ORDER BY length(sme_lemma), sme_lemma LIMIT 8`, [q, q + "￿"]
   );
   if (rows.length < 8) {
     rows.push(...all(
-      `SELECT sme_lemma, pos, finnish_translation FROM dictionary
-       WHERE trans_fold LIKE ? OR trans_fold LIKE ? ORDER BY length(sme_lemma) LIMIT 8`, [`${q}%`, `%, ${q}%`]
+      `SELECT DISTINCT d.sme_lemma, d.pos, ${TRANS_COLS.split(", ").map((c) => "d." + c).join(", ")}
+       FROM trans_search t JOIN dictionary d ON d.id = t.word_id
+       WHERE t.lang = ? AND (t.fold LIKE ? OR t.fold LIKE ?) ORDER BY length(d.sme_lemma) LIMIT 8`,
+      [settings.lang, `${q}%`, `%, ${q}%`]
     ));
   }
   const seen = new Set();
@@ -186,12 +214,13 @@ function loadWord(id) {
     if (r.grade) grades.set(r.tag + "|" + r.surface, r.grade);
   }
   const examples = new Map();
-  for (const r of all(`SELECT meaning_nr, sme, fin, source FROM examples WHERE word_id = ? ORDER BY rowid`, [id])) {
-    if (!examples.has(r.meaning_nr)) examples.set(r.meaning_nr, []);
-    examples.get(r.meaning_nr).push(r);
+  for (const r of all(`SELECT lang, meaning_nr, sme, translation, source FROM examples WHERE word_id = ? ORDER BY rowid`, [id])) {
+    const key = r.lang + r.meaning_nr;
+    if (!examples.has(key)) examples.set(key, []);
+    examples.get(key).push(r);
   }
-  const meanings = all(`SELECT * FROM meanings WHERE word_id = ? ORDER BY nr`, [id])
-    .map((m) => ({ ...m, examples: examples.get(m.nr) || [] }));
+  const meanings = all(`SELECT * FROM meanings WHERE word_id = ? ORDER BY rowid`, [id])
+    .map((m) => ({ ...m, examples: examples.get(m.lang + m.nr) || [] }));
   return { word, paradigm, grades, meanings };
 }
 
@@ -225,7 +254,7 @@ function search(query, index = 0, pushHistory = true) {
     $("fav-btn").hidden = true;
     $("speak-btn").hidden = true;
     $("gt-link").hidden = true;
-    $("translation").textContent = "Kokeile toista kirjoitusasua, perusmuotoa tai suomenkielistä sanaa.";
+    $("translation").textContent = "Kokeile toista kirjoitusasua, perusmuotoa tai käännöstä.";
     $("more-meanings").textContent = "";
     $("gradation").innerHTML = "";
     $("word-info").textContent = "";
@@ -240,7 +269,7 @@ function renderResults() {
   box.innerHTML = "";
   state.results.forEach((r, i) => {
     const b = document.createElement("button");
-    const trans = splitList(r.finnish_translation).slice(0, 2).join(", ");
+    const trans = translationOf(r, 2);
     const pos = r.subtype ? `${r.pos} ${r.subtype}` : r.pos;
     b.innerHTML = `${esc(r.sme_lemma)} <span class="trans">(${esc(pos)})${trans ? " – " + esc(trans) : ""}</span>`;
     b.onclick = () => selectResult(i);
@@ -272,13 +301,17 @@ function selectResult(i, pushHistory = true) {
     .replace("{pos}", GIELLATEKNO_POS[w.pos.toUpperCase()] || "Any");
   updateFavButton();
 
-  // Ensimmäinen merkitys käyttörajoituksineen (esim. hyppiä – paksussa lumessa, porosta)
-  const first = data.meanings[0];
-  let trans = first ? splitList(first.translations || first.explanations).slice(0, 4).join(", ")
-                    : splitList(w.finnish_translation).slice(0, 3).join(", ");
+  // Ensimmäinen merkitys käyttörajoituksineen (esim. hyppiä – paksussa lumessa, porosta), valitulla
+  // kielellä tai sen puuttuessa ensimmäisellä muulla kielellä
+  const groups = meaningsByLanguage(data.meanings);
+  const [firstLang, firstGroup] = groups[0] || [settings.lang, []];
+  const first = firstGroup[0];
+  let trans = first ? splitList(first.translations || first.explanations).slice(0, 4).join(", ") : translationOf(w, 3);
   if (first && first.restrictions) trans += ` (${first.restrictions})`;
-  $("translation").textContent = trans || "(ei suomennosta)";
-  $("more-meanings").textContent = data.meanings.length > 1 ? `+${data.meanings.length - 1} merkitystä` : "";
+  if (first && trans && firstLang !== settings.lang) trans = `(${LANGUAGES[firstLang].name}) ${trans}`;
+  $("translation").textContent = trans || "(ei käännöstä)";
+  $("more-meanings").textContent = firstGroup.length > 1 ? `+${firstGroup.length - 1} merkitystä` :
+    groups.length > 1 ? "muut kielet" : "";
 
   renderGradation();
   renderInfo(w);
@@ -426,23 +459,29 @@ function table(headers, rows) {
   return `<div class="table-wrap"><table class="paradigm">${head}<tbody>${rows}</tbody></table></div>`;
 }
 
+function meaningHtml(m, numbered) {
+  const tags = splitList(m.labels).map((l) => `<span class="tag">${esc(l)}</span>`).join("") +
+    (m.geo || "").split(",").filter(Boolean).map((g) => `<span class="tag">käytössä ${esc(GEO_NAMES[g] || g)} (${esc(g)})</span>`).join("");
+  let html = `<div class="meaning"><div class="head">${numbered ? `<span class="nr">${m.nr}.</span>` : ""}` +
+    `${esc(m.translations)}${m.explanations ? ` <span class="expl">(${esc(m.explanations)})</span>` : ""}` +
+    `${m.restrictions ? ` <span class="restr">– ${esc(m.restrictions)}</span>` : ""}${tags}</div>`;
+  for (const ex of m.examples) {
+    html += `<div class="example"><span class="sme">${esc(ex.sme)}</span>` +
+      (ex.translation ? `<span class="fin">${esc(ex.translation)}</span>` : `<span class="missing">(ei käännöstä lähteessä)</span>`) +
+      (ex.source ? `<span class="muted small">(${esc(ex.source)})</span>` : "") + `</div>`;
+  }
+  return html + `</div>`;
+}
+
 function renderMeanings(meanings) {
   const w = state.word;
   let html = `<h2 style="margin-top:0">${esc(w.sme_lemma)} <span class="muted small"><i>${esc(wordClassLabel(w.pos))}</i></span></h2>`;
   if (w.notes) html += `<p class="muted small"><i>${esc(w.notes)}</i></p>`;
-  const numbered = meanings.length > 1;
-  for (const m of meanings) {
-    const tags = splitList(m.labels).map((l) => `<span class="tag">${esc(l)}</span>`).join("") +
-      (m.geo || "").split(",").filter(Boolean).map((g) => `<span class="tag">käytössä ${esc(GEO_NAMES[g] || g)} (${esc(g)})</span>`).join("");
-    html += `<div class="meaning"><div class="head">${numbered ? `<span class="nr">${m.nr}.</span>` : ""}` +
-      `${esc(m.translations)}${m.explanations ? ` <span class="expl">(${esc(m.explanations)})</span>` : ""}` +
-      `${m.restrictions ? ` <span class="restr">– ${esc(m.restrictions)}</span>` : ""}${tags}</div>`;
-    for (const ex of m.examples) {
-      html += `<div class="example"><span class="sme">${esc(ex.sme)}</span>` +
-        (ex.fin ? `<span class="fin">${esc(ex.fin)}</span>` : `<span class="missing">(ei suomennosta lähteessä)</span>`) +
-        (ex.source ? `<span class="muted small">(${esc(ex.source)})</span>` : "") + `</div>`;
-    }
-    html += `</div>`;
+  // Kielittäin, valittu kieli ensin; otsikko vain jos kieliä on useampi
+  const groups = meaningsByLanguage(meanings);
+  for (const [lang, ms] of groups) {
+    if (groups.length > 1) html += `<h3 class="lang-head">${esc(LANGUAGES[lang].in)}</h3>`;
+    html += ms.map((m) => meaningHtml(m, ms.length > 1)).join("");
   }
   if (!meanings.length) html += `<p class="muted">Ei merkitystietoja.</p>`;
   $("panel-meanings").innerHTML = html;
@@ -557,7 +596,7 @@ function updateSuggestions() {
   }
   list.innerHTML = suggestions.map((s, i) =>
     `<li role="option" data-i="${i}"><b>${esc(s.sme_lemma)}</b><span class="pos">${esc(s.pos)}</span>` +
-    `<span class="trans">${esc(splitList(s.finnish_translation).slice(0, 2).join(", "))}</span></li>`).join("");
+    `<span class="trans">${esc(translationOf(s, 2))}</span></li>`).join("");
   list.hidden = false;
 }
 function hideSuggestions() { $("suggestions").hidden = true; activeSuggestion = -1; }
@@ -615,6 +654,12 @@ function bindEvents() {
   };
   $("voice-select").value = settings.voice;
   $("voice-select").onchange = (e) => { settings.voice = e.target.value; saveSettings(); };
+  if (!LANGUAGES[settings.lang]) settings.lang = "fin";
+  $("lang-select").value = settings.lang;
+  $("lang-select").onchange = (e) => {
+    settings.lang = e.target.value; saveSettings();
+    if (state.results.length) search(state.query, 0, false);
+  };
   $("theme-select").value = settings.theme;
   $("theme-select").onchange = (e) => { settings.theme = e.target.value; saveSettings(); applyTheme(); };
 
@@ -655,7 +700,7 @@ async function main() {
   rnd.textContent = "Satunnainen sana";
   rnd.onclick = () => {
     const r = all(`SELECT sme_lemma FROM dictionary WHERE pos IN ('N','V','A') AND gradation IS NOT NULL
-                   AND finnish_translation != '' AND (subtype IS NULL OR subtype = '') ORDER BY RANDOM() LIMIT 1`)[0];
+                   AND ${LANGUAGES[settings.lang].col} != '' AND (subtype IS NULL OR subtype = '') ORDER BY RANDOM() LIMIT 1`)[0];
     if (r) search(r.sme_lemma);
   };
   ex.appendChild(rnd);

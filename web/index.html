@@ -42,12 +42,18 @@
   <div class="searchbar">
     <div class="search-box">
       <input id="search" type="search" autocomplete="off" spellcheck="false"
-             placeholder="Hae saameksi, suomeksi tai taivutusmuodolla" aria-label="Hae" disabled>
+             placeholder="Hae saameksi, käännöksellä tai taivutusmuodolla" aria-label="Hae" disabled>
       <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
     </div>
     <button class="primary-btn" id="search-btn" disabled>Hae</button>
     <div class="search-options">
       <label class="check"><input type="checkbox" id="grade-toggle" checked> Näytä aste (GD/HD)</label>
+      <label class="voice">Käännökset
+        <select id="lang-select">
+          <option value="fin">suomi</option><option value="nob">norja</option><option value="eng">englanti</option>
+          <option value="smn">inarinsaame</option><option value="smj">luulajansaame</option><option value="sma">eteläsaame</option>
+        </select>
+      </label>
       <label class="voice">Ääni
         <select id="voice-select">
           <option>Biret</option><option>Máhtte</option><option>Sunná</option>
