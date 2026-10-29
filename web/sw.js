@@ -1,15 +1,15 @@
 /* Service worker: sovellus ja sanakirja toimivat ilman verkkoyhteyttä ensimmäisen käynnin jälkeen.
    Kun tiedostoja päivitetään, kasvata VERSION, jolloin selaimet hakevat uudet tiedostot. */
-const VERSION = "satni-v3";
+const VERSION = "satni-v4";
 const APP_SHELL = [
-  "./", "index.html", "styles.css", "app.js", "manifest.webmanifest",
+  "./", "index.html", "styles.css", "i18n.js", "app.js", "manifest.webmanifest",
   "vendor/sql-wasm.js", "vendor/sql-wasm.wasm",
   "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png",
 ];
 const DATA = "data/satni-web.db.gz";
 // Sanakirjalla on oma välimuistinsa, jottei 21 Mt ladata uudelleen joka sovelluspäivityksessä.
-// Kasvata numeroa, kun tietokannan rakenne muuttuu (v2: käännökset kielittäin)
-const DATA_CACHE = "satni-data-v2";
+// Kasvata numeroa, kun tietokannan rakenne muuttuu (v2: käännökset kielittäin, v3: käänteiset sanakirjat)
+const DATA_CACHE = "satni-data-v3";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(APP_SHELL)));

@@ -11,10 +11,11 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="styles.css">
   <script>
-    // Teema heti ennen piirtämistä, ettei sivu välähdä väärän värisenä
+    // Teema ja kieli heti ennen piirtämistä, ettei sivu välähdä väärän värisenä
     try {
-      const t = JSON.parse(localStorage.getItem("satni-settings") || "{}").theme;
-      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      const s = JSON.parse(localStorage.getItem("satni-settings") || "{}");
+      if (s.theme === "light" || s.theme === "dark") document.documentElement.dataset.theme = s.theme;
+      if (s.uiLang === "nb") document.documentElement.lang = "nb";
     } catch (e) {}
   </script>
 </head>
@@ -24,17 +25,22 @@
       <img src="icons/icon-192.png" alt="" class="brand-icon">
       <div>
         <div class="brand-name">Sátni FST</div>
-        <div class="brand-sub">Pohjoissaamen avoin sanakirja ja taivutusgeneraattori</div>
+        <div class="brand-sub" data-i18n="brandSub">Pohjoissaamen avoin sanakirja ja taivutusgeneraattori</div>
       </div>
     </div>
     <div class="topbar-actions">
-      <button class="icon-btn" id="sidebar-toggle" aria-label="Historia ja suosikit" title="Historia ja suosikit">☰</button>
-      <select id="theme-select" aria-label="Teema">
-        <option value="auto">Automaattinen</option>
-        <option value="light">Vaalea</option>
-        <option value="dark">Tumma</option>
+      <button class="icon-btn" id="sidebar-toggle" data-i18n-aria="sidebar" data-i18n-title="sidebar">☰</button>
+      <div class="ui-lang">
+        <button class="flag-btn" id="ui-lang-btn" aria-haspopup="menu" aria-expanded="false"
+                data-i18n-aria="uiLanguage" data-i18n-title="uiLanguage"></button>
+        <ul id="ui-lang-menu" class="ui-lang-menu" role="menu" hidden></ul>
+      </div>
+      <select id="theme-select" data-i18n-aria="theme">
+        <option value="auto" data-i18n="themeAuto">Automaattinen</option>
+        <option value="light" data-i18n="themeLight">Vaalea</option>
+        <option value="dark" data-i18n="themeDark">Tumma</option>
       </select>
-      <button class="chip-btn" id="about-btn">Tietoa</button>
+      <button class="chip-btn" id="about-btn" data-i18n="about">Tietoa</button>
     </div>
   </header>
   <div class="stripe"><span></span><span></span><span></span><span></span></div>
@@ -42,19 +48,17 @@
   <div class="searchbar">
     <div class="search-box">
       <input id="search" type="search" autocomplete="off" spellcheck="false"
-             placeholder="Hae saameksi, käännöksellä tai taivutusmuodolla" aria-label="Hae" disabled>
+             placeholder="Hae saameksi, käännöksellä tai taivutusmuodolla" aria-label="Hae"
+             data-i18n-placeholder="searchPlaceholder" data-i18n-aria="search" disabled>
       <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
     </div>
-    <button class="primary-btn" id="search-btn" disabled>Hae</button>
+    <button class="primary-btn" id="search-btn" data-i18n="search" disabled>Hae</button>
     <div class="search-options">
-      <label class="check"><input type="checkbox" id="grade-toggle" checked> Näytä aste (GD/HD)</label>
-      <label class="voice">Käännökset
-        <select id="lang-select">
-          <option value="fin">suomi</option><option value="nob">norja</option><option value="eng">englanti</option>
-          <option value="smn">inarinsaame</option><option value="smj">luulajansaame</option><option value="sma">eteläsaame</option>
-        </select>
+      <label class="check"><input type="checkbox" id="grade-toggle" checked> <span data-i18n="showGrade">Näytä aste (GD/HD)</span></label>
+      <label class="voice"><span data-i18n="translations">Käännökset</span>
+        <select id="lang-select"></select>
       </label>
-      <label class="voice">Ääni
+      <label class="voice"><span data-i18n="voice">Ääni</span>
         <select id="voice-select">
           <option>Biret</option><option>Máhtte</option><option>Sunná</option>
         </select>
@@ -65,34 +69,29 @@
   <div class="layout">
     <aside id="sidebar" class="sidebar">
       <section>
-        <h3>★ Suosikit</h3>
+        <h3 data-i18n="favourites">★ Suosikit</h3>
         <ul id="favourites" class="word-list"></ul>
       </section>
       <section>
-        <h3>Historia</h3>
+        <h3 data-i18n="history">Historia</h3>
         <ul id="history" class="word-list"></ul>
-        <button class="link-btn" id="clear-history">Tyhjennä historia</button>
+        <button class="link-btn" id="clear-history" data-i18n="clearHistory">Tyhjennä historia</button>
       </section>
     </aside>
 
     <main id="main">
       <section id="loading" class="card loading">
-        <h2>Ladataan sanakirjaa…</h2>
-        <p id="loading-text">Ensimmäisellä kerralla ladataan noin 21 Mt. Sen jälkeen sanakirja toimii myös ilman verkkoyhteyttä.</p>
+        <h2 data-i18n="loadingTitle">Ladataan sanakirjaa…</h2>
+        <p id="loading-text" data-i18n="loadingText">Ensimmäisellä kerralla ladataan noin 40 Mt. Sen jälkeen sanakirja toimii myös ilman verkkoyhteyttä.</p>
         <div class="progress"><div id="progress-bar"></div></div>
       </section>
 
       <section id="welcome" class="card welcome" hidden>
-        <h1>Bures boahtin! – Tervetuloa</h1>
-        <p class="lead">Pohjoissaamen–suomen sanakirja, jossa on sanojen koko taivutus.</p>
-        <dl class="tips">
-          <dt>Hae</dt><dd>saamen sanalla (dahkat), suomen sanalla (tehdä) tai taivutetulla muodolla (dagan).</dd>
-          <dt>Taivutus</dt><dd>verbeillä kaikki tapaluokat, nomineilla sijamuodot (ol. ja ml.).</dd>
-          <dt>Astevaihtelu</dt><dd>vahva aste <b class="gd">GD</b> vihreänä, heikko aste <b class="hd">HD</b> oranssina.</dd>
-          <dt>Ääntäminen</dt><dd>Kuuntele-nappi tai napautus taulukon muodossa.</dd>
-          <dt>Suosikit</dt><dd>★ tallentaa sanan omalle listalle.</dd>
-        </dl>
-        <p class="muted small">Kokeile:</p>
+        <div id="welcome-lang" class="lang-switch" role="radiogroup" data-i18n-aria="uiLanguage"></div>
+        <h1 data-i18n="welcomeTitle">Bures boahtin! – Tervetuloa</h1>
+        <p class="lead" data-i18n="welcomeLead"></p>
+        <dl class="tips" data-i18n-html="welcomeTips"></dl>
+        <p class="muted small" data-i18n="tryThese">Kokeile:</p>
         <div id="examples" class="chips"></div>
       </section>
 
@@ -103,10 +102,10 @@
           <div class="word-title">
             <h1 id="lemma"></h1>
             <span id="pos-badge" class="badge"></span>
-            <button id="fav-btn" class="star-btn" aria-label="Lisää suosikkeihin" title="Lisää suosikkeihin">☆</button>
+            <button id="fav-btn" class="star-btn">☆</button>
           </div>
           <div class="word-actions">
-            <button id="speak-btn" class="speak-btn"><span class="speaker">🔈</span> Kuuntele</button>
+            <button id="speak-btn" class="speak-btn"><span class="speaker">🔈</span> <span data-i18n="listen">Kuuntele</span></button>
             <a id="gt-link" class="gt-btn" target="_blank" rel="noopener"><span class="gt-mark">gt</span> Giellatekno ↗</a>
           </div>
         </div>
@@ -116,9 +115,9 @@
       </article>
 
       <nav id="tabs" class="tabs" hidden>
-        <button data-tab="table" class="active">Taivutus</button>
+        <button data-tab="table" class="active" data-i18n="tabTable">Taivutus</button>
         <button data-tab="meanings" id="meanings-tab">Merkitykset</button>
-        <button data-tab="raw">Kaikki muodot</button>
+        <button data-tab="raw" data-i18n="tabRaw">Kaikki muodot</button>
       </nav>
       <section id="panel-table" class="card panel" hidden></section>
       <section id="panel-meanings" class="card panel" hidden></section>
@@ -128,20 +127,15 @@
 
   <dialog id="about">
     <h2>Sátni FST</h2>
-    <p class="muted small" id="about-version">Web-versio (testi)</p>
-    <p>Pohjoissaamen taivutin ja sanakirja, joka perustuu avoimeen lähdekoodiin.</p>
-    <p>Sanakirjadata ja kieliteknologiapohja ovat peräisin Giellateknolta ja Divvunilta. Kielidata ja
-       taivutussäännöt on laskettu Giellateknon / Divvunin avoimilla FST-malleilla ja XML-sanakirjoilla.</p>
-    <p>Ääntäminen: Divvunin ja Giellateknon puhesynteesi (UiT Norjan arktinen yliopisto), äänet Biret,
-       Máhtte ja Sunná. Äänet haetaan palvelusta api-giellalt.uit.no samaan tapaan kuin sátni.org-sivustolla.</p>
-    <p>Ohjelma on tuore ja voi sisältää huomattavia virheitä, eikä sille ole virallista tukea.</p>
-    <p>Tekijä: Juha Somby · Palaute: <a href="mailto:juha@somby.fi">juha@somby.fi</a></p>
-    <form method="dialog"><button class="chip-btn">Sulje</button></form>
+    <p class="muted small" id="about-version"></p>
+    <div data-i18n-html="aboutBody"></div>
+    <form method="dialog"><button class="chip-btn" data-i18n="close">Sulje</button></form>
   </dialog>
 
   <div id="toast" class="toast" hidden></div>
 
   <script src="vendor/sql-wasm.js"></script>
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

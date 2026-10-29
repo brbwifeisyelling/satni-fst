@@ -193,9 +193,9 @@ class MainWindow(QMainWindow):
         self.view.load(START_URL)
 
     def on_loaded(self, ok):
-        # Tietoa-ikkunaan työpöytäversion versionumero
+        # Tietoa-ikkunaan työpöytäversion versionumero (teksti käyttöliittymän kielellä, ks. web/i18n.js)
         self.page.runJavaScript(
-            f"var v = document.getElementById('about-version'); if (v) v.textContent = 'Versio {VERSION} (työpöytä)';"
+            f"window.SATNI_VERSION = '{VERSION}'; if (window.applyStaticTexts) applyStaticTexts();"
         )
 
     def closeEvent(self, event):

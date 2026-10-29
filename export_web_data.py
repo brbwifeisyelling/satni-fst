@@ -1,7 +1,7 @@
 """Tekee satni.db:stä kevennetyn ja pakatun tietokannan web-versiota (PWA) varten: web/data/satni-web.db.gz
 
 Selaimessa tietokanta luetaan sql.js:llä (SQLite WebAssemblynä). Perusmuodoille ja käännöksille
-(trans_search, yksi rivi sanaa ja kieltä kohden) lasketaan valmiiksi pienaakkosiin muutetut sarakkeet (Pythonin lower(), joka toimii myös Á, Č, Š
+(trans_search: yksi rivi sanaa ja kieltä kohden sekä käänteisten sanakirjojen hakusanat) lasketaan valmiiksi pienaakkosiin muutetut sarakkeet (Pythonin lower(), joka toimii myös Á, Č, Š
 -kirjaimille), koska selaimen SQLite ei osaa muuttaa niitä. Taivutusmuodot haetaan sellaisenaan
 (muodot ovat pienaakkosia, erisnimet isolla alkukirjaimella).
 """
@@ -43,7 +43,9 @@ def main():
             sma_translation TEXT, notes TEXT, gradation TEXT, gd_cluster TEXT, hd_cluster TEXT,
             gradation_group TEXT, gradation_row TEXT, lemma_fold TEXT
         );
-        CREATE TABLE trans_search (word_id INTEGER, lang TEXT, fold TEXT);
+        -- nr: käänteisen sanakirjan (dict-fin-sme, dict-nob-sme) järjestys, 0 = ensisijainen saamennos;
+        -- NULL = sanan oma käännös (dict-sme-*)
+        CREATE TABLE trans_search (word_id INTEGER, lang TEXT, fold TEXT, nr INTEGER);
         -- Taivutustagit (Ind+Prs+Sg1 ...) numeroina: sama merkkijono toistuisi muuten lähes miljoona kertaa
         CREATE TABLE tags (id INTEGER PRIMARY KEY, tag TEXT);
         CREATE TABLE paradigms (word_id INTEGER, tag_id INTEGER, surface TEXT, grade TEXT);
@@ -60,9 +62,13 @@ def main():
     ).fetchall()
     dst.executemany(f"INSERT INTO dictionary VALUES ({', '.join('?' * (len(rows[0]) + 1))})",
                     [r + (fold(r[1]),) for r in rows])
-    dst.executemany("INSERT INTO trans_search VALUES (?, ?, ?)", [
+    dst.executemany("INSERT INTO trans_search VALUES (?, ?, ?, NULL)", [
         (r[0], lang, fold(r[4 + i])) for r in rows for i, lang in enumerate(TRANSLATION_COLUMNS) if r[4 + i]
     ])
+    dst.executemany("INSERT INTO trans_search VALUES (?, ?, ?, ?)", (
+        (w, lang, fold(head), nr) for w, lang, head, nr in
+        src.execute("SELECT word_id, lang, headword, MIN(nr) FROM reverse_index GROUP BY word_id, lang, headword")
+    ))
 
     tag_ids = {}
     for (tag,) in src.execute("SELECT DISTINCT tag FROM paradigms ORDER BY tag"):

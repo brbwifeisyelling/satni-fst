@@ -16,6 +16,8 @@ DB_FILE = os.path.join(SCRIPT_DIR, "satni.db")
 # suomenkielisen sanakirjan sanoihin, ja vain saamen FST:n tuntemat uudet sanat otetaan mukaan.
 LANGUAGES = ["fin", "nob", "eng", "smn", "smj", "sma"]
 XML_DIRS = {lang: os.path.join(SCRIPT_DIR, f"dict-sme-{lang}", "src") for lang in LANGUAGES}
+# Käänteiset sanakirjat (suomi/norja -> saame): parantavat hakua suomen- ja norjankielisillä sanoilla
+REVERSE_DIRS = {lang: os.path.join(SCRIPT_DIR, f"dict-{lang}-sme", "src") for lang in ("fin", "nob")}
 TRANSLATION_COLUMNS = {lang: "finnish_translation" if lang == "fin" else f"{lang}_translation" for lang in LANGUAGES}
 CORRECTIONS_FILE = os.path.join(SCRIPT_DIR, "korjaukset.tsv")
 
@@ -252,12 +254,75 @@ def parse_xml_dictionaries():
         if lang != "fin" and xml_files:
             print(f"  dict-sme-{lang}: {merged} käännöstä olemassa oleviin sanoihin, {added} uutta sanaehdokasta")
 
+    parse_reverse_dictionaries(entries, by_lemma)
+
     words = [
         (lemma, pos, subtype, data["sem_type"], {l: ", ".join(t) for l, t in data["translations"].items() if t})
         for (lemma, pos, subtype), data in entries.items()
     ]
-    details = {key: {k: data[k] for k in ("meanings", "freq", "notes", "new_from")} for key, data in entries.items()}
+    details = {key: {k: data.get(k, []) if k == "reverse" else data[k]
+                     for k in ("meanings", "freq", "notes", "new_from", "reverse")} for key, data in entries.items()}
     return words, details
+
+
+def parse_reverse_dictionaries(entries, by_lemma):
+    """dict-fin-sme ja dict-nob-sme: hakusana (suomi/norja) -> saamen sanat. Parit tallennetaan sanalle
+    kenttään "reverse" [(kieli, hakusana, järjestys)], 0 = sanakirjan ensimmäinen saamennos. Saamen sana,
+    jota muissa sanakirjoissa ei ole, lisätään uutena (tarkistetaan FST:llä kuten muutkin uudet sanat)."""
+    for lang, xml_dir in REVERSE_DIRS.items():
+        xml_files = sorted(glob.glob(os.path.join(xml_dir, "*.xml")))
+        if not xml_files:
+            print(f"Sanakirjaa dict-{lang}-sme ei löydy, ohitetaan (hae: ./hae_sanakirjat.sh).")
+            continue
+        fix = fix_finnish_text if lang == "fin" else (lambda text: text)
+        pairs = added = 0
+        for filepath in xml_files:
+            filename = os.path.basename(filepath)
+            if filename == "meta.xml":
+                continue
+            try:
+                root = ET.parse(filepath).getroot()
+            except ET.ParseError as e:
+                print(f"Virhe XML-tiedoston {filename} käsittelyssä: {e}")
+                continue
+            for entry in root.iter('e'):
+                head_elem = entry.find('lg/l')
+                headword = fix(_clean(head_elem.text)) if head_elem is not None else ""
+                if not headword:
+                    continue
+                order = 0
+                for tg in entry.iter('tg'):
+                    if tg.get(XML_LANG) not in (None, "sme"):
+                        continue
+                    for t_elem in tg.findall('t'):
+                        lemma = _clean(t_elem.text)
+                        if not lemma or _placeholder(lemma):
+                            continue
+                        pos = detect_pos(t_elem.get('pos') or head_elem.get('pos'), filename)
+                        subtype = ""
+                        if pos == "Prop":
+                            pos, subtype = "N", "Prop"
+                        key = find_entry(entries, by_lemma, lemma, pos, subtype) or (lemma, pos, subtype)
+                        if key not in entries:
+                            entries[key] = {"sem_type": "", "translations": {}, "meanings": [],
+                                            "freq": None, "notes": [], "new_from": f"{lang}-sme"}
+                            by_lemma.setdefault(lemma, []).append(key)
+                            added += 1
+                        data = entries[key]
+                        data.setdefault("reverse", []).append((lang, headword, order))
+                        # Vain käänteisistä sanakirjoista löytyneen sanan käännöksiksi tulevat sen hakusanat
+                        if data["new_from"].endswith("-sme"):
+                            trans = data["translations"].setdefault(lang, [])
+                            if headword not in trans:
+                                trans.append(headword)
+                                meaning = next((m for m in data["meanings"] if m["lang"] == lang), None)
+                                if meaning is None:
+                                    meaning = new_meaning(lang)
+                                    data["meanings"].append(meaning)
+                                meaning["translations"].append(headword)
+                        order += 1
+                        pairs += 1
+        print(f"  dict-{lang}-sme: {pairs} hakusana-saamennos-paria, {added} uutta sanaehdokasta")
 
 
 def apply_corrections(words, details):
@@ -289,7 +354,7 @@ def apply_corrections(words, details):
                 continue
             trans = {**trans, "fin": corrections[key]}
             # Korjattu suomennos korvaa XML:n suomenkieliset merkitykset (muut kielet säilyvät)
-            info = details.setdefault((lemma, pos, subtype), {"freq": None, "notes": [], "meanings": []})
+            info = details.setdefault((lemma, pos, subtype), {"freq": None, "notes": [], "meanings": [], "reverse": []})
             info["meanings"] = [new_meaning("fin", [corrections[key]])] + [
                 m for m in info["meanings"] if m["lang"] != "fin"]
             info["new_from"] = "fin"
@@ -299,7 +364,7 @@ def apply_corrections(words, details):
     for (lemma, pos), trans in corrections.items():
         if (lemma, pos) not in applied and trans != "-":
             result.append((lemma, pos, "", "", {"fin": trans}))
-            details[(lemma, pos, "")] = {"freq": None, "notes": [], "new_from": "fin",
+            details[(lemma, pos, "")] = {"freq": None, "notes": [], "new_from": "fin", "reverse": [],
                                          "meanings": [new_meaning("fin", [trans])]}
     print(f"Sovellettiin {len(corrections)} korjausta tiedostosta korjaukset.tsv.")
     return result
@@ -407,11 +472,13 @@ def filter_new_words(words, details, analyses):
             for lang, text in trans.items():
                 old[4][lang] = ", ".join(filter(None, [old[4].get(lang), text]))
             details[key]["meanings"] += info["meanings"]
+            details[key]["reverse"] += info["reverse"]
             continue
         result[key] = (lemma, pos, subtype, sem_type, dict(trans))
         details[key] = info
     for lang, n in dropped.items():
-        print(f"  dict-sme-{lang}: {n} sanaa ohitettiin, koska saamen FST ei tunne niitä")
+        source = f"dict-{lang}" if lang.endswith("-sme") else f"dict-sme-{lang}"
+        print(f"  {source}: {n} sanaa ohitettiin, koska saamen FST ei tunne niitä")
     return list(result.values())
 
 
@@ -584,6 +651,16 @@ def main():
             FOREIGN KEY(word_id) REFERENCES dictionary(id)
         )
     ''')
+    # Käänteisten sanakirjojen hakusanat: nr 0 = sanakirjan ensisijainen saamennos hakusanalle
+    cursor.execute('''
+        CREATE TABLE reverse_index (
+            word_id INTEGER,
+            lang TEXT,
+            headword TEXT,
+            nr INTEGER,
+            FOREIGN KEY(word_id) REFERENCES dictionary(id)
+        )
+    ''')
     cursor.execute('''
         CREATE TABLE paradigms (
             word_id INTEGER,
@@ -623,6 +700,11 @@ def main():
                 [(w_id, lang, nr, sme, t, src) for sme, t, src in meaning["examples"]]
             )
 
+        cursor.executemany(
+            "INSERT INTO reverse_index (word_id, lang, headword, nr) VALUES (?, ?, ?, ?)",
+            [(w_id, lang, head, nr) for lang, head, nr in dict.fromkeys(info.get("reverse", []))]
+        )
+
         rows = []
         for prefix in word_prefixes:
             for tag, suffix in forms_for(pos, prefix):
@@ -647,6 +729,7 @@ def main():
     cursor.execute("CREATE INDEX idx_paradigms_word_id ON paradigms(word_id);")
     cursor.execute("CREATE INDEX idx_meanings_word_id ON meanings(word_id);")
     cursor.execute("CREATE INDEX idx_examples_word_id ON examples(word_id);")
+    cursor.execute("CREATE INDEX idx_reverse_headword ON reverse_index(headword COLLATE NOCASE);")
     cursor.execute("CREATE INDEX idx_paradigms_surface ON paradigms(surface COLLATE NOCASE);")
 
     conn.commit()
