@@ -146,14 +146,9 @@ function toast(text, ms = 3500) {
   toast.timer = setTimeout(() => (el.hidden = true), ms);
 }
 
-// Valitun kielen käännös; jos sitä ei ole, ensimmäinen muu (kielen nimi suluissa): "talo" tai "(norja) hus"
+// Vain valitun kielen käännös (muut kielet näkyvät Merkitykset-välilehdellä omina ryhminään)
 function translationOf(row, max) {
-  const order = [settings.lang, ...Object.keys(LANGUAGES).filter((l) => l !== settings.lang)];
-  for (const lang of order) {
-    const parts = splitList(row[LANGUAGES[lang].col]);
-    if (parts.length) return (lang === settings.lang ? "" : `(${langName(lang)}) `) + parts.slice(0, max).join(", ");
-  }
-  return "";
+  return splitList(row[LANGUAGES[settings.lang].col]).slice(0, max).join(", ");
 }
 
 // Merkitykset kielittäin, valittu kieli ensin
@@ -300,6 +295,8 @@ function search(query, index = 0, pushHistory = true) {
   $("search").value = query;
   state.query = query;
   state.results = queryDatabase(query);
+  state.showPrefix = false;
+  state.index = index;
 
   const hash = `#/sana/${encodeURIComponent(query)}${index ? "/" + index : ""}`;
   if (location.hash !== hash) history.pushState(null, "", hash);
@@ -324,23 +321,47 @@ function search(query, index = 0, pushHistory = true) {
   selectResult(Math.min(index, state.results.length - 1), pushHistory);
 }
 
+// Pelkät "alkaa hakusanalla" -osumat (rank 7, esim. beana -> beanabálvalus) piilotetaan napin taakse,
+// jos varsinaisia osumia on (perusmuoto, käännös, taivutusmuoto). Ilman niitä näytetään kaikki.
+const PREFIX_RANK = 7;
+
 function renderResults() {
   const box = $("results");
   box.innerHTML = "";
-  state.results.forEach((r, i) => {
+  const strong = state.results.filter((r) => r.rank < PREFIX_RANK).length;
+  const prefixOnly = state.results.length - strong;
+  const collapsed = strong > 0 && prefixOnly > 0 && !state.showPrefix && state.index < strong;
+  state.results.slice(0, collapsed ? strong : state.results.length).forEach((r, i) => {
     const b = document.createElement("button");
     const trans = translationOf(r, 2);
     const pos = r.subtype ? `${r.pos} ${r.subtype}` : r.pos;
     b.innerHTML = `${esc(r.sme_lemma)} <span class="trans">(${esc(pos)})${trans ? " – " + esc(trans) : ""}</span>`;
+    b.dataset.i = i;
     b.onclick = () => selectResult(i);
     box.appendChild(b);
   });
+  if (strong > 0 && prefixOnly > 0) {
+    const more = document.createElement("button");
+    more.className = "more-results";
+    more.textContent = collapsed ? t("morePrefix", prefixOnly, state.query) : t("fewerPrefix");
+    more.onclick = () => {
+      state.showPrefix = collapsed;
+      renderResults();
+      [...box.children].forEach((b) => b.classList.toggle("selected", Number(b.dataset.i) === state.index));
+    };
+    box.appendChild(more);
+  }
 }
 
 function selectResult(i, pushHistory = true) {
   state.index = i;
   const r = state.results[i];
-  [...$("results").children].forEach((b, k) => b.classList.toggle("selected", k === i));
+  if (i >= state.results.filter((x) => x.rank < PREFIX_RANK).length && !state.showPrefix) {
+    state.showPrefix = true;  // osoitteessa (#/sana/beana/12) valittu alkuosuma näkyviin
+    state.index = i;
+    renderResults();
+  }
+  [...$("results").children].forEach((b) => b.classList.toggle("selected", b.dataset.i !== undefined && Number(b.dataset.i) === i));
   const hash = `#/sana/${encodeURIComponent(state.query)}${i ? "/" + i : ""}`;
   if (location.hash !== hash) history.replaceState(null, "", hash);
 
@@ -363,15 +384,15 @@ function selectResult(i, pushHistory = true) {
 
   // Ensimmäinen merkitys käyttörajoituksineen (esim. hyppiä – paksussa lumessa, porosta), valitulla
   // kielellä tai sen puuttuessa ensimmäisellä muulla kielellä
+  // vain valitulla kielellä; jos sitä ei ole, "(ei suomennosta)" ja linkki muihin kieliin
   const groups = meaningsByLanguage(data.meanings);
-  const [firstLang, firstGroup] = groups[0] || [settings.lang, []];
-  const first = firstGroup[0];
+  const ownGroup = (groups.find(([lang]) => lang === settings.lang) || [settings.lang, []])[1];
+  const first = ownGroup[0];
   let trans = first ? splitList(first.translations || first.explanations).slice(0, 4).join(", ") : translationOf(w, 3);
   if (first && first.restrictions) trans += ` (${first.restrictions})`;
-  if (first && trans && firstLang !== settings.lang) trans = `(${langName(firstLang)}) ${trans}`;
-  $("translation").textContent = trans || t("noTranslation");
-  $("more-meanings").textContent = firstGroup.length > 1 ? t("moreMeanings", firstGroup.length - 1) :
-    groups.length > 1 ? t("otherLangs") : "";
+  $("translation").textContent = trans || t("noTranslationIn")[settings.lang];
+  $("more-meanings").textContent = ownGroup.length > 1 ? t("moreMeanings", ownGroup.length - 1) :
+    groups.some(([lang]) => lang !== settings.lang) ? t("otherLangs") : "";
 
   renderGradation();
   renderInfo(w);
