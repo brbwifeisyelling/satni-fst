@@ -35,10 +35,14 @@ Sátni FST combines the open dictionaries and morphology of [GiellaLT](https://g
 
 **Android:**
 
-| | | | |
-|---|---|---|---|
-| ![Word card on a phone](docs/screenshots/phone-light-fi.png) | ![Verb inflection table on a phone](docs/screenshots/phone-light-fi-table.png) | ![Norwegian user interface in dark mode](docs/screenshots/phone-dark-nb.png) | ![Meanings in dark mode](docs/screenshots/phone-dark-fi-meanings.png) |
-| *Word card* | *Inflection table* | *Norwegian, dark mode* | *Meanings* |
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="docs/screenshots/phone-light-fi.png" width="200" alt="Word card on a phone"><br><em>Word card</em></td>
+    <td align="center" width="25%"><img src="docs/screenshots/phone-light-fi-table.png" width="200" alt="Verb inflection table on a phone"><br><em>Inflection table</em></td>
+    <td align="center" width="25%"><img src="docs/screenshots/phone-dark-nb.png" width="200" alt="Norwegian user interface in dark mode"><br><em>Norwegian, dark mode</em></td>
+    <td align="center" width="25%"><img src="docs/screenshots/phone-dark-fi-meanings.png" width="200" alt="Meanings in dark mode"><br><em>Meanings</em></td>
+  </tr>
+</table>
 
 ## How to use
 
