@@ -35,7 +35,17 @@ THEME_NAMES = {"auto": "Automaattinen", "light": "Vaalea", "dark": "Tumma"}
 # Fontit, joissa saamen kirjaimet (á č đ ŋ š ŧ ž) näkyvät hyvin; ensimmäinen saatavilla oleva valitaan
 FONT_CANDIDATES = ["Noto Sans", "Segoe UI", "Cantarell", "Ubuntu", "DejaVu Sans", "Liberation Sans", "Helvetica"]
 
-DEFAULT_SETTINGS = {"theme": "auto", "voice": "Biret", "show_grade": True}
+# Kaikki käyttäjän valinnat säilyvät ohjelman käynnistysten välillä
+DEFAULT_SETTINGS = {
+    "theme": "auto",          # auto / light / dark
+    "voice": "Biret",         # ääntämisen ääni
+    "show_grade": True,       # Näytä aste (GD/HD)
+    "geometry": "",           # ikkunan koko ja paikka, esim. 1250x860+40+40
+    "maximized": False,       # ikkuna suurennettu koko näytölle
+    "tab": 0,                 # avoin välilehti (Taivutus / Merkitykset / Kaikki muodot)
+    "last_query": "",         # viimeisin haku, joka avataan seuraavalla käynnistyksellä
+    "last_index": 0,          # valittu hakutulos
+}
 
 
 # --- Asetukset ---

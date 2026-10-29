@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import re
 import sqlite3
 import threading
 import tkinter as tk
@@ -380,10 +381,11 @@ class SatniGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Sátni FST - Pohjoissaamen avoin sanakirja ja taivutin")
-        self.root.geometry("1250x860")
         self.root.minsize(900, 600)
 
         self.settings = ui_theme.load_settings()
+        self.restore_window()
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.font = ui_theme.choose_font_family(root)
         self.set_window_icon()
 
@@ -403,6 +405,82 @@ class SatniGUI:
         self.root.bind_all("<Control-f>", self.focus_search)
         self.root.bind_all("<Control-l>", self.focus_search)
         self.build_ui()
+        # Avataan sama sana ja välilehti, joihin edellinen käyttökerta jäi
+        if self.settings.get("last_query"):
+            self.restore_view(self.settings["last_query"], self.settings.get("last_index", 0),
+                              self.settings.get("tab", 0))
+
+    # --- Ikkunan ja näkymän tallennus ---
+
+    def restore_window(self):
+        """Ikkunan koko ja paikka edelliseltä kerralta; varmistetaan, että ikkuna osuu näytölle."""
+        match = re.fullmatch(r"(\d+)x(\d+)\+(-?\d+)\+(-?\d+)", self.settings.get("geometry") or "")
+        if match:
+            w, h, x, y = (int(v) for v in match.groups())
+            sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
+            w, h = min(max(w, 900), sw), min(max(h, 600), sh)
+            x, y = min(max(x, 0), max(sw - 200, 0)), min(max(y, 0), max(sh - 200, 0))
+            self.root.geometry(f"{w}x{h}+{x}+{y}")
+            # Linuxissa ikkunan sijainti luetaan otsikkopalkin alapuolelta, mutta asetetaan reunasta.
+            # Mitataan ero, jotta tallennettu paikka ei valu joka käynnistyksellä alemmas.
+            self.root.after(400, lambda: self.measure_frame_offset(x, y))
+        else:
+            self.root.geometry("1250x860")
+        if self.settings.get("maximized"):
+            self.root.after(50, self.maximize)
+
+    def measure_frame_offset(self, x, y, tries=30):
+        # Mitataan vasta, kun ikkuna on oikeasti näkyvissä (käynnistys voi viivästyttää sitä)
+        if not self.root.winfo_ismapped() or (self.root.winfo_rootx(), self.root.winfo_rooty()) == (0, 0):
+            if tries:
+                self.root.after(100, lambda: self.measure_frame_offset(x, y, tries - 1))
+            return
+        dx, dy = self.root.winfo_rootx() - x, self.root.winfo_rooty() - y
+        if 0 <= dx < 100 and 0 <= dy < 100:
+            self.frame_offset = (dx, dy)
+
+    def maximize(self):
+        try:
+            if sys.platform == "win32":
+                self.root.state("zoomed")
+            else:
+                self.root.attributes("-zoomed", True)
+        except tk.TclError:
+            pass
+
+    def is_maximized(self):
+        try:
+            if sys.platform == "win32":
+                return self.root.state() == "zoomed"
+            return bool(self.root.attributes("-zoomed"))
+        except tk.TclError:
+            return False
+
+    def on_close(self):
+        maximized = self.is_maximized()
+        self.settings["maximized"] = maximized
+        if not maximized:  # suurennetun ikkunan koko ei ole hyödyllinen palautettava koko
+            dx, dy = getattr(self, "frame_offset", (0, 0))
+            self.settings["geometry"] = (f"{self.root.winfo_width()}x{self.root.winfo_height()}"
+                                         f"+{self.root.winfo_rootx() - dx}+{self.root.winfo_rooty() - dy}")
+        ui_theme.save_settings(self.settings)
+        self.root.destroy()
+
+    def on_tab_changed(self, event=None):
+        if self.current_results:
+            self.save_setting("tab", self.notebook.index(self.notebook.select()))
+
+    def restore_view(self, query, idx, tab):
+        self.search_entry.delete(0, tk.END)
+        self.search_entry.insert(0, query)
+        self.perform_search()
+        if self.current_results:
+            if 0 < idx < len(self.current_results):
+                self.select_word_option(idx)
+            try:
+                self.notebook.select(tab)
+            except tk.TclError:
+                pass
 
     # --- Yleiset apuvälineet ---
 
@@ -631,6 +709,7 @@ class SatniGUI:
         self.notebook.add(self.tab_table, text="Taivutus")
         self.notebook.add(self.tab_meanings, text="Merkitykset ja esimerkit")
         self.notebook.add(self.tab_raw, text="Kaikki muodot")
+        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_changed)
 
         # Ohjerivi pakataan ennen taulukkoa, jotta laajeneva taulukko ei peitä sitä
         hint = tk.Label(self.tab_table, text="Kaksoisnapsauta muotoa kuullaksesi sen  ·  "
@@ -703,11 +782,7 @@ class SatniGUI:
         self.current_results = []
         self.build_ui()
         if query:
-            self.search_entry.insert(0, query)
-            self.perform_search()
-            if self.current_results and idx < len(self.current_results):
-                self.select_word_option(idx)
-                self.notebook.select(tab)
+            self.restore_view(query, idx, tab)
 
     def on_grade_toggle(self):
         self.save_setting("show_grade", bool(self.show_grade.get()))
@@ -748,6 +823,8 @@ class SatniGUI:
 
         self.last_query = query
         self.current_results = query_database(query)
+        if self.current_results:
+            self.settings["last_query"] = query
 
         for widget in self.buttons_inner_frame.winfo_children():
             widget.destroy()
@@ -865,6 +942,7 @@ class SatniGUI:
     def select_word_option(self, selected_idx):
         c = self.c
         self.selected_idx = selected_idx
+        self.save_setting("last_index", selected_idx)
         word_id, lemma, pos, subtype, trans = self.current_results[selected_idx]
         for idx, widget in enumerate(self.buttons_inner_frame.winfo_children()):
             selected = idx == selected_idx
