@@ -36,4 +36,4 @@ Lähteet ja lisenssit / Kilder og lisenser:
   Ääntäminen / Uttale: Divvunin ja Giellateknon puhesynteesi / talesyntese fra Divvun og Giellatekno
   Sátni FST: GPL-3.0. Kaikki lähteet ja muutokset / alle kilder og endringer: CREDITS.md
 
-Palaute / Tilbakemelding: juha@somby.fi
+Palaute / Tilbakemelding: satni@somby.fi

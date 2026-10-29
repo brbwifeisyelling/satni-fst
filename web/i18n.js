@@ -90,7 +90,7 @@ const UI_TEXTS = {
          taivutus GiellaLT lang-sme (GPL-3.0), sql.js (MIT). Sátni FST on vapaa ohjelma (GPL-3.0).
          Lähteet ja tehdyt muutokset: CREDITS.md lähdekoodin mukana.</p>
       <p>Ohjelma on tuore ja voi sisältää huomattavia virheitä, eikä sille ole virallista tukea.</p>
-      <p>Tekijä: Juha Somby · Palaute: <a href="mailto:juha@somby.fi">juha@somby.fi</a></p>`,
+      <p>Tekijä: Juha Somby · Palaute: <a href="mailto:satni@somby.fi">satni@somby.fi</a></p>`,
     close: "Sulje",
   },
 
@@ -174,7 +174,7 @@ const UI_TEXTS = {
          bøying GiellaLT lang-sme (GPL-3.0), sql.js (MIT). Sátni FST er fri programvare (GPL-3.0).
          Kilder og endringer: CREDITS.md i kildekoden.</p>
       <p>Programmet er nytt og kan inneholde betydelige feil, og det har ingen offisiell støtte.</p>
-      <p>Laget av: Juha Somby · Tilbakemelding: <a href="mailto:juha@somby.fi">juha@somby.fi</a></p>`,
+      <p>Laget av: Juha Somby · Tilbakemelding: <a href="mailto:satni@somby.fi">satni@somby.fi</a></p>`,
     close: "Lukk",
   },
 };

@@ -1458,10 +1458,10 @@ class SatniGUI:
         email_frame.pack(pady=8)
         tk.Label(email_frame, text="Virheilmoitukset ja palaute: ", font=self.F(10), bg=c["surface"],
                  fg=c["muted"]).pack(side=tk.LEFT)
-        email_link = tk.Label(email_frame, text="juha@somby.fi", font=self.F(10, "underline"),
+        email_link = tk.Label(email_frame, text="satni@somby.fi", font=self.F(10, "underline"),
                               bg=c["surface"], fg=c["accent"], cursor="hand2")
         email_link.pack(side=tk.LEFT)
-        email_link.bind("<Button-1>", lambda e: webbrowser.open("mailto:juha@somby.fi"))
+        email_link.bind("<Button-1>", lambda e: webbrowser.open("mailto:satni@somby.fi"))
 
         self.flat_button(about_win, "Sulje", about_win.destroy, c["chip"], c["chip_text"], c["chip_hover"],
                          padx=22, pady=6).pack(pady=16)

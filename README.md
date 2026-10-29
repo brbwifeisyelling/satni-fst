@@ -47,4 +47,4 @@ Sátni FST is free software under the [GNU General Public License v3.0](LICENSE)
 The dictionaries are © GiellaLT and licensed under CC BY 4.0, the morphology (lang-sme) under GPL-3.0 —
 see [CREDITS.md](CREDITS.md) for all sources, licences and the changes made to the data.
 
-Feedback: Juha Somby, <juha@somby.fi>
+Feedback: Juha Somby, <satni@somby.fi>
