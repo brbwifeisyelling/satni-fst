@@ -17,6 +17,8 @@
       if (s.theme === "light" || s.theme === "dark") document.documentElement.dataset.theme = s.theme;
       if (s.uiLang === "nb") document.documentElement.lang = "nb";
     } catch (e) {}
+    // Android-sovellus jättää tilarivin tilan itse (MainActivity): yläpalkki ei lisää sitä toista kertaa
+    if (location.hostname === "appassets.androidplatform.net") document.documentElement.classList.add("android-app");
   </script>
 </head>
 <body>

@@ -63,17 +63,8 @@ public class MainActivity extends Activity {
         root.setClipToPadding(false);  // tilarivin väri piirretään reunuksen alueelle
         setContentView(root);
         root.setOnApplyWindowInsetsListener((view, insets) -> {
-            // Yläreunassa vain tilarivin korkeus (puhelimissa tilarivi kattaa myös kameran loven)
-            if (Build.VERSION.SDK_INT >= 30) {
-                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.ime());
-                view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            } else {
-                view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
-                        insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
-            }
-            statusBar.getLayoutParams().height = view.getPaddingTop();
-            statusBar.setTranslationY(-view.getPaddingTop());  // reunuksen alueelle, WebViewin yläpuolelle
-            statusBar.requestLayout();
+            lastInsets = insets;
+            view.post(() -> applyInsets(view, statusBar));  // sijainti tiedetään vasta asettelun jälkeen
             return insets;
         });
 
@@ -97,6 +88,44 @@ public class MainActivity extends Activity {
         if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) {
             web.loadUrl(START_URL);
         }
+    }
+
+    private WindowInsets lastInsets;
+
+    /**
+     * Reunus vain sen verran kuin tilarivi, navigointipalkki ja näppäimistö oikeasti peittävät sovellusta.
+     * Android 15 piirtää sovelluksen palkkien alle (tarvitaan reunus). Vanhemmissa ja osassa puhelimia
+     * Android sijoittaa sovelluksen jo valmiiksi palkkien ja kameran reiän alapuolelle, vaikka ilmoittaa
+     * palkit silti: silloin reunus olisi ylimääräinen tyhjä alue. Peitto = palkki miinus se, kuinka
+     * paljon sisältö on jo valmiiksi siirretty ikkunan reunasta.
+     */
+    private void applyInsets(View view, View statusBar) {
+        if (lastInsets == null) {
+            return;
+        }
+        int top, bottom, left, right;
+        if (Build.VERSION.SDK_INT >= 30) {
+            android.graphics.Insets bars = lastInsets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.ime());
+            top = bars.top; bottom = bars.bottom; left = bars.left; right = bars.right;
+        } else {
+            top = lastInsets.getSystemWindowInsetTop(); bottom = lastInsets.getSystemWindowInsetBottom();
+            left = lastInsets.getSystemWindowInsetLeft(); right = lastInsets.getSystemWindowInsetRight();
+        }
+        View window = view.getRootView();
+        int[] v = new int[2], w = new int[2];
+        view.getLocationInWindow(v);
+        window.getLocationInWindow(w);
+        int offsetTop = v[1] - w[1];
+        int offsetBottom = (w[1] + window.getHeight()) - (v[1] + view.getHeight());
+        top = Math.max(0, top - offsetTop);
+        bottom = Math.max(0, bottom - offsetBottom);
+        if (view.getPaddingTop() != top || view.getPaddingBottom() != bottom
+                || view.getPaddingLeft() != left || view.getPaddingRight() != right) {
+            view.setPadding(left, top, right, bottom);
+        }
+        statusBar.getLayoutParams().height = top;
+        statusBar.setTranslationY(-top);  // reunuksen alueelle, WebViewin yläpuolelle
+        statusBar.requestLayout();
     }
 
     /** Tietoa-ikkunaan sovelluksen versionumero (teksti käyttöliittymän kielellä, ks. web/i18n.js). */

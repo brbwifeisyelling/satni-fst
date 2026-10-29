@@ -59,6 +59,8 @@ b.hd, .hd { color: var(--hd); }
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   background: var(--surface); padding: 10px 20px; padding-top: max(10px, env(safe-area-inset-top));
 }
+/* Android-sovelluksessa tilarivin tila on jo sovelluksen reunuksessa (muuten tyhjä alue kahteen kertaan) */
+.android-app .topbar { padding-top: 10px; }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; overflow: hidden; }
 .brand > div { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .brand-icon { width: 36px; height: 36px; border-radius: 8px; }

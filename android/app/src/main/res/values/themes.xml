@@ -3,7 +3,7 @@
     <!-- Vaalea teema; values-night: tumma. WebView välittää valinnan sivulle (prefers-color-scheme). -->
     <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/background</item>
-        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:statusBarColor">@color/topbar</item>
         <item name="android:navigationBarColor">@color/background</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
