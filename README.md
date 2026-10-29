@@ -22,6 +22,35 @@ Sátni FST combines the open dictionaries and morphology of [GiellaLT](https://g
 - Pronunciation with Divvun's speech synthesis (voices Biret, Máhtte, Sunná; needs a network connection)
 - User interface in Finnish or Norwegian, light and dark theme, history and favourites
 
+## Screenshots
+
+**Desktop** (Linux and Windows) — light and dark theme, Finnish and Norwegian user interface:
+
+| | |
+|---|---|
+| ![Search with an inflected form: dagan → dahkat, with the verb's inflection table](docs/screenshots/desktop-light-fi.png) | ![Dark theme: the noun viessu (house) and its cases](docs/screenshots/desktop-dark-fi.png) |
+| *Search with an inflected form: **dagan** finds **dahkat** (to do)* | *Dark theme: nouns in all cases, singular and plural* |
+| ![Norwegian user interface: searching with the Norwegian word hus](docs/screenshots/desktop-light-nb.png) | ![Meanings with example sentences in Norwegian and Finnish](docs/screenshots/desktop-dark-nb.png) |
+| *Search with a Norwegian word: **hus** → *dállu*, *viessu* …* | *Meanings and example sentences in several languages* |
+
+**Android:**
+
+| | | | |
+|---|---|---|---|
+| ![Word card on a phone](docs/screenshots/phone-light-fi.png) | ![Verb inflection table on a phone](docs/screenshots/phone-light-fi-table.png) | ![Norwegian user interface in dark mode](docs/screenshots/phone-dark-nb.png) | ![Meanings in dark mode](docs/screenshots/phone-dark-fi-meanings.png) |
+| *Word card* | *Inflection table* | *Norwegian, dark mode* | *Meanings* |
+
+## How to use
+
+1. **Search** with a North Sámi word in any form (*dagan*, *viesus*), or with a Finnish or Norwegian word (*talo*, *hus*).
+2. **Pick a result** from the row of buttons. Words that only begin with your search are behind the "+N other words" button.
+3. **The word card** shows the translation, the word class and the consonant gradation:
+   green **GD** = strong grade, orange **HD** = weak grade.
+4. **Tabs:** *Inflection* (the full table), *Meanings and examples*, and *All forms* (every form the morphology generates).
+5. **Listen** (🔈) plays the word with speech synthesis; tapping a form in the inflection table plays that form.
+6. **Settings:** the flag button changes the user interface language (Finnish/Norwegian), *Translations* the translation language,
+   and the theme menu switches between light, dark and automatic. The ☆ star saves a word to your favourites.
+
 ## Building
 
 The finished apps are built from these steps. Most build steps run in Docker, so little needs to be installed.
