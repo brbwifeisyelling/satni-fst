@@ -38,6 +38,14 @@ if getattr(sys, "frozen", False):
         # ohjelma ei muuten käynnistyisi. Sovellus näyttää vain omaa paikallista sisältöään;
         # ulkoiset linkit avataan järjestelmän selaimessa.
         os.environ.setdefault("QTWEBENGINE_DISABLE_SANDBOX", "1")
+        # Ohjelmistopiirto: paketoidussa versiossa Qt valitsi joillakin koneilla Vulkanin, kun taas
+        # Chromium tuotti OpenGL-tekstuureja, ja ikkuna jäi tyhjäksi ("Compositor returned null
+        # texture"). Sanakirja ei tarvitse näytönohjainta. SATNI_GPU=1 ottaa sen takaisin käyttöön.
+        if not os.environ.get("SATNI_GPU"):
+            os.environ.setdefault("QT_QUICK_BACKEND", "software")
+            flags = os.environ.get("QTWEBENGINE_CHROMIUM_FLAGS", "")
+            if "--disable-gpu" not in flags:
+                os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = (flags + " --disable-gpu").strip()
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
