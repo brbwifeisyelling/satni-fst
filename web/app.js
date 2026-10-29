@@ -558,10 +558,10 @@ function renderMeanings(meanings) {
   const w = state.word;
   let html = `<h2 style="margin-top:0">${esc(w.sme_lemma)} <span class="muted small"><i>${esc(wordClassLabel(w.pos))}</i></span></h2>`;
   if (w.notes) html += `<p class="muted small"><i>${esc(w.notes)}</i></p>`;
-  // Kielittäin, valittu kieli ensin; otsikko vain jos kieliä on useampi
+  // Kielittäin, valittu kieli ensin; otsikko, jos kieliä on useampi tai ainoa kieli ei ole valittu kieli
   const groups = meaningsByLanguage(meanings);
   for (const [lang, ms] of groups) {
-    if (groups.length > 1) html += `<h3 class="lang-head">${esc(t("langIn")[lang])}</h3>`;
+    if (groups.length > 1 || lang !== settings.lang) html += `<h3 class="lang-head">${esc(t("langIn")[lang])}</h3>`;
     html += ms.map((m) => meaningHtml(m, ms.length > 1)).join("");
   }
   if (!meanings.length) html += `<p class="muted">${esc(t("noMeanings"))}</p>`;
