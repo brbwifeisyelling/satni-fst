@@ -10,7 +10,7 @@ cd "$(dirname "$0")" || exit 1
 VERSION=$(python3 -c "import version; print(version.VERSION)") || exit 1
 VERSION_CODE=$(python3 -c "v = '$VERSION'.split('.'); print(int(v[2]) * 100 + int(v[3]))") || exit 1
 
-# Väliaikaiset tiedostot (Gradle, käännös, debug-avain) välimuistikansioon, ei Seafile-kansioon
+# Väliaikaiset tiedostot (Gradle, käännös, debug-avain) välimuistikansioon, ei projektikansioon
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/satni-fst-build/android"
 mkdir -p "$CACHE_DIR/home" "$CACHE_DIR/build" || exit 1
 

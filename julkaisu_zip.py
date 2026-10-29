@@ -1,5 +1,5 @@
 """Pakkaa build.sh:n tuottamat AppImagen ja Windows-version julkaisuzipiksi:
-~/Seafile/Files/Git/dist/satni-fst.zip (satni-fst/: AppImage, Windows/satni-fst/, LUEMINUT.txt).
+../dist/satni-fst.zip eli projektikansion viereen (satni-fst/: AppImage, Windows/satni-fst/, LUEMINUT.txt).
 
 Edellinen zip siirretään ensin kansioon dist/_archive nimellä archive_<versio>.zip, ja arkistoon
 jätetään vain viisi uusinta versiota. Väliaikaiset tiedostot: ~/.cache/satni-fst-build/release.

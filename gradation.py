@@ -2,7 +2,8 @@
 
 FST ei merkitse astetta, joten se päätellään muodoista: etsitään sanan konsonanttikeskus,
 joka vaihtelee muodosta toiseen (dahkat ~ dagan: hk ~ g), ja ratkaistaan vahva/heikko
-oahpa.no:n astevaihtelutaulukon avulla (https://oahpa.no/sme/gramm/tabell_stadieveksling.html).
+oahpa.no:n astevaihtelutaulukon avulla (https://oahpa.no/sme/gramm/tabell_stadieveksling.html;
+LÄHDE: Oahpa, Giellatekno, UiT Norjan arktinen yliopisto, ks. CREDITS.md).
 Taulukko on välttämätön, koska kirjainten määrä ei kerro astetta: juolgi (lg) on vahva
 ja juolggit (lgg) heikko.
 

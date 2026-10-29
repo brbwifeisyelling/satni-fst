@@ -1,3 +1,14 @@
+"""Rakentaa sovelluksen tietokannan satni.db GiellaLT:n sanakirjoista ja FST-malleista.
+
+LÄHTEET (ks. CREDITS.md):
+  - Sanakirjat: GiellaLT / Divvun / Giellatekno, UiT Norjan arktinen yliopisto, lisenssi CC BY 4.0:
+    dict-sme-fin, dict-sme-nob, dict-sme-eng, dict-sme-smn, dict-sme-smj, dict-sme-sma (käännökset)
+    sekä dict-fin-sme ja dict-nob-sme (haku suomeksi ja norjaksi). https://github.com/giellalt
+  - Taivutus: GiellaLT lang-sme -analysaattori ja -generaattori (src/fst/), lisenssi GPL-3.0.
+CC BY 4.0 edellyttää muutosten mainitsemista: sanakirjat yhdistetään, niihin lisätään FST:llä
+generoidut taivutusmuodot ja astevaihtelu, korjaukset.tsv:n korjaukset sovelletaan ja suomennosten
+norjalaiset kirjaimet korjataan (ks. CREDITS.md: "Changes made to the dictionary data").
+"""
 import sqlite3
 import subprocess
 import os

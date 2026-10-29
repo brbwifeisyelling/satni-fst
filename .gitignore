@@ -33,3 +33,7 @@ web/data/
 /dict-nob-sme/
 /lang-fin/
 /lang-sme/
+
+# Paikalliset asetukset ja työkalut (Windows-virtuaalikone, Claude Code)
+build_qt_exe.local
+.claude/

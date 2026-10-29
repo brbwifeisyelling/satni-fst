@@ -86,6 +86,9 @@ const UI_TEXTS = {
          taivutussäännöt on laskettu Giellateknon / Divvunin avoimilla FST-malleilla ja XML-sanakirjoilla.</p>
       <p>Ääntäminen: Divvunin ja Giellateknon puhesynteesi (UiT Norjan arktinen yliopisto), äänet Biret,
          Máhtte ja Sunná. Äänet haetaan palvelusta api-giellalt.uit.no samaan tapaan kuin sátni.org-sivustolla.</p>
+      <p>Lisenssit: sanakirjat © GiellaLT (CC BY 4.0, yhdistetty ja täydennetty taivutusmuodoilla),
+         taivutus GiellaLT lang-sme (GPL-3.0), sql.js (MIT). Sátni FST on vapaa ohjelma (GPL-3.0).
+         Lähteet ja tehdyt muutokset: CREDITS.md lähdekoodin mukana.</p>
       <p>Ohjelma on tuore ja voi sisältää huomattavia virheitä, eikä sille ole virallista tukea.</p>
       <p>Tekijä: Juha Somby · Palaute: <a href="mailto:juha@somby.fi">juha@somby.fi</a></p>`,
     close: "Sulje",
@@ -167,6 +170,9 @@ const UI_TEXTS = {
          bøyingsreglene er beregnet med Giellateknos og Divvuns åpne FST-modeller og XML-ordbøker.</p>
       <p>Uttale: talesyntese fra Divvun og Giellatekno (UiT Norges arktiske universitet), stemmene Biret,
          Máhtte og Sunná. Lyden hentes fra tjenesten api-giellalt.uit.no på samme måte som på nettstedet sátni.org.</p>
+      <p>Lisenser: ordbøkene © GiellaLT (CC BY 4.0, slått sammen og utvidet med bøyingsformer),
+         bøying GiellaLT lang-sme (GPL-3.0), sql.js (MIT). Sátni FST er fri programvare (GPL-3.0).
+         Kilder og endringer: CREDITS.md i kildekoden.</p>
       <p>Programmet er nytt og kan inneholde betydelige feil, og det har ingen offisiell støtte.</p>
       <p>Laget av: Juha Somby · Tilbakemelding: <a href="mailto:juha@somby.fi">juha@somby.fi</a></p>`,
     close: "Lukk",

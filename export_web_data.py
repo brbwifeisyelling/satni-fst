@@ -1,5 +1,8 @@
 """Tekee satni.db:stä kevennetyn ja pakatun tietokannan web-versiota (PWA) varten: web/data/satni-web.db.gz
 
+Tietokannan sisältö on GiellaLT:n sanakirjoista (CC BY 4.0) ja lang-sme-FST:llä (GPL-3.0) tehty
+muokattu aineisto, ks. CREDITS.md. Sama tiedosto on työpöytä- ja Android-sovelluksessa.
+
 Selaimessa tietokanta luetaan sql.js:llä (SQLite WebAssemblynä). Perusmuodoille ja käännöksille
 (trans_search: yksi rivi sanaa ja kieltä kohden sekä käänteisten sanakirjojen hakusanat) lasketaan valmiiksi pienaakkosiin muutetut sarakkeet (Pythonin lower(), joka toimii myös Á, Č, Š
 -kirjaimille), koska selaimen SQLite ei osaa muuttaa niitä. Taivutusmuodot haetaan sellaisenaan

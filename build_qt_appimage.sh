@@ -12,7 +12,7 @@ if [ ! -x "$APPIMAGETOOL" ]; then
     chmod +x "$APPIMAGETOOL"
 fi
 
-# Väliaikaiset tiedostot välimuistikansioon, ei Seafile-synkronoituun projektikansioon
+# Väliaikaiset tiedostot välimuistikansioon, ei projektikansioon (se voi olla synkronoitu)
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/satni-fst-build/qt-appimage"
 mkdir -p "$CACHE_DIR" || exit 1
 

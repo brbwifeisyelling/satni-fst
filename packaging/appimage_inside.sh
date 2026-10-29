@@ -3,7 +3,7 @@
 # Rakentaa ohjelman ja AppDir-kansion; build_appimage.sh pakkaa sen AppImageksi isäntäkoneella.
 set -e
 
-# /work = ~/.cache/satni-fst-build/appimage isäntäkoneella (ei Seafile-kansiossa)
+# /work = ~/.cache/satni-fst-build/appimage isäntäkoneella (ei projektikansiossa)
 WORK=/work
 VERSION=$(python3 -c "import sys; sys.path.insert(0, '/src'); from version import VERSION; print(VERSION)")
 

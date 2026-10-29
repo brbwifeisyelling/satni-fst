@@ -3,7 +3,7 @@
 # Kääntää Qt-työpöytäsovelluksen ja kokoaa AppDir-kansion; paketointi tehdään isäntäkoneella.
 set -e
 
-# /work = ~/.cache/satni-fst-build/qt-appimage isäntäkoneella (ei Seafile-kansiossa)
+# /work = ~/.cache/satni-fst-build/qt-appimage isäntäkoneella (ei projektikansiossa)
 WORK=/work
 mkdir -p "$HOME" "$WORK"
 

@@ -1,5 +1,8 @@
 """Ääntäminen Divvunin/Giellateknon puhesynteesillä (sama palvelu, jota satni.org käyttää).
 
+LÄHDE: Divvun ja Giellatekno, UiT Norjan arktinen yliopisto, äänet Biret, Máhtte ja Sunná.
+Divvun on vahvistanut (2026-10-29), että palvelua saa käyttää näin. Ks. CREDITS.md.
+
 Äänitiedostot haetaan osoitteesta https://api-giellalt.uit.no/tts/se/<ääni> ja tallennetaan
 välimuistiin, joten sama sana soi seuraavalla kerralla heti ja ilman verkkoyhteyttä.
 """

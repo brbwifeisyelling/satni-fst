@@ -29,4 +29,11 @@ Windows (10 og 11, 64-bit): Windows\satni-fst\satni-fst.exe. Behold hele satni-f
 
 Uttalen hentes fra Divvuns taletjeneste og krever nettilkobling første gang.
 
+Lähteet ja lisenssit / Kilder og lisenser:
+  Sanakirjat / Ordbøker: GiellaLT, Divvun, Giellatekno (UiT) – CC BY 4.0, yhdistetty ja täydennetty /
+    slått sammen og utvidet
+  Taivutus / Bøying: GiellaLT lang-sme – GPL-3.0
+  Ääntäminen / Uttale: Divvunin ja Giellateknon puhesynteesi / talesyntese fra Divvun og Giellatekno
+  Sátni FST: GPL-3.0. Kaikki lähteet ja muutokset / alle kilder og endringer: CREDITS.md
+
 Palaute / Tilbakemelding: juha@somby.fi
