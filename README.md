@@ -32,7 +32,7 @@ The finished apps are built from these steps. Most build steps run in Docker, so
 | 2. Build the database (`satni.db`, ~10 min) | `python3 import_full_dict.py` | Python 3, [HFST](https://hfst.github.io/) (`hfst-lookup`) |
 | 3. Desktop apps (AppImage + Windows) | `./build.sh` | Docker; a Windows VM for the Windows build (see `build_qt_exe.sh`) |
 | 4. Android app (APK) | `./build_apk.sh` | Docker |
-| 5. Release zip | `python3 julkaisu_zip.py` | Python 3 |
+| 5. Release | attach `dist/Satni_FST-x86_64.AppImage`, `dist/satni-fst-windows.zip` and `dist/satni-fst.apk` to a GitHub release | — |
 
 The web version (`web/`) needs only `python3 export_web_data.py` and any static web server.
 
