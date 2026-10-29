@@ -188,7 +188,7 @@ def parse_xml_dictionaries():
     for lang in LANGUAGES:
         xml_files = sorted(glob.glob(os.path.join(XML_DIRS[lang], "*.xml")))
         if not xml_files:
-            print(f"Sanakirjaa dict-sme-{lang} ei löydy, ohitetaan.")
+            print(f"Sanakirjaa dict-sme-{lang} ei löydy, ohitetaan (hae: ./hae_sanakirjat.sh).")
         merged = added = 0
         for filepath in xml_files:
             filename = os.path.basename(filepath)
