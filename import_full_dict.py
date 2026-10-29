@@ -190,6 +190,15 @@ def find_entry(entries, by_lemma, lemma, pos, subtype):
     return None
 
 
+def existing_lemma_entry(by_lemma, lemma, pos):
+    """Käänteisen sanakirjan saamennos, jonka lemma on jo olemassa toisella sanaluokalla: liitetään
+    olemassa olevaan sanaan eikä lisätä uutta. Käänteisissä sanakirjoissa sanaluokka on usein väärin
+    (esim. dict-fin-sme: isä (A) -> áhčči (A)), mikä tuotti satoja kaksoissanoja. None, jos lemma on uusi."""
+    keys = by_lemma.get(lemma, [])
+    same_pos = [k for k in keys if k[1] == pos]
+    return (same_pos or keys or [None])[0]
+
+
 def parse_xml_dictionaries():
     """Palauttaa (sanat, lisätiedot). Sama lemma + sanaluokka + alaluokka yhdistetään yhdeksi riviksi,
     käännökset kerätään kielittäin: sana = (lemma, pos, alaluokka, sem_type, {kieli: "käännös, ..."}).
@@ -313,7 +322,8 @@ def parse_reverse_dictionaries(entries, by_lemma):
                         subtype = ""
                         if pos == "Prop":
                             pos, subtype = "N", "Prop"
-                        key = find_entry(entries, by_lemma, lemma, pos, subtype) or (lemma, pos, subtype)
+                        key = find_entry(entries, by_lemma, lemma, pos, subtype) or existing_lemma_entry(
+                            by_lemma, lemma, pos) or (lemma, pos, subtype)
                         if key not in entries:
                             entries[key] = {"sem_type": "", "translations": {}, "meanings": [],
                                             "freq": None, "notes": [], "new_from": f"{lang}-sme"}

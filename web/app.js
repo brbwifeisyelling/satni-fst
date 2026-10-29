@@ -109,7 +109,15 @@ function setUiLanguage(code) {
   saveSettings();
   applyStaticTexts();
   renderSidebar();
-  if (db && state.query) search(state.query, state.index, false);
+  if (db && state.query) searchAgainKeepingWord();
+}
+
+// Kielen vaihto muuttaa tulosten järjestystä (ks. queryDatabase): itse valittu sana pysyy valittuna,
+// muuten näytetään uusi ensimmäinen tulos
+function searchAgainKeepingWord() {
+  const id = state.index ? state.results[state.index]?.id : undefined;
+  const index = queryDatabase(state.query).findIndex((r) => r.id === id);
+  search(state.query, Math.max(index, 0), false);
 }
 
 function toggleUiLangMenu(open) {
@@ -233,8 +241,12 @@ function queryDatabase(query) {
   const phrases = q.includes(" ") ? "" : "AND instr(lemma_fold, ' ') = 0";
   for (const r of all(`SELECT ${cols} FROM dictionary WHERE lemma_fold >= ? AND lemma_fold < ? ${phrases} LIMIT 60`, [q, q + "￿"])) add(r, 7);
 
+  // Tasatilanteessa ensin sana, jolla on käännös valitulla kielellä (ei "(ingen norsk oversettelse)" ensimmäisenä)
+  const col = LANGUAGES[settings.lang].col;
+  const translated = (r) => (r[col] ? 1 : 0);
   return [...found.values()]
-    .sort((a, b) => a.rank - b.rank || (b.pos === "V") - (a.pos === "V") || a.sme_lemma.localeCompare(b.sme_lemma, "se"))
+    .sort((a, b) => a.rank - b.rank || translated(b) - translated(a) || (b.pos === "V") - (a.pos === "V")
+      || a.sme_lemma.localeCompare(b.sme_lemma, "se"))
     .slice(0, 30);
 }
 
@@ -738,7 +750,7 @@ function bindEvents() {
   $("voice-select").onchange = (e) => { settings.voice = e.target.value; saveSettings(); };
   $("lang-select").onchange = (e) => {
     settings.lang = e.target.value; saveSettings();
-    if (state.results.length) search(state.query, 0, false);
+    if (state.results.length) searchAgainKeepingWord();
   };
   $("theme-select").value = settings.theme;
   $("theme-select").onchange = (e) => { settings.theme = e.target.value; saveSettings(); applyTheme(); };
