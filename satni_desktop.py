@@ -7,6 +7,7 @@ file://-osoitteista selain ei salli sanakirjan lataamista eikä välimuistia. Ul
 """
 import mimetypes
 import os
+import subprocess
 import sys
 import threading
 from urllib.parse import parse_qs
@@ -28,13 +29,14 @@ except ImportError:
 
 if getattr(sys, "frozen", False):
     BASE_DIR = sys._MEIPASS
-    # PyInstaller ohjaa LD_LIBRARY_PATH:n omiin kirjastoihinsa; palautetaan alkuperäinen, jotta
-    # avattava selain käyttää järjestelmän kirjastoja
+    # LD_LIBRARY_PATH osoittaa ohjelman omiin kirjastoihin, ja se jätetään paikalleen, koska
+    # Chromiumin apuohjelma (QtWebEngineProcess) tarvitsee niitä. Selain avataan siistityllä
+    # ympäristöllä (open_external).
     if sys.platform.startswith("linux"):
-        if "LD_LIBRARY_PATH_ORIG" in os.environ:
-            os.environ["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH_ORIG"]
-        else:
-            os.environ.pop("LD_LIBRARY_PATH", None)
+        # Chromiumin hiekkalaatikko vaatisi AppImagessa erityisoikeuksia, ja uusissa Ubuntuissa
+        # ohjelma ei muuten käynnistyisi. Sovellus näyttää vain omaa paikallista sisältöään;
+        # ulkoiset linkit avataan järjestelmän selaimessa.
+        os.environ.setdefault("QTWEBENGINE_DISABLE_SANDBOX", "1")
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -118,13 +120,31 @@ class WebFileHandler(QWebEngineUrlSchemeHandler):
         job.reply(b"audio/wav", buffer)
 
 
+def open_external(url):
+    """Avaa linkin käyttäjän selaimessa (tai sähköpostiohjelmassa)."""
+    if getattr(sys, "frozen", False) and sys.platform.startswith("linux"):
+        # Paketoidussa versiossa selaimen ei pidä nähdä ohjelman omia kirjastoja
+        env = dict(os.environ)
+        if "LD_LIBRARY_PATH_ORIG" in env:
+            env["LD_LIBRARY_PATH"] = env["LD_LIBRARY_PATH_ORIG"]
+        else:
+            env.pop("LD_LIBRARY_PATH", None)
+        try:
+            subprocess.Popen(["xdg-open", url.toString()], env=env,
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return
+        except OSError:
+            pass
+    QDesktopServices.openUrl(url)
+
+
 class AppPage(QWebEnginePage):
     """Sovelluksen omat sivut näytetään ikkunassa, ulkoiset linkit avataan järjestelmän selaimessa."""
 
     def acceptNavigationRequest(self, url, nav_type, is_main_frame):
         if url.scheme() == SCHEME.decode():
             return True
-        QDesktopServices.openUrl(url)
+        open_external(url)
         return False
 
     def createWindow(self, window_type):
@@ -139,7 +159,7 @@ class AppPage(QWebEnginePage):
 class ExternalLinkPage(QWebEnginePage):
     def acceptNavigationRequest(self, url, nav_type, is_main_frame):
         if url.scheme() in ("http", "https", "mailto"):
-            QDesktopServices.openUrl(url)
+            open_external(url)
         self.deleteLater()
         return False
 
@@ -200,7 +220,42 @@ def main():
 
     window = MainWindow(profile)
     window.show()
+    if "--testaa" in sys.argv:
+        start_self_test(app, window)
     sys.exit(app.exec())
+
+
+def start_self_test(app, window):
+    """--testaa: hakee sanan dagan ja testiäänen, tulostaa tuloksen ja sulkee ohjelman (paketoinnin tarkistus)."""
+    from PySide6.QtCore import QTimer
+    result = {"exit": 1}
+    js_search = "if (typeof db !== 'undefined' && db) { location.hash = '#/sana/dagan'; 'ok' } else { 'wait' }"
+    js_state = ("JSON.stringify({lemma: document.getElementById('lemma').textContent, "
+                "rows: document.querySelectorAll('#panel-table tr').length, tts: window.__tts || ''})")
+    js_tts = ("fetch('tts/biret?text=bures').then(r => r.blob().then(b => window.__tts = r.status + ' ' + b.size))"
+              ".catch(e => window.__tts = 'ERR ' + e.message)")
+
+    def poll(tries=60):
+        def got(answer):
+            if answer == "ok":
+                window.page.runJavaScript(js_tts)
+                QTimer.singleShot(8000, report)
+            elif tries:
+                QTimer.singleShot(500, lambda: poll(tries - 1))
+            else:
+                print("VIRHE: sanakirja ei latautunut")
+                app.exit(1)
+        window.page.runJavaScript(js_search, 0, got)
+
+    def report():
+        def got(state):
+            print(f"Testi: {state}")
+            ok = '"lemma":"dahkat"' in (state or "") and '"tts":"200' in (state or "")
+            print("OK" if ok else "VIRHE")
+            app.exit(0 if ok else 1)
+        window.page.runJavaScript(js_state, 0, got)
+
+    QTimer.singleShot(1000, poll)
 
 
 if __name__ == "__main__":
