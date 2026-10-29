@@ -30,7 +30,7 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET" || url.origin !== location.origin) return;
 
   if (url.pathname.endsWith(DATA)) {
-    // Sanakirja (21 Mt): välimuistista, verkosta vain ensimmäisellä kerralla
+    // Sanakirja (~40 Mt): välimuistista, verkosta vain ensimmäisellä kerralla
     event.respondWith(caches.open(DATA_CACHE).then(async (cache) => {
       const cached = await cache.match(event.request);
       if (cached) return cached;

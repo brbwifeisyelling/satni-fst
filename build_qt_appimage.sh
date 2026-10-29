@@ -19,7 +19,7 @@ mkdir -p "$CACHE_DIR" || exit 1
 # build.sh on jo kasvattanut versiota, jotta .exe ja AppImage saavat saman numeron
 [ -n "$SKIP_VERSION_BUMP" ] || python3 bump_version.py || exit 1
 
-# Web-käyttöliittymän sanakirja (21 Mt) satni.db:stä
+# Web-käyttöliittymän sanakirja (~40 Mt) satni.db:stä
 python3 export_web_data.py || exit 1
 
 docker build -q -t satni-fst-qt-build packaging/qt >/dev/null || exit 1
