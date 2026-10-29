@@ -39,7 +39,7 @@ The web version (`web/`) needs only `python3 export_web_data.py` and any static 
 The compiled FST models are included in [`src/fst/`](src/fst/SOURCE.md), so building
 [lang-sme](https://github.com/giellalt/lang-sme) yourself is not necessary.
 
-Code comments are in Finnish.
+Comments in the source code are in Finnish; the release notes and commit messages are in English.
 
 ## Licence
 
