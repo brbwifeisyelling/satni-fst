@@ -1,0 +1,32 @@
+Sátni FST {VERSION} – pohjoissaamen sanakirja ja taivutusgeneraattori
+Sátni FST {VERSION} – nordsamisk ordbok og bøyingsgenerator
+
+Käyttöliittymä suomeksi tai norjaksi (lippunappi yläpalkissa). Käännökset suomeksi ja norjaksi
+sekä osalle sanoista englanniksi, inarin-, luulajan- ja eteläsaameksi.
+
+Linux
+  Satni_FST-x86_64.AppImage
+  Anna suoritusoikeus (tiedostonhallinnassa: Ominaisuudet > Salli suorittaminen,
+  tai komennolla chmod +x Satni_FST-x86_64.AppImage) ja käynnistä tuplaklikkaamalla.
+  Toimii useimmissa vuoden 2020 jälkeisissä jakeluissa (Ubuntu 20.04+, Debian 11+, Fedora, Arch, Mint ...).
+
+Windows (10 ja 11, 64-bit)
+  Windows\satni-fst\satni-fst.exe
+  Pidä satni-fst-kansio kokonaisena (exe tarvitsee viereisen _internal-kansion).
+  Kansion voi siirtää haluamaansa paikkaan ja tehdä exe-tiedostosta pikakuvakkeen.
+
+Ääntäminen haetaan Divvunin puhepalvelusta, joten se vaatii ensimmäisellä kerralla verkkoyhteyden.
+
+--- Norsk ---
+
+Brukergrensesnitt på finsk eller norsk (flaggknappen øverst). Oversettelser til norsk og finsk,
+og for en del av ordene til engelsk, enaresamisk, lulesamisk og sørsamisk.
+
+Linux: gi Satni_FST-x86_64.AppImage kjøretillatelse (Egenskaper > Tillat kjøring, eller
+  chmod +x Satni_FST-x86_64.AppImage) og start med dobbeltklikk.
+Windows (10 og 11, 64-bit): Windows\satni-fst\satni-fst.exe. Behold hele satni-fst-mappen
+  (exe-filen trenger _internal-mappen ved siden av).
+
+Uttalen hentes fra Divvuns taletjeneste og krever nettilkobling første gang.
+
+Palaute / Tilbakemelding: juha@somby.fi
