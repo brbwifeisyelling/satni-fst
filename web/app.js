@@ -483,9 +483,12 @@ async function speak(text, button) {
       if (hit) blob = await hit.blob();
     }
     if (!blob) {
-      const res = await fetch(TTS_URL + voice, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
-      });
+      // Työpöytäsovelluksessa (satni://) ääni haetaan Pythonin kautta, verkkosivulla suoraan palvelusta
+      const res = location.protocol === "satni:"
+        ? await fetch(`tts/${voice}?text=${encodeURIComponent(text)}`)
+        : await fetch(TTS_URL + voice, {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
+          });
       if (!res.ok) throw new Error(`palvelu vastasi ${res.status}`);
       blob = await res.blob();
       if (cache) await cache.put(key, new Response(blob, { headers: { "Content-Type": "audio/wav" } }));
@@ -648,7 +651,8 @@ async function main() {
   };
   ex.appendChild(rnd);
 
-  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  // Service worker vain verkkosivuna (PWA); työpöytäsovellus (satni://) lukee tiedostot suoraan levyltä
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch((e) => console.warn("Service worker:", e));
   }
 
