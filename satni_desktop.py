@@ -15,7 +15,8 @@ from urllib.parse import parse_qs
 from PySide6.QtCore import QBuffer, QByteArray, QObject, QSettings, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWebEngineCore import (
-    QWebEnginePage, QWebEngineProfile, QWebEngineUrlRequestJob, QWebEngineUrlScheme, QWebEngineUrlSchemeHandler,
+    QWebEnginePage, QWebEngineProfile, QWebEngineSettings, QWebEngineUrlRequestJob, QWebEngineUrlScheme,
+    QWebEngineUrlSchemeHandler,
 )
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QApplication, QMainWindow
@@ -217,6 +218,8 @@ def main():
     profile = QWebEngineProfile("satni-fst", app)
     handler = WebFileHandler(app)
     profile.installUrlSchemeHandler(SCHEME, handler)
+    # Ääntämisen haku voi kestää useita sekunteja; ääni saa soida, vaikka napsautuksesta on jo aikaa
+    profile.settings().setAttribute(QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture, False)
 
     window = MainWindow(profile)
     window.show()
@@ -231,9 +234,14 @@ def start_self_test(app, window):
     result = {"exit": 1}
     js_search = "if (typeof db !== 'undefined' && db) { location.hash = '#/sana/dagan'; 'ok' } else { 'wait' }"
     js_state = ("JSON.stringify({lemma: document.getElementById('lemma').textContent, "
-                "rows: document.querySelectorAll('#panel-table tr').length, tts: window.__tts || ''})")
-    js_tts = ("fetch('tts/biret?text=bures').then(r => r.blob().then(b => window.__tts = r.status + ' ' + b.size))"
-              ".catch(e => window.__tts = 'ERR ' + e.message)")
+                "rows: document.querySelectorAll('#panel-table tr').length, tts: window.__tts || '', speak: window.__speak || ''})")
+    # Ajetaan oikea Kuuntele-toiminto (speak) äänettömästi: Audio korvataan, jotta testi ei soita mitään,
+    # ja virheilmoitus (toast) tarkistetaan
+    js_tts = ("window.Audio = function () { this.play = () => Promise.resolve(); };"
+              "fetch('tts/biret?text=bures').then(r => r.blob().then(b => window.__tts = r.status + ' ' + b.size))"
+              ".catch(e => window.__tts = 'ERR ' + e.message);"
+              "speak('bures').then(() => window.__speak = document.getElementById('toast').hidden ? 'ok' "
+              ": document.getElementById('toast').textContent)")
 
     def poll(tries=60):
         def got(answer):
@@ -250,7 +258,7 @@ def start_self_test(app, window):
     def report():
         def got(state):
             print(f"Testi: {state}")
-            ok = '"lemma":"dahkat"' in (state or "") and '"tts":"200' in (state or "")
+            ok = all(part in (state or "") for part in ('"lemma":"dahkat"', '"tts":"200', '"speak":"ok"'))
             print("OK" if ok else "VIRHE")
             app.exit(0 if ok else 1)
         window.page.runJavaScript(js_state, 0, got)

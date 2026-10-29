@@ -470,6 +470,7 @@ function setTab(tab) {
 // --- Ääntäminen: Divvunin puhesynteesi, välimuisti selaimen Cache Storagessa ---
 
 const memoryCache = new Map();
+const IS_DESKTOP = location.protocol === "satni:";
 async function speak(text, button) {
   const voice = VOICES[settings.voice] || "biret";
   const key = `tts-cache/${voice}/${encodeURIComponent(text)}`;
@@ -477,27 +478,35 @@ async function speak(text, button) {
   if (button === $("speak-btn")) button.lastChild.textContent = " Haetaan…";
   try {
     let blob = memoryCache.get(key);
-    const cache = "caches" in window ? await caches.open("satni-tts") : null;
+    // Selaimen välimuisti vain verkkosivulla: Cache Storage hyväksyy vain http(s)-osoitteet.
+    // Työpöytäsovelluksessa Python tallentaa äänet levylle (~/.cache/satni-fst/tts).
+    const cache = !IS_DESKTOP && "caches" in window ? await caches.open("satni-tts") : null;
     if (!blob && cache) {
       const hit = await cache.match(key);
       if (hit) blob = await hit.blob();
     }
     if (!blob) {
-      // Työpöytäsovelluksessa (satni://) ääni haetaan Pythonin kautta, verkkosivulla suoraan palvelusta
-      const res = location.protocol === "satni:"
-        ? await fetch(`tts/${voice}?text=${encodeURIComponent(text)}`)
-        : await fetch(TTS_URL + voice, {
-            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
-          });
-      if (!res.ok) throw new Error(`palvelu vastasi ${res.status}`);
+      let res;
+      try {
+        res = IS_DESKTOP
+          ? await fetch(`tts/${voice}?text=${encodeURIComponent(text)}`)
+          : await fetch(TTS_URL + voice, {
+              method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }),
+            });
+      } catch (e) {
+        throw new Error("puhepalveluun ei saatu yhteyttä. Ensimmäinen kuuntelu vaatii verkkoyhteyden");
+      }
+      if (!res.ok) throw new Error(IS_DESKTOP
+        ? "puhepalveluun ei saatu yhteyttä. Ensimmäinen kuuntelu vaatii verkkoyhteyden"
+        : `puhepalvelu vastasi ${res.status}`);
       blob = await res.blob();
-      if (cache) await cache.put(key, new Response(blob, { headers: { "Content-Type": "audio/wav" } }));
+      if (cache) cache.put(key, new Response(blob, { headers: { "Content-Type": "audio/wav" } })).catch(() => {});
     }
     memoryCache.set(key, blob);
     const audio = new Audio(URL.createObjectURL(blob));
     await audio.play();
   } catch (e) {
-    toast(`Ääntämistä ei saatu: ${e.message}. Ensimmäinen kuuntelu vaatii verkkoyhteyden.`);
+    toast(`Ääntämistä ei saatu: ${e.message}.`);
   } finally {
     if (button) button.disabled = false;
     if (button === $("speak-btn")) button.lastChild.textContent = " Kuuntele";
