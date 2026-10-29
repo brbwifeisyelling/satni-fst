@@ -1,0 +1,578 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet media="screen"              title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary_XXE.css"     type="text/css"?>
+<?xml-stylesheet media="screen"              title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_XXE_alt.css" type="text/css" alternate="yes" ?>
+<?xml-stylesheet media="print,tv,projection" title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary.css"         type="text/css"?>
+<?xml-stylesheet media="print,tv,projection" title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_alt.css"     type="text/css" alternate="yes" ?>
+<!DOCTYPE r PUBLIC "-//DivvunGiellatekno//DTD Dictionaries//Multilingual" "../dtd/smefin.dtd">
+<r xmlns:xhtml="http://www.w3.org/1999/xhtml" id="smefin" xml:lang="sme">
+  <lics xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:space="preserve">
+      <lic xml:lang="en">
+This code is made available under a Creative Commons Attribution license
+<a>http://creativecommons.org/licenses/by/3.0/no/deed.en</a>.
+
+You are free to copy, distribute and adapt the work, as long as you always give
+proper attribution using the attribution text below.
+
+For the full license text, see the link above.</lic>
+      <ref>Work by Giellatekno at UiT, Kotus in Helsinki,
+          and members of the language communities. Source code
+          available at <a>https://victorio.uit.no/langtech/trunk/</a>.</ref>
+      <sourcenote>
+     THIS TEXT IS THE ORIGINAL SOURCE CODE. This is NOT a fully styled and
+     published dictionary. As such it can and
+     will contain unfinished entries, unpublished entries, entries with
+     objectionable translations, etc. If you find any errors or want to add more
+     words, download the file, edit it, and send it back to
+     <a>mailto:giellatekno@hum.uit.no</a>.
+     Please also note that the entries are not necessarily sorted,
+     or could be wrongly sorted.
+     </sourcenote>
+   </lics>
+  <e>
+    <lg>
+      <l pos="Num">beannot</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">puolitoista</t>
+        <xg>
+          <x>Doppe oruimet beannot jagi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">galle</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">montako</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">golbma</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kolme</t>
+        <xg>
+          <x>Mii vuolgit golmma áigge.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Čájáhus bistá dušše golbma beaivve.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">golbmanuppelohkái</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kolmetoista</t>
+        <xg>
+          <x>Govas oaidnit golbmanuppelohkái olbmo.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">golbmalogi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kolmekymmentä</t>
+        <xg>
+          <x>Son lea golbmalot jagi bargan bolesin.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">guhtta</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kuusi</t>
+        <xg>
+          <x>Kurssas ledje guhtta oasseváldi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>In leat leamaš doppe guđa jahkái.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">guhttanuppelohkái</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kuusitoista</t>
+        <xg>
+          <x>Girdimátki bisttii guhttanuppelohkái diimmu.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">guhttalogi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kuusikymmentä</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">guokte</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kaksi</t>
+        <xg>
+          <x>Son lea bargan guokte jagi dainna.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Mus leat guokte boarrásut vielja.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">guoktenuppelohkái</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kaksitoista</t>
+        <xg>
+          <x>Jagis leat guoktenuppelohkái mánu.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Jesus vállje guoktenuppelot máhtajeaddji.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">guoktelogi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kaksikymmentä</t>
+        <xg>
+          <x>Dat máksá guoktelogi ruvnnu.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">gávcci</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kahdeksan</t>
+        <xg>
+          <x>Busse vuolgá diibmu gávccis iđđes.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Mun orron gávcci jagi Álttás .</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">gávccinuppelohkái</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kahdeksantoista</t>
+        <xg>
+          <x>Son lea gávccinuppelot jagi boaris.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Válddálašvuođaahki Norggas lea gávccinuppelohkái.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">logi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kymmenen</t>
+        <xg>
+          <x>Sii vuvde buot bileahtaid logi minuhtas.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Festivála álggahuvvui logi jagi dassái.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">moadde</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">muutama</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">máŋga</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">moni</t>
+        <t pos="Num">monta</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">njeallje</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">neljä</t>
+        <xg>
+          <x>Son deavdá njeallje jagi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Sámi álbmot ássá njealji riikkas.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">njealljenuppelohkái</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">neljätoista</t>
+        <xg>
+          <x>Mun devden njealljenuppelot jagi ikte.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">njealljelogi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">neljäkymmentæ</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">okta</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">yksi</t>
+        <xg>
+          <x>Mun áiggun dušše ovtta gáhkkobihtá.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">oktanuppelohkái</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">yksitoista</t>
+        <xg>
+          <x>Gávpi rahpá oktanuppelogis.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Soai gottiiga oktanuppelot kilosaš luosa.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">ovcci</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">yhdeksän</t>
+        <xg>
+          <x>Gávpi lea rabas ovcci rádjái.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Min luohkás ledje ovcci oahppi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">ovccinuppelohkái</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">yhdeksäntoista</t>
+        <xg>
+          <x>Ledje ovccinuppelot olbmo feasttas.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">ovccilogi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">yhdeksänkymmentæ</t>
+        <xg>
+          <x>Áhkku lea ovccilogi jagi boaris.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">vihtta</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">viisi</t>
+        <xg>
+          <x>Diibmu lea vihtta váile vihtta.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Gieđas leat vihtta suorpma.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">vihttanuppelohkái</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">viisitoista</t>
+        <xg>
+          <x>Son lea vihttanuppelot jagi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">vihttalogi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">viisikymmentæ</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">čieža</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">seitsemän</t>
+        <xg>
+          <x>Diibmu lea čieža.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Vahkus leat čieža beaivvi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">čiežanuppelohkái</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">seitsemäntoista</t>
+        <xg>
+          <x>Dál lea čiežanuppelot gráda olgun.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">čuođi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">sata</t>
+        <xg>
+          <x>Dat bisttii badjel čuođi jagi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Doppe ledje čuđiid mielde gávttehasat.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">duhát</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">tuhat</t>
+        <xg>
+          <x>Vuiten duhát ruvnnu.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Min máttut leat eallán dáppe duháhiid jagiid.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">gávccilogi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kahdeksankymmentä</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">gákcilogi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">kahdeksankymmentä</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">čiežalogi</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">seitsemänkymmentä</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">čuohti</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">sata</t>
+        <xg>
+          <x>Dat bisttii badjel čuohte jagi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Doppe ledje čuđiid mielde gávttehasat.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">miljárda</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">miljardi</t>
+        <xg>
+          <x>2,2 miljárdda ruvnno</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Num">miljovdna</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Num">miljoona</t>
+        <xg>
+          <x>Dása lea biddjon 2 miljon ruvnno.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Boahtte jagi ožžot čieža miljovnna eanet go dán jagi.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+</r>

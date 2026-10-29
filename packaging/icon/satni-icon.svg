@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Sátni FST -logo: saamen lippu pisaran muodossa. Kaikki kuvakkeet tehdään tästä: make_icons.sh -->
+  <defs>
+    <path id="drop" d="M50 9 C56 9 88 30 88 57 A38 38 0 1 1 12 57 C12 30 44 9 50 9 Z"/>
+    <clipPath id="clip"><use href="#drop"/></clipPath>
+    <clipPath id="left"><rect x="0" y="0" width="50" height="100"/></clipPath>
+    <clipPath id="right"><rect x="50" y="0" width="50" height="100"/></clipPath>
+  </defs>
+  <g clip-path="url(#clip)">
+    <rect x="0" y="0" width="44" height="100" fill="#dc241f"/>
+    <rect x="44" y="0" width="6" height="100" fill="#007229"/>
+    <rect x="50" y="0" width="6" height="100" fill="#ffce00"/>
+    <rect x="56" y="0" width="44" height="100" fill="#0035ad"/>
+    <!-- Rengas: punaisella puolella sininen, sinisellä punainen -->
+    <circle cx="50" cy="57" r="21" fill="none" stroke="#0035ad" stroke-width="5.5" clip-path="url(#left)"/>
+    <circle cx="50" cy="57" r="21" fill="none" stroke="#dc241f" stroke-width="5.5" clip-path="url(#right)"/>
+  </g>
+</svg>

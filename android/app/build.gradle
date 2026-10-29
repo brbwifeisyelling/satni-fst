@@ -1,0 +1,57 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "fi.somby.satnifst"
+    compileSdk 35
+    buildToolsVersion "35.0.0"  // sama kuin packaging/android/Dockerfile
+
+    defaultConfig {
+        applicationId "fi.somby.satnifst"
+        minSdk 24
+        targetSdk 35
+        // build_apk.sh antaa nämä version.py:stä (0.2.20261029.7 -> 2026102907)
+        versionCode((project.findProperty("satniVersionCode") ?: "1") as int)
+        versionName(project.findProperty("satniVersionName") ?: "dev")
+    }
+
+    // Sama web-käyttöliittymä kuin PWA:ssa ja työpöytäversiossa (web/, sanakirja web/data/)
+    sourceSets {
+        main { assets.srcDirs = ["../../web"] }
+    }
+    // WebAssembly pakkaamattomana. Sanakirjan .gz-tiedoston käännös purkaa itse (ks. MainActivity.openAsset).
+    androidResources {
+        noCompress += ["wasm"]
+    }
+
+    // Julkaisuavain (packaging/android/luo_allekirjoitusavain.sh): build_apk.sh antaa kansion, jossa on
+    // satni-fst-release.jks ja keystore.properties. Avain ja salasana eivät ole versionhallinnassa.
+    def signingDir = System.getenv("SATNI_SIGNING_DIR")
+    def signingProps = signingDir ? file("${signingDir}/keystore.properties") : null
+    signingConfigs {
+        if (signingProps?.exists()) {
+            release {
+                def props = new Properties()
+                signingProps.withInputStream { props.load(it) }
+                storeFile file("${signingDir}/satni-fst-release.jks")
+                storePassword props.getProperty("storePassword")
+                keyAlias props.getProperty("keyAlias")
+                keyPassword props.getProperty("keyPassword")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (signingProps?.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

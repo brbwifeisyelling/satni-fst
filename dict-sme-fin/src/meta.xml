@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Contains technical, language independent info used by Risten2 -->
+<dictmeta>
+
+  <!-- The ID string for the dictionary -->
+  <id>gtsmefin</id>
+
+  <!-- The natural language name(s) for the dictionary -->
+  <name xml:lang="no">Nordsamisk-finsk ordbok</name>
+  <name xml:lang="se">Davvisámi-suoma sátnegirji</name>
+  <name xml:lang="sv">Nordsamisk-finsk ordbok</name>
+  <name xml:lang="sma">Noerhtesaemien-suomi baakoegærja</name>
+  <name xml:lang="smj">Nuorttasáme-suomi báhkogirjje</name>
+
+  <!-- Whether the dictionary should be publicly visible or not: -->
+  <public>yes</public>
+
+  <!-- License and copyright: -->
+  <license>Uspesifisert</license>
+  <copyright>Uspesifisert</copyright>
+
+  <!-- Short, free description -->
+  <description xml:lang="no">
+    <p>Ordbøkene mellom nordsamisk og finsk er basert på leksikalsk materiale
+    fra <a href="http://kotus.fi/">Intitutionen för de inhemska språken i
+    Finland</a>, og fra Giellateknos arbeid med nordsamisk
+    <a href="http://oahpa.no/">Oahpa</a>. I tillegg har vi lagt til vanlige ord
+    både fra nordsamisk og spesielt fra finsk.</p>
+
+    <p>Hver av ordbøkene inneholder omtrent 11.000 lemmaer.</p>
+  </description>
+
+  <description xml:lang="se">
+    <p>Davvisámi-suoma-davvisámi sátnegirjjit vuođđoduvvojit Giellatekno
+    <a href="http://oahpa.no/">Oahpa</a>-bargui ja sátnelisttuide maid leat
+    ožžon dán ásahusas: <a href="http://kotus.fi/">Forskingscentralen för de
+    inhemska språken i Finland</a>. Mii leat maid lasihan dábálaš davvisámegiela
+    ja erenoamážit suomagiela sániid.</p>
+
+    <p>Juohke sátnegirjjis leat su. 11000 vuođđosáni.</p>
+  </description>
+
+  <!-- List of languages supported by the dictionary. -->
+  <!-- Each language is identified with ISO 639-2 three-letter codes. -->
+  <!-- Only one source language allowed, but multiple target languages are ok. -->
+  <langs>
+    <srclang>sme</srclang>
+    <trglang>fin</trglang>
+  </langs>
+</dictmeta>

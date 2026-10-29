@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sátni FST</title>
+  <meta name="description" content="Pohjoissaamen–suomen sanakirja ja taivutusgeneraattori">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Teema ja kieli heti ennen piirtämistä, ettei sivu välähdä väärän värisenä
+    try {
+      const s = JSON.parse(localStorage.getItem("satni-settings") || "{}");
+      if (s.theme === "light" || s.theme === "dark") document.documentElement.dataset.theme = s.theme;
+      if (s.uiLang === "nb") document.documentElement.lang = "nb";
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="" class="brand-icon">
+      <div>
+        <div class="brand-name">Sátni FST</div>
+        <div class="brand-sub" data-i18n="brandSub">Pohjoissaamen avoin sanakirja ja taivutusgeneraattori</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="sidebar-toggle" data-i18n-aria="sidebar" data-i18n-title="sidebar">☰</button>
+      <div class="ui-lang">
+        <button class="flag-btn" id="ui-lang-btn" aria-haspopup="menu" aria-expanded="false"
+                data-i18n-aria="uiLanguage" data-i18n-title="uiLanguage"></button>
+        <ul id="ui-lang-menu" class="ui-lang-menu" role="menu" hidden></ul>
+      </div>
+      <select id="theme-select" data-i18n-aria="theme">
+        <option value="auto" data-i18n="themeAuto">Automaattinen</option>
+        <option value="light" data-i18n="themeLight">Vaalea</option>
+        <option value="dark" data-i18n="themeDark">Tumma</option>
+      </select>
+      <button class="chip-btn" id="about-btn" data-i18n="about">Tietoa</button>
+    </div>
+  </header>
+  <div class="stripe"><span></span><span></span><span></span><span></span></div>
+
+  <div class="searchbar">
+    <div class="search-box">
+      <input id="search" type="search" autocomplete="off" spellcheck="false"
+             placeholder="Hae saameksi, käännöksellä tai taivutusmuodolla" aria-label="Hae"
+             data-i18n-placeholder="searchPlaceholder" data-i18n-aria="search" disabled>
+      <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
+    </div>
+    <button class="primary-btn" id="search-btn" data-i18n="search" disabled>Hae</button>
+    <div class="search-options">
+      <label class="check"><input type="checkbox" id="grade-toggle" checked> <span data-i18n="showGrade">Näytä aste (GD/HD)</span></label>
+      <label class="voice"><span data-i18n="translations">Käännökset</span>
+        <select id="lang-select"></select>
+      </label>
+      <label class="voice"><span data-i18n="voice">Ääni</span>
+        <select id="voice-select">
+          <option>Biret</option><option>Máhtte</option><option>Sunná</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside id="sidebar" class="sidebar">
+      <section>
+        <h3 data-i18n="favourites">★ Suosikit</h3>
+        <ul id="favourites" class="word-list"></ul>
+      </section>
+      <section>
+        <h3 data-i18n="history">Historia</h3>
+        <ul id="history" class="word-list"></ul>
+        <button class="link-btn" id="clear-history" data-i18n="clearHistory">Tyhjennä historia</button>
+      </section>
+    </aside>
+
+    <main id="main">
+      <section id="loading" class="card loading">
+        <h2 data-i18n="loadingTitle">Ladataan sanakirjaa…</h2>
+        <p id="loading-text" data-i18n="loadingText">Ensimmäisellä kerralla ladataan noin 40 Mt. Sen jälkeen sanakirja toimii myös ilman verkkoyhteyttä.</p>
+        <div class="progress"><div id="progress-bar"></div></div>
+      </section>
+
+      <section id="welcome" class="card welcome" hidden>
+        <div id="welcome-lang" class="lang-switch" role="radiogroup" data-i18n-aria="uiLanguage"></div>
+        <h1 data-i18n="welcomeTitle">Bures boahtin! – Tervetuloa</h1>
+        <p class="lead" data-i18n="welcomeLead"></p>
+        <dl class="tips" data-i18n-html="welcomeTips"></dl>
+        <p class="muted small" data-i18n="tryThese">Kokeile:</p>
+        <div id="examples" class="chips"></div>
+      </section>
+
+      <div id="results" class="chips results" hidden></div>
+
+      <article id="word" class="card word" hidden>
+        <div class="word-top">
+          <div class="word-title">
+            <h1 id="lemma"></h1>
+            <span id="pos-badge" class="badge"></span>
+            <button id="fav-btn" class="star-btn">☆</button>
+          </div>
+          <div class="word-actions">
+            <button id="speak-btn" class="speak-btn"><span class="speaker">🔈</span> <span data-i18n="listen">Kuuntele</span></button>
+            <a id="gt-link" class="gt-btn" target="_blank" rel="noopener"><span class="gt-mark">gt</span> Giellatekno ↗</a>
+          </div>
+        </div>
+        <p class="translation"><span id="translation"></span> <a href="#" id="more-meanings" class="more"></a></p>
+        <div id="gradation" class="gradation"></div>
+        <p id="word-info" class="muted small"></p>
+      </article>
+
+      <nav id="tabs" class="tabs" hidden>
+        <button data-tab="table" class="active" data-i18n="tabTable">Taivutus</button>
+        <button data-tab="meanings" id="meanings-tab">Merkitykset</button>
+        <button data-tab="raw" data-i18n="tabRaw">Kaikki muodot</button>
+      </nav>
+      <section id="panel-table" class="card panel" hidden></section>
+      <section id="panel-meanings" class="card panel" hidden></section>
+      <section id="panel-raw" class="card panel" hidden></section>
+    </main>
+  </div>
+
+  <dialog id="about">
+    <h2>Sátni FST</h2>
+    <p class="muted small" id="about-version"></p>
+    <div data-i18n-html="aboutBody"></div>
+    <form method="dialog"><button class="chip-btn" data-i18n="close">Sulje</button></form>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="vendor/sql-wasm.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

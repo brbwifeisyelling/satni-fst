@@ -1,0 +1,13 @@
+# Käsin tehdyt korjaukset Giellatekno-sanakirjadataan. import_full_dict.py lukee tämän
+# tiedoston XML-tiedostojen jälkeen, joten korjaukset säilyvät, vaikka XML-data päivitettäisiin.
+#
+# Sarakkeet erotetaan SARKAIMELLA (tab):
+#   saamen_lemma <TAB> sanaluokka <TAB> suomennokset
+#
+# - sanaluokka kuten tietokannassa: N, V, A, Adv, Num, Pron, Pcle, Po, Pr, CC, CS, Interj, Cmp, MWE
+# - suomennokset pilkulla eroteltuina; ne KORVAAVAT XML:n suomennokset
+# - suomennokseksi pelkkä "-" poistaa sanan kokonaan
+# - jos sanaa ei ole XML:ssä, se lisätään uutena
+#
+# n_smefin.xml: substantiivilla vihtta oli virheellisesti numeraalin käännös "viisi" (pos="Pcle")
+vihtta	N	vihta, vasta

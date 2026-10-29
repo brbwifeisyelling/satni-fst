@@ -1,0 +1,44 @@
+# Generoidut tiedostot: luodaan uudelleen skripteillä, ei versionhallintaan
+
+# Tietokanta (import_full_dict.py luo XML:stä ja FST:stä, ~4 min)
+satni.db
+sanakirja.db
+
+# Buildien tulokset ja väliaikaiset tiedostot
+dist/
+build/
+*.spec
+version.py
+build_number.txt
+
+# Python
+__pycache__/
+*.pyc
+
+# Vanhat testitulosteet
+tulokset.txt
+
+# Web-version generoitu tietokanta (export_web_data.py)
+web/data/
+
+# GiellaLT-sanakirjat ja kielimallit omina git-repoinaan (haetaan/päivitetään: ./hae_sanakirjat.sh).
+# dict-sme-fin on poikkeus: se on kopioitu tähän repoon tiedostoina.
+/dict-sme/
+/dict-sme-nob/
+/dict-sme-eng/
+/dict-sme-smn/
+/dict-sme-smj/
+/dict-sme-sma/
+/dict-fin-sme/
+/dict-nob-sme/
+/lang-fin/
+/lang-sme/
+
+# Paikalliset asetukset ja työkalut (Windows-virtuaalikone, Claude Code)
+build_qt_exe.local
+.claude/
+
+# Androidin julkaisuavain ja salasana (oletuksena ~/.config/satni-fst-signing, ei repossa)
+*.jks
+*.keystore
+keystore.properties

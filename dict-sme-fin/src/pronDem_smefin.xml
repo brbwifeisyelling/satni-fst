@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet media="screen"              title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary_XXE.css"     type="text/css"?>
+<?xml-stylesheet media="screen"              title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_XXE_alt.css" type="text/css" alternate="yes" ?>
+<?xml-stylesheet media="print,tv,projection" title="Dictionary view"   href="../../giella-core/dicts/scripts/gt_dictionary.css"         type="text/css"?>
+<?xml-stylesheet media="print,tv,projection" title="Hierarchical view" href="../../giella-core/dicts/scripts/gt_dictionary_alt.css"     type="text/css" alternate="yes" ?>
+<!DOCTYPE r PUBLIC "-//DivvunGiellatekno//DTD Dictionaries//Multilingual" "../dtd/smefin.dtd">
+<r xmlns:xhtml="http://www.w3.org/1999/xhtml" id="smefin" xml:lang="sme">
+  <lics xmlns:xhtml="http://www.w3.org/1999/xhtml" xml:space="preserve">
+      <lic xml:lang="en">
+This code is made available under a Creative Commons Attribution license
+<a>http://creativecommons.org/licenses/by/3.0/no/deed.en</a>.
+
+You are free to copy, distribute and adapt the work, as long as you always give
+proper attribution using the attribution text below.
+
+For the full license text, see the link above.</lic>
+      <ref>Work by Giellatekno at UiT, Kotus in Helsinki,
+          and members of the language communities. Source code
+          available at <a>https://victorio.uit.no/langtech/trunk/</a>.</ref>
+      <sourcenote>
+     THIS TEXT IS THE ORIGINAL SOURCE CODE. This is NOT a fully styled and
+     published dictionary. As such it can and
+     will contain unfinished entries, unpublished entries, entries with
+     objectionable translations, etc. If you find any errors or want to add more
+     words, download the file, edit it, and send it back to
+     <a>mailto:giellatekno@hum.uit.no</a>.
+     Please also note that the entries are not necessarily sorted,
+     or could be wrongly sorted.
+     </sourcenote>
+   </lics>
+  <e>
+    <lg>
+      <l pos="Pron" type="Dem">dakkár</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">sellainen</t>
+        <xg>
+          <x>Jođiheaddji diehtá ahte dakkár evttohus baldá olu olbmuid.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Das leat dološ sárgumat vuođđun, ovdamearkka dihte dakkárat go meavrresgáris ledje.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Dem">dakkáraš</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">sellainen</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Dem">diet</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <re>lähellä puhuttavaa</re>
+        <t pos="Pron">se</t>
+        <xg>
+          <x>Mii diet lea?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Sii eai gal leat dien birra jurddašan nu olu.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Eai sii nu beare olu ruđa gal jurddaš diesa geavahit.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Ja dies mun fuobmájin ge ođđa ealáhusa.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Lea lunddolaš ahte diet čoahkkin dollo Álttás.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Vuosttažettiin danin go dieinna vugiin ii sáhte nuvttá riŋget.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Gal mun dál oainnán man duođat diet sánit leat maid vuoras olbmot lávejit lohkat.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Mun muittán bures go ledjen nuorra dieid beakkán 70 jagiin.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Nu sii manne dieidda báikkiide ja maŋŋel vel ollu eará báikkiide.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Lea nu guhkes áigi go diekkár lágideapmi lei diein guovlluin.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Sii geat dieiguin sáddagiiguin barget, eai leat bálkáhuvvon bargit.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Dem">dot</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <re>etäällä oleva</re>
+        <t pos="Pron">tuo</t>
+        <xg>
+          <x>Ja dan dáfus eai dárbbaš ballat maid duot dahje dot riikabellodat dadjá jus sii oaivvildit nuo dahje
+               ná.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Vuosttaš lea oažžut nannejuvvot daid oktasaš vuoigatvuođaid mat sámiin lea don doložis juo leamaš.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Dem">duokkáraš</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">tuollainen</t>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Dem">duot</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">tuo</t>
+        <xg>
+          <x>Mii duot lea?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Don galggat duosa oahpahit sámegiela!</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Muhto ii orron ávki duos iige dies.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Sii dávjá jerret mus mii oaivvilduvvo duoinna ja dáinna.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Movt bat duot geafes čivga sáhtii du beastit?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Mun láhppen gal dan duon dievá alde.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Geat bat duot leaba? jearai eadni.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Čuovuimet duoid áibmadas lottiid girddašeami.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>In beroš duoin hearráin.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Dem">dákkár</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">tällainen</t>
+        <xg>
+          <x>Biret lea dákkár.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Dál lea Biret maid hirpmahuvvan ahte dákkárat sáhttet dáhpáhuvvat.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+  <e>
+    <lg>
+      <l pos="Pron" type="Dem">dát</l>
+    </lg>
+    <mg>
+      <tg xml:lang="fin">
+        <t pos="Pron">tämä</t>
+        <xg>
+          <x>Leago dát duođasge Sámi Radio oaivil?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Dás ii boađe jierpmálaš čoavddus.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Dovddat go dán bártni?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Gal dása gávdno hirbmat buorre čoavddus.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Dušše dáinna mašiinnain lea vejolaš oažžut dan rievttes bohtosa.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Gosa dolvot dát dáhpáhusat?</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Ruoŧa ja Suoma beale olbmot maid servet dáidda doaluide.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Okta dáin joavkkuin čiekčá goalmmát divišuvnnas.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Dušše dáiguin mašiinnaiguin lea vejolaš oažžut dan rievttes bohtosa.</x>
+          <xt>_FIN_</xt>
+        </xg>
+        <xg>
+          <x>Eadni ii leat midjiide jienádan goassige ovdal dáid jurdagiid.</x>
+          <xt>_FIN_</xt>
+        </xg>
+      </tg>
+    </mg>
+  </e>
+</r>
