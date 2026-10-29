@@ -56,11 +56,17 @@ public class MainActivity extends Activity {
         root.addView(web, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         setContentView(root);
         root.setOnApplyWindowInsetsListener((view, insets) -> {
+            // Kameran lovi (display cutout) voi olla tilariviä korkeampi: otetaan mukaan erikseen
             if (Build.VERSION.SDK_INT >= 30) {
-                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.ime());
+                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars()
+                        | WindowInsets.Type.displayCutout() | WindowInsets.Type.ime());
                 view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             } else {
-                view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
+                int top = insets.getSystemWindowInsetTop();
+                if (Build.VERSION.SDK_INT >= 28 && insets.getDisplayCutout() != null) {
+                    top = Math.max(top, insets.getDisplayCutout().getSafeInsetTop());
+                }
+                view.setPadding(insets.getSystemWindowInsetLeft(), top,
                         insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
             }
             return insets;
@@ -75,6 +81,8 @@ public class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setTextZoom(100);
 
+        // Ei venytystä reunojen yli vierittäessä (sovellus ei ole verkkosivu)
+        web.setOverScrollMode(android.view.View.OVER_SCROLL_NEVER);
         web.setWebViewClient(new Client());
         // Android 13+: takaisin-ele tulee tätä kautta (onBackPressed ei aina tule kutsutuksi)
         if (Build.VERSION.SDK_INT >= 33) {
