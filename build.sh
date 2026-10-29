@@ -1,7 +1,10 @@
+#!/bin/sh
+# Rakentaa julkaisuversion: Qt-työpöytäsovellus Linuxille (AppImage) ja Windowsille (kansio zipattuna),
+# molemmat samalla versionumerolla.
+#   Linux:   build_qt_appimage.sh  (Debian 11 -kontti, vaatii Dockerin)
+#   Windows: build_qt_exe.sh       (Windows 11 -virtuaalikone satni-win11, SSH)
+# Vanha Tk-versio: build_appimage.sh ja build_exe.sh (Wine), vain erikseen pyydettäessä.
+cd "$(dirname "$0")" || exit 1
 python3 bump_version.py || exit 1
-# PyInstallerin väliaikaiset tiedostot välimuistikansioon, ei Seafile-synkronoituun projektikansioon
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/satni-fst-build"
-mkdir -p "$CACHE_DIR" || exit 1
-wine python -m PyInstaller --clean --workpath "$(winepath -w "$CACHE_DIR/windows")" --noconsole --onefile -n satni-fst --icon="sami_icon.ico" --hidden-import="PIL._tkinter_finder" --add-data "satni.db;." --add-data "Sami_flag.svg.webp;." gui.py || exit 1
-# Linux-versio AppImagena (yksittäinen Linux-binääri: build_bin.sh, vain erikseen pyydettäessä)
-SKIP_VERSION_BUMP=1 ./build_appimage.sh || exit 1
+SKIP_VERSION_BUMP=1 ./build_qt_appimage.sh || exit 1
+SKIP_VERSION_BUMP=1 ./build_qt_exe.sh || exit 1
