@@ -17,3 +17,6 @@ __pycache__/
 
 # Vanhat testitulosteet
 tulokset.txt
+
+# Web-version generoitu tietokanta (export_web_data.py)
+web/data/
