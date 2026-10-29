@@ -59,15 +59,15 @@ Sátni FST combines the open dictionaries and morphology of [GiellaLT](https://g
 
 ## How it was made
 
-North Sámi is my mother's native language, and Sátni FST started as a tool for myself when I set out to learn it –
+North Sámi was my mother's native language, and Sátni FST started as a tool for myself when I set out to learn it –
 a way back to my roots. The idea, direction and testing are mine; the code was written by AI (Claude, by Anthropic)
 under my guidance. The language data itself is the work of Sámi language technology experts (GiellaLT, Divvun, Giellatekno).
 
-> **Suomeksi:** Pohjoissaame on äitini äidinkieli, ja Sátni FST alkoi omana apuvälineenäni, kun lähdin opettelemaan sitä –
+> **Suomeksi:** Pohjoissaame oli äitini äidinkieli, ja Sátni FST alkoi omana apuvälineenäni, kun lähdin opettelemaan sitä –
 > palaamaan juurilleni. Idea, suunta ja testaus ovat minun, koodin on kirjoittanut tekoäly (Claude, Anthropic) minun
 > ohjauksessani. Itse kielitieto on saamen kieliteknologian asiantuntijoiden työtä (GiellaLT, Divvun, Giellatekno).
 >
-> **På norsk:** Nordsamisk er min mors morsmål, og Sátni FST begynte som et hjelpemiddel for meg selv da jeg begynte å lære
+> **På norsk:** Nordsamisk var min mors morsmål, og Sátni FST begynte som et hjelpemiddel for meg selv da jeg begynte å lære
 > det – å vende tilbake til røttene mine. Idéen, retningen og testingen er mine, mens koden er skrevet av kunstig intelligens
 > (Claude, Anthropic) under min veiledning. Selve språkdataene er arbeidet til eksperter på samisk språkteknologi
 > (GiellaLT, Divvun, Giellatekno).
