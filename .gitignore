@@ -37,3 +37,8 @@ web/data/
 # Paikalliset asetukset ja työkalut (Windows-virtuaalikone, Claude Code)
 build_qt_exe.local
 .claude/
+
+# Androidin julkaisuavain ja salasana (oletuksena ~/.config/satni-fst-signing, ei repossa)
+*.jks
+*.keystore
+keystore.properties

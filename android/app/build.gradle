@@ -25,6 +25,31 @@ android {
         noCompress += ["wasm"]
     }
 
+    // Julkaisuavain (packaging/android/luo_allekirjoitusavain.sh): build_apk.sh antaa kansion, jossa on
+    // satni-fst-release.jks ja keystore.properties. Avain ja salasana eivät ole versionhallinnassa.
+    def signingDir = System.getenv("SATNI_SIGNING_DIR")
+    def signingProps = signingDir ? file("${signingDir}/keystore.properties") : null
+    signingConfigs {
+        if (signingProps?.exists()) {
+            release {
+                def props = new Properties()
+                signingProps.withInputStream { props.load(it) }
+                storeFile file("${signingDir}/satni-fst-release.jks")
+                storePassword props.getProperty("storePassword")
+                keyAlias props.getProperty("keyAlias")
+                keyPassword props.getProperty("keyPassword")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (signingProps?.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
