@@ -73,7 +73,10 @@ function applyStaticTexts() {
   for (const el of document.querySelectorAll("[data-i18n-placeholder]")) el.placeholder = t(el.dataset.i18nPlaceholder);
   for (const el of document.querySelectorAll("[data-i18n-aria]")) el.setAttribute("aria-label", t(el.dataset.i18nAria));
   for (const el of document.querySelectorAll("[data-i18n-title]")) el.title = t(el.dataset.i18nTitle);
-  $("about-version").textContent = window.SATNI_VERSION ? t("aboutDesktop", window.SATNI_VERSION) : t("aboutWeb");
+  // Versionumeron antaa työpöytäsovellus (satni_desktop.py) tai Android-sovellus (android/)
+  const version = window.SATNI_VERSION;
+  $("about-version").textContent = !version ? t("aboutWeb")
+    : window.SATNI_PLATFORM === "android" ? t("aboutAndroid", version) : t("aboutDesktop", version);
   $("random-btn").textContent = t("randomWord");
 
   // Käännöskielivalikko: pääkielet ensin, muut omana ryhmänään
@@ -563,6 +566,8 @@ function setTab(tab) {
 
 const memoryCache = new Map();
 const IS_DESKTOP = location.protocol === "satni:";
+// Android-sovellus (android/) näyttää tiedostot APK:sta tällä osoitteella
+const IS_ANDROID = location.hostname === "appassets.androidplatform.net";
 async function speak(text, button) {
   const voice = VOICES[settings.voice] || "biret";
   const key = `tts-cache/${voice}/${encodeURIComponent(text)}`;
@@ -779,8 +784,8 @@ async function main() {
   bindEvents();
   renderSidebar();
 
-  // Service worker vain verkkosivuna (PWA); työpöytäsovellus (satni://) lukee tiedostot suoraan levyltä
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  // Service worker vain verkkosivuna (PWA); työpöytä- ja Android-sovellus lukevat tiedostot omasta paketistaan
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http") && !IS_ANDROID) {
     navigator.serviceWorker.register("sw.js").catch((e) => console.warn("Service worker:", e));
   }
 

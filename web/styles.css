@@ -293,3 +293,8 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
   table.paradigm { font-size: 14px; }
   table.paradigm td, table.paradigm th { padding: 5px 8px; }
 }
+/* Puhelin pystyssä: yläpalkin napit vievät tilan, nimi mahtuu ilman kuvaketta */
+@media (max-width: 480px) {
+  .brand-icon { display: none; }
+  #theme-select { max-width: 96px; }
+}

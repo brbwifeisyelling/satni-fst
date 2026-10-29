@@ -1,0 +1,9 @@
+plugins {
+    id "com.android.application" version "8.7.3" apply false
+}
+
+// build_apk.sh ajaa käännöksen kontissa, jossa lähdekoodi on vain luettavissa: tulokset SATNI_BUILD_DIR:iin
+def outDir = System.getenv("SATNI_BUILD_DIR")
+if (outDir) {
+    allprojects { layout.buildDirectory = file("${outDir}/${project.name}") }
+}
