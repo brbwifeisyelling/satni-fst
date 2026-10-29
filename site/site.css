@@ -85,6 +85,7 @@ h3 { font-size: 17px; margin: 0 0 6px; }
 .card strong { font-size: 18px; color: var(--accent); }
 .card .size { font-size: 13px; color: var(--muted); }
 
+.story p { max-width: 760px; font-size: 17px; margin: 0; }
 .credits ul { padding-left: 20px; }
 .credits li { margin: 4px 0; }
 footer { text-align: center; padding: 28px 16px 40px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); }
