@@ -178,6 +178,7 @@ main > * + * { margin-top: 12px; }
 .chips button.random { background: var(--speak-bg); color: var(--speak); }
 .results button { font-size: 13px; }
 .results button .trans { font-weight: 400; opacity: .85; }
+.results button.more-results { background: none; color: var(--accent); border: 1px dashed var(--border); }
 
 /* Sanakortti */
 .word-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
