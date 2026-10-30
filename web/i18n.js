@@ -99,8 +99,10 @@ const UI_TEXTS = {
          taivutus GiellaLT lang-sme (GPL-3.0), käännösten taivutus GiellaLT lang-fin (GPL-3.0) ja Norsk ordbank
          (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Sátni FST on vapaa ohjelma (GPL-3.0).
          Lähteet ja tehdyt muutokset: CREDITS.md lähdekoodin mukana.</p>
-      <p>Ohjelma on tuore ja voi sisältää huomattavia virheitä, eikä sille ole virallista tukea.</p>
-      <p>Tekijä: Juha Somby · Palaute: <a href="mailto:satni@somby.fi">satni@somby.fi</a></p>`,
+      <p>Jos huomaat ongelman, ota yhteyttä sähköpostitse <a href="mailto:satni@somby.fi">satni@somby.fi</a>
+         tai tee ilmoitus GitHubissa: <a href="https://github.com/brbwifeisyelling/satni-fst/issues" target="_blank" rel="noopener">github.com/brbwifeisyelling/satni-fst/issues</a>.
+         Palaute ja ehdotukset ovat tervetulleita sähköpostitse.</p>
+      <p>Tekijä: Juha Somby</p>`,
     close: "Sulje",
   },
 
@@ -193,8 +195,10 @@ const UI_TEXTS = {
          bøying GiellaLT lang-sme (GPL-3.0), bøying av oversettelsene GiellaLT lang-fin (GPL-3.0) og Norsk ordbank
          (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Sátni FST er fri programvare (GPL-3.0).
          Kilder og endringer: CREDITS.md i kildekoden.</p>
-      <p>Programmet er nytt og kan inneholde betydelige feil, og det har ingen offisiell støtte.</p>
-      <p>Laget av: Juha Somby · Tilbakemelding: <a href="mailto:satni@somby.fi">satni@somby.fi</a></p>`,
+      <p>Hvis du finner et problem, ta kontakt på e-post <a href="mailto:satni@somby.fi">satni@somby.fi</a>
+         eller meld det på GitHub: <a href="https://github.com/brbwifeisyelling/satni-fst/issues" target="_blank" rel="noopener">github.com/brbwifeisyelling/satni-fst/issues</a>.
+         Tilbakemeldinger og forslag tas gjerne imot på e-post.</p>
+      <p>Laget av: Juha Somby</p>`,
     close: "Lukk",
   },
 };

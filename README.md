@@ -116,4 +116,12 @@ Sátni FST is free software under the [GNU General Public License v3.0](LICENSE)
 The dictionaries are © GiellaLT and licensed under CC BY 4.0, the morphology (lang-sme) under GPL-3.0 —
 see [CREDITS.md](CREDITS.md) for all sources, licences and the changes made to the data.
 
-Feedback: Juha Somby, <satni@somby.fi>
+## Contact
+
+Found a problem? Email <satni@somby.fi> or [open an issue on GitHub](https://github.com/brbwifeisyelling/satni-fst/issues).
+Feedback and suggestions are welcome by email.
+
+> **Suomeksi:** Ongelmista voi ilmoittaa sähköpostitse <satni@somby.fi> tai GitHubissa. Palaute ja ehdotukset ovat tervetulleita sähköpostitse.
+> **På norsk:** Problemer kan meldes på e-post <satni@somby.fi> eller på GitHub. Tilbakemeldinger og forslag tas gjerne imot på e-post.
+
+Juha Somby
