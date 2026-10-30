@@ -1,8 +1,8 @@
 #!/bin/sh
 # Rakentaa Android-sovelluksen (android/) APK:n Docker-kontissa (packaging/android/Dockerfile).
-# Tulos: dist/satni-fst.apk. Versio otetaan version.py:stä samana kuin työpöytäversioissa
-# (aja ensin build.sh tai bump_version.py), versionCode päivästä ja build-numerosta:
-# 0.7.1.20261029.15 -> 2026102915 (kasvaa aina, joten päivitys asentuu vanhan päälle).
+# Tulos: dist/satni-fst.apk. Versio ja versionCode tulevat bump_version.py:ltä gitin tiedoista, joten
+# sama commit saa saman version kuin työpöytäversioissa: 0.7.3.20261030.6 -> 2026103006 (kasvaa
+# commit commitilta, joten päivitys asentuu vanhan päälle).
 # APK allekirjoitetaan julkaisuavaimella ($SATNI_SIGNING_DIR, oletus ~/.config/satni-fst-signing; luodaan
 # kerran: packaging/android/luo_allekirjoitusavain.sh). Saman avaimen päivitykset asentuvat vanhan päälle.
 # --debug: testiversio debug-avaimella (WebView-vianetsintä päällä), esim. emulaattoritesteihin.
@@ -19,8 +19,9 @@ else
 fi
 
 [ -f web/data/satni-web.db.gz ] || python3 export_web_data.py || exit 1
+[ -n "$SKIP_VERSION_BUMP" ] || python3 bump_version.py || exit 1
 VERSION=$(python3 -c "import version; print(version.VERSION)") || exit 1
-VERSION_CODE=$(python3 -c "v = '$VERSION'.split('.'); print(int(v[-2]) * 100 + int(v[-1]))") || exit 1
+VERSION_CODE=$(python3 -c "import version; print(version.VERSION_CODE)") || exit 1
 
 # Väliaikaiset tiedostot (Gradle, käännös, debug-avain) välimuistikansioon, ei projektikansioon
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/satni-fst-build/android"

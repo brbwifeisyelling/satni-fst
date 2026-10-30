@@ -10,7 +10,6 @@ sanakirja.db
 build/
 *.spec
 version.py
-build_number.txt
 
 # Python
 __pycache__/
