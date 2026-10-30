@@ -90,9 +90,10 @@ function applyStaticTexts() {
   for (const el of document.querySelectorAll("[data-i18n-placeholder]")) el.placeholder = t(el.dataset.i18nPlaceholder);
   for (const el of document.querySelectorAll("[data-i18n-aria]")) el.setAttribute("aria-label", t(el.dataset.i18nAria));
   for (const el of document.querySelectorAll("[data-i18n-title]")) el.title = t(el.dataset.i18nTitle);
-  // Versionumeron antaa työpöytäsovellus (satni_desktop.py) tai Android-sovellus (android/)
+  // Versionumeron antaa työpöytäsovellus (satni_desktop.py) tai Android-sovellus (android/); selainversiolle
+  // julkaise_sivu.sh kirjoittaa julkaisun numeron (SATNI_WEB_VERSION)
   const version = window.SATNI_VERSION;
-  $("about-version").textContent = !version ? t("aboutWeb")
+  $("about-version").textContent = !version ? t("aboutWeb", window.SATNI_WEB_VERSION)
     : window.SATNI_PLATFORM === "android" ? t("aboutAndroid", version) : t("aboutDesktop", version);
   $("random-btn").textContent = t("randomWord");
   renderExtraLangs();

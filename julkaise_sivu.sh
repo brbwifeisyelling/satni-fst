@@ -15,6 +15,10 @@ rm -rf "$OUT" && mkdir -p "$OUT/screenshots" || exit 1
 cp site/index.html site/site.css site/site.js packaging/icon/satni-icon.svg "$OUT/" || exit 1
 cp docs/screenshots/*.png "$OUT/screenshots/" || exit 1
 cp -r web "$OUT/app" || exit 1
+# Selainversion Tietoa-ikkunaan julkaisun numero (RELEASE_VERSION)
+WEB_VERSION=$(cat RELEASE_VERSION)
+sed -i "s|<title>|<script>window.SATNI_WEB_VERSION = \"$WEB_VERSION\";</script>\n  <title>|" "$OUT/app/index.html"
+grep -q "SATNI_WEB_VERSION = \"$WEB_VERSION\"" "$OUT/app/index.html" || { echo "Selainversion numeron lisäys epäonnistui"; exit 1; }
 touch "$OUT/.nojekyll"  # ei Jekyll-käsittelyä
 
 # Selainten välimuistit nimetään sisällön mukaan (web/sw.js): uusi sanakirja tai sovellus korvaa vanhan

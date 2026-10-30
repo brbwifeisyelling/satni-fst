@@ -99,7 +99,7 @@ const UI_TEXTS = {
     langName: { fin: "suomi", nob: "norja", eng: "englanti", smn: "inarinsaame", smj: "luulajansaame", sma: "eteläsaame" },
     langIn: { fin: "Suomeksi", nob: "Norjaksi", eng: "Englanniksi", smn: "Inarinsaameksi", smj: "Luulajansaameksi", sma: "Eteläsaameksi" },
     // Tietoa-ikkuna. Ääntämisen kuvaus on sovittu Divvunin kanssa (2026-10-29), älä muuta sisältöä.
-    aboutWeb: "Web-versio (testi)", aboutDesktop: (v) => `Versio ${v} (työpöytä)`,
+    aboutWeb: (v) => (v ? `Versio ${v} (web)` : "Web-versio"), aboutDesktop: (v) => `Versio ${v} (työpöytä)`,
     aboutAndroid: (v) => `Versio ${v} (Android)`,
     aboutBody: `<p>Pohjoissaamen taivutin ja sanakirja, joka perustuu avoimeen lähdekoodiin.</p>
       <p>Sanakirjadata ja kieliteknologiapohja ovat peräisin Giellateknolta ja Divvunilta. Kielidata ja
@@ -208,7 +208,7 @@ const UI_TEXTS = {
     langName: { fin: "finsk", nob: "norsk", eng: "engelsk", smn: "enaresamisk", smj: "lulesamisk", sma: "sørsamisk" },
     langIn: { fin: "På finsk", nob: "På norsk", eng: "På engelsk", smn: "På enaresamisk", smj: "På lulesamisk", sma: "På sørsamisk" },
     // Oversettelse av den finske teksten som er avtalt med Divvun (2026-10-29)
-    aboutWeb: "Nettversjon (test)", aboutDesktop: (v) => `Versjon ${v} (skrivebord)`,
+    aboutWeb: (v) => (v ? `Versjon ${v} (nett)` : "Nettversjon"), aboutDesktop: (v) => `Versjon ${v} (skrivebord)`,
     aboutAndroid: (v) => `Versjon ${v} (Android)`,
     aboutBody: `<p>Nordsamisk bøyingsverktøy og ordbok basert på åpen kildekode.</p>
       <p>Ordbokdataene og språkteknologien kommer fra Giellatekno og Divvun. Språkdataene og
