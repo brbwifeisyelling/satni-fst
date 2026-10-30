@@ -728,6 +728,20 @@ function applyTheme() {
 
 // --- Osoite (#/sana/dahkat/1) ---
 
+// Muusta sovelluksesta jaettu teksti (Android: Jaa -> Sátni FST; asennettu selainversio:
+// share_target, ?text=...). Ensin koko ilmaus (dahkat iežas), sitten sanat järjestyksessä:
+// haetaan ensimmäinen, josta löytyy osumia. Välimerkit ja linkit pois. Ennen sanakirjan latautumista
+// teksti odottaa (pendingShared).
+let pendingShared = null;
+function openShared(text) {
+  const words = text.replace(/https?:\/\/\S+/g, " ").split(/\s+/)
+    .map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "")).filter(Boolean);
+  if (!words.length) return;
+  if (!db) { pendingShared = text; return; }
+  const tries = [words.slice(0, 4).join(" "), ...words.slice(0, 20)];
+  search(tries.find((q) => queryDatabase(q).length) || words[0]);
+}
+
 function routeFromHash() {
   const m = location.hash.match(/^#\/sana\/([^/]+)(?:\/(\d+))?/);
   if (m) search(decodeURIComponent(m[1]), Number(m[2] || 0));
@@ -842,6 +856,9 @@ async function main() {
     navigator.serviceWorker.register("sw.js").catch((e) => console.warn("Service worker:", e));
   }
 
+  pendingShared = new URLSearchParams(location.search).get("text");
+  if (pendingShared) history.replaceState(null, "", location.pathname);
+
   try {
     showOnly("loading");
     db = await loadDatabase();
@@ -851,7 +868,8 @@ async function main() {
   }
   $("search").disabled = false;
   $("search-btn").disabled = false;
-  routeFromHash();
+  if (pendingShared) openShared(pendingShared);
+  else routeFromHash();
   if (!location.hash) $("search").focus();
 }
 
