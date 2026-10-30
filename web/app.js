@@ -1084,9 +1084,12 @@ function layoutOcr(reset) {
   applyOcrView();
 }
 
-// Napautettu sana: kupla sanan yläpuolelle (tai alle, jos yläpuolella ei ole tilaa); null sulkee kuplan
+// Napautettu sana: kupla sanan yläpuolelle (tai alle, jos yläpuolella ei ole tilaa); null sulkee kuplan.
+// Kuuntele-painike lausuu sanan kuvassa olevassa muodossa (dagan, ei dahkat).
 const OPEN_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
   stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>`;
+const SPEAK_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+  stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>`;
 function pickOcrWord(i) {
   const photo = $("ocr-photo"), bubble = $("ocr-bubble");
   photo.querySelector(".picked")?.classList.remove("picked");
@@ -1097,7 +1100,8 @@ function pickOcrWord(i) {
   photo.querySelector(`[data-i="${i}"]`).classList.add("picked");
   bubble.innerHTML = `<span class="b-text"><span class="b-word">${esc(w.word)}${w.gloss.lemma
     ? ` <span class="b-lemma">(${esc(w.gloss.lemma)})</span>` : ""}</span>${w.gloss.trans
-    ? `<span class="b-trans">${esc(w.gloss.trans)}</span>` : ""}</span><span class="b-open">${OPEN_ICON}</span>`;
+    ? `<span class="b-trans">${esc(w.gloss.trans)}</span>` : ""}</span><span class="b-speak" role="button"
+    aria-label="${esc(t("listen"))}">${SPEAK_ICON}</span><span class="b-open">${OPEN_ICON}</span>`;
   bubble.setAttribute("aria-label", w.word);
   bubble.hidden = false;
   placeOcrBubble();
@@ -1189,7 +1193,13 @@ function bindOcrGestures() {
     if (!tap || e.type !== "pointerup" || Date.now() - tap.time > 500) { tap = null; return; }
     const target = document.elementFromPoint(tap.cx, tap.cy);
     const word = target?.closest(".ocr-word");
-    if (target?.closest("#ocr-bubble")) openOcrWord();
+    const speaker = target?.closest(".b-speak");
+    if (speaker) {
+      if (!speaker.classList.contains("busy")) {
+        speaker.classList.add("busy");
+        speak(ocr.words[ocr.picked].word).finally(() => speaker.classList.remove("busy"));
+      }
+    } else if (target?.closest("#ocr-bubble")) openOcrWord();
     else if (word) {
       if (Number(word.dataset.i) === ocr.picked) openOcrWord();
       else pickOcrWord(Number(word.dataset.i));
