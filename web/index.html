@@ -156,7 +156,14 @@
       <button class="chip-btn" id="ocr-gallery" data-i18n="ocrGallery">🖼️ Valitse kuva</button>
       <button class="chip-btn" id="ocr-close" data-i18n="close">Sulje</button>
     </div>
-    <p id="ocr-status" class="muted small"></p>
+    <!-- Käännös: sanakirjan sanat käännettyinä kuvan päällä; Saame: kuva sellaisenaan, sanat alleviivattuina -->
+    <div class="ocr-bar">
+      <div id="ocr-mode" class="lang-switch ocr-mode" role="radiogroup">
+        <button data-mode="translate" data-i18n="ocrModeTranslate">Käännös</button>
+        <button data-mode="sami" data-i18n="ocrModeSami">Saame</button>
+      </div>
+      <p id="ocr-status" class="muted small"></p>
+    </div>
     <!-- Kuva koko jäljellä olevalla alueella: zoomaus kahdella sormella, siirto vetämällä -->
     <div id="ocr-stage" class="ocr-stage"><div id="ocr-photo" class="ocr-photo"></div></div>
   </div>

@@ -277,17 +277,21 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 }
 .ocr-photo { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .ocr-photo img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; }
+.ocr-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 8px 0; }
+.ocr-bar #ocr-status { margin: 0; flex: 1 1 180px; }
+.ocr-mode { float: none; }
+.ocr-mode button { padding: 5px 12px; font-size: 14px; }
+/* Sanat kuvan päällä ilman reunuksia. Käännös-tilassa sanakirjan sana peitetään kuvasta otetulla taustavärillä
+   ja käännös kirjoitetaan sanan omalla värillä (ocrColors), jolloin se näyttää kuvaan painetulta tekstiltä.
+   Saame-tilassa kuva jää näkyviin ja sanat on vain alleviivattu. */
 .ocr-word {
   position: absolute; display: flex; align-items: center; justify-content: center;
-  white-space: nowrap; line-height: 1; border-radius: 3px; overflow: visible;
+  white-space: nowrap; line-height: 1; border-radius: 2px;
 }
-.ocr-word span { display: inline-block; transform-origin: center; }
-.ocr-word.hit {
-  background: color-mix(in srgb, var(--surface) 96%, transparent); color: var(--accent); font-weight: 600;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent);
-}
-.ocr-word:not(.hit) { border: 1px dashed rgba(128, 128, 128, .7); }
-.ocr-word:not(.hit) span { visibility: hidden; }
+.ocr-word span { display: inline-block; visibility: hidden; }
+.mode-translate .ocr-word.hit { background: var(--word-bg); color: var(--word-fg); }
+.mode-translate .ocr-word.hit span { visibility: visible; }
+.mode-sami .ocr-word.hit { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 75%, transparent); }
 .toast {
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50;
   background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: 14px;
