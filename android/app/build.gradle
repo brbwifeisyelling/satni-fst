@@ -14,10 +14,6 @@ android {
         // build_apk.sh antaa nämä version.py:stä (0.7.3.20261030.6 -> 2026103006)
         versionCode((project.findProperty("satniVersionCode") ?: "1") as int)
         versionName(project.findProperty("satniVersionName") ?: "dev")
-        // test-haara: oma sovellus-id ja nimi, jotta koeversio asentuu dev- ja julkaisuversion rinnalle.
-        // Poistetaan, kun test yhdistetään deviin.
-        applicationIdSuffix ".test"
-        manifestPlaceholders = [appLabel: "Sátni FST test"]
         // Tekstintunnistuksen natiivikirjasto on ~11 Mt suoritintyyppiä kohden: APK:hon vain puhelimien ARM-versiot.
         // Debug-versioon (emulaattori) build_apk.sh --debug lisää x86_64:n: -PsatniAbis=x86_64,arm64-v8a.
         ndk { abiFilters.addAll((project.findProperty("satniAbis") ?: "arm64-v8a,armeabi-v7a").split(",")) }
@@ -54,9 +50,7 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt")
+            minifyEnabled false
             if (signingProps?.exists()) {
                 signingConfig signingConfigs.release
             }
