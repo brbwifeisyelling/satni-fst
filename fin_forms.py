@@ -85,6 +85,10 @@ def stems(word, pos, analyses):
     return simple or sorted(found, key=lambda s: s.count("#"))[:1]
 
 
+# Puhekieliset lyhyet muodot (oon, meen, tuut, paa) ja vanha ompi; analysaattori ei merkitse kaikkia
+COLLOQUIAL = {"olla": ("oo", "ompi"), "mennä": ("mee",), "tulla": ("tuu",), "panna": ("paa",)}
+
+
 def clean_variants(forms, cell, pos, word):
     """Generaattori (norm) antaa myös vanhahtavia ja murteellisia rinnakkaismuotoja. Ne pudotetaan, kun
     yleiskielinen vaihtoehto on olemassa, ja tavallisin muoto laitetaan ensin:
@@ -94,10 +98,19 @@ def clean_variants(forms, cell, pos, word):
       - essiivin lyhyt muoto (suurna, taloudellisna), kun -ena on
       - muoto, jossa on enemmän h-kirjaimia kuin vaihtoehdossa (vaattehien -> vaatteiden)
       - yhdyssana, jonka alkuosakin taipuu (hienoissasokereissa), kun alkuosan säilyttävä on (hienosokereissa)
-      - verbin lyhyt puhekielinen muoto (meen, mee), kun pidempi on (menen, mene)"""
+      - puhekieliset lyhyet muodot (oon, meen, tuu, paa; COLLOQUIAL); murteelliseksi tai virheelliseksi
+        merkityt (Dial, Err/, Use/) pudotetaan jo add_fin_forms-funktiossa
+      - verbin vanhahtava -oitse-/-oitsi- (imuroitsee -> imuroi, imuroitsi -> imuroi) ja -ele- (määräelee -> määräilee)
+    Verbeissä muuten generaattorin järjestys (on/ompi, palaa/palaja)."""
     if len(forms) < 2:
         return forms
     keep = [f for f in forms if "’" not in f and "'" not in f and ("-" not in f or "-" in word)] or forms
+    if pos == "V":
+        short = COLLOQUIAL.get(word, ())
+        keep = [f for f in keep if not f.startswith(short)] or keep if short else keep
+        keep = [f for f in keep if not (re.search("[oö]its[ei]", f) and any(not re.search("[oö]its[ei]", g) for g in keep))] or keep
+        keep = [f for f in keep if not any(f[:i] + "i" + f[i + 1:] in keep for i in range(len(f)) if f[i] == "e"
+                                           and i > 0 and f[i - 1] in "aä" and f[i + 1:i + 2] == "l")] or keep
 
     def archaic(f, others):
         return (any(f[:i] + f[i + 1:] in others for i, ch in enumerate(f) if ch == "h")
@@ -114,9 +127,7 @@ def clean_variants(forms, cell, pos, word):
     best = max(keep, key=lambda f: prefix[f])
     keep = [f for f in keep if not (prefix[f] <= prefix[best] - 3 and len(f) > len(best))]
     vowels = "aeiouyäö"
-    if pos == "V":
-        keep = sorted(keep, key=len, reverse=True)
-    elif cell == "Comp" and word[-1] in "aä":
+    if cell == "Comp" and word[-1] in "aä":
         keep = sorted(keep, key=lambda f: not f.endswith(word[-1] + "mpi"))  # ankarampi, väkevämpi
     elif cell == "Sg+Par" and word[-1] in vowels:
         # kampelaa (ei kampelata), mutta variaatiota (ei variaatioa)
@@ -143,6 +154,13 @@ def add_fin_forms(cursor):
             requests[(word, pos)].append(("citation", stem + CITATION_TAGS[pos]))
     generated = lookup(GENERATOR, sorted({q for reqs in requests.values() for _, q in reqs}), generate=True)
 
+    # Rinnakkaismuodot, jotka analysaattori merkitsee murteellisiksi tai virheellisiksi juuri tässä muodossa
+    # (meen: mennä+Err/Orth+V+Act+Ind+Prs+Sg1; menen-muodon Err-analyysit ovat muita muotoja, joten se kelpaa)
+    multi = {f for forms in generated.values() if len(forms) > 1 for f in forms}
+    form_analyses = lookup(ANALYSER, sorted(multi))
+    nonstandard = frozenset((re.sub(r"\+(Dial|Err/\w+|Use/\w+)", "", a), f) for f, analyses in form_analyses.items()
+                            for a in analyses if re.search(r"\+(Dial|Err/|Use/)", a))
+
     rows = []
     for (word, pos), reqs in requests.items():
         cells = {}
@@ -151,6 +169,8 @@ def add_fin_forms(cursor):
             if cell == "citation" or not any(query.startswith(st + "+") for st in valid_stems):
                 continue
             for form in generated.get(query, []):
+                if (query, form) in nonstandard and len(generated[query]) > 1:
+                    continue
                 cells.setdefault(cell, [])
                 if form not in cells[cell]:
                     cells[cell].append(form)

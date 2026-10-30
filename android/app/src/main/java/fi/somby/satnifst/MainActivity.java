@@ -175,13 +175,19 @@ public class MainActivity extends Activity {
         web.saveState(outState);
     }
 
-    /** Takaisin: edellinen haku (#/sana/...) tai aloitussivu; vasta sen jälkeen sovellus suljetaan. */
+    /** Takaisin: ensin suljetaan avoin valikko (☰), sitten edellinen haku (#/sana/...) tai aloitussivu;
+     *  vasta sen jälkeen sovellus suljetaan. */
     private void goBackOrFinish() {
-        if (web.canGoBack()) {
-            web.goBack();
-        } else {
-            finish();
-        }
+        web.evaluateJavascript("window.closeDrawer ? closeDrawer() : false", result -> {
+            if ("true".equals(result)) {
+                return;
+            }
+            if (web.canGoBack()) {
+                web.goBack();
+            } else {
+                finish();
+            }
+        });
     }
 
     @Override

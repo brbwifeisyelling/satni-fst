@@ -49,6 +49,8 @@ const state = { query: "", results: [], index: 0, word: null, paradigm: null, gr
 
 const DEFAULT_SETTINGS = {
   theme: "auto", voice: "Biret", uiLang: "fi", lang: "fin", showGrade: true, history: [], favourites: [],
+  // Muut kielet (asetus sivupaneelissa): näkyvät käännösvalikossa; oletuksena ei yhtään. Hakuun ne eivät vaikuta.
+  extraLangs: [],
 };
 let settings = loadSettings();
 
@@ -86,14 +88,9 @@ function applyStaticTexts() {
   $("about-version").textContent = !version ? t("aboutWeb")
     : window.SATNI_PLATFORM === "android" ? t("aboutAndroid", version) : t("aboutDesktop", version);
   $("random-btn").textContent = t("randomWord");
+  setupPlatformLayout();
 
-  // Käännöskielivalikko: pääkielet ensin, muut omana ryhmänään
-  const option = (l) => `<option value="${l}">${esc(langName(l))}</option>`;
-  const langs = Object.keys(LANGUAGES);
-  $("lang-select").innerHTML =
-    `<optgroup label="${esc(t("mainLanguages"))}">${langs.filter((l) => LANGUAGES[l].main).map(option).join("")}</optgroup>` +
-    `<optgroup label="${esc(t("otherLanguages"))}">${langs.filter((l) => !LANGUAGES[l].main).map(option).join("")}</optgroup>`;
-  $("lang-select").value = settings.lang;
+  renderLangSelect();
 
   // Lippunappi ja sen valikko yläpalkissa sekä valitsin aloitussivulla
   $("ui-lang-btn").innerHTML = FLAGS[settings.uiLang];
@@ -103,6 +100,40 @@ function applyStaticTexts() {
   $("welcome-lang").innerHTML = Object.entries(UI_LANGUAGES).map(([code, l]) =>
     `<button role="radio" aria-checked="${code === settings.uiLang}" data-lang="${code}"` +
     `${code === settings.uiLang ? ' class="active"' : ""}>${FLAGS[code]}<span>${esc(l.name)}</span></button>`).join("");
+}
+
+// Android: ☰ avaa vasemmalta liukuvan valikon, johon siirretään ääni- ja astevalinnat (Androidin tavallinen
+// valikko). Työpöydällä ja selaimessa ne pysyvät hakukentän alla. SATNI_PLATFORM tulee Android-sovellukselta
+// sivun latauduttua (MainActivity.showVersion), joten tätä kutsutaan applyStaticTextsistä.
+function setupPlatformLayout() {
+  if (window.SATNI_PLATFORM !== "android" || document.body.classList.contains("platform-android")) return;
+  document.body.classList.add("platform-android");
+  const section = $("settings-section");
+  section.classList.add("settings-section");
+  section.append($("grade-option"), $("voice-option"));
+  section.hidden = false;
+}
+
+// Android-sovelluksen takaisin-ele sulkee ensin valikon (MainActivity.goBackOrFinish)
+function closeDrawer() {
+  const open = document.body.classList.contains("sidebar-open");
+  document.body.classList.remove("sidebar-open");
+  return open;
+}
+
+// Käännöskielivalikko: pääkielet aina, muut kielet vain jos ne on valittu asetuksista (sivupaneeli). Muut kielet
+// näkyvät myös Merkitykset-välilehdellä aina, kun sana on valittu.
+function renderLangSelect() {
+  const option = (l) => `<option value="${l}">${esc(langName(l))}</option>`;
+  const langs = Object.keys(LANGUAGES);
+  const extra = langs.filter((l) => !LANGUAGES[l].main && settings.extraLangs.includes(l));
+  $("lang-select").innerHTML =
+    `<optgroup label="${esc(t("mainLanguages"))}">${langs.filter((l) => LANGUAGES[l].main).map(option).join("")}</optgroup>` +
+    (extra.length ? `<optgroup label="${esc(t("otherLanguages"))}">${extra.map(option).join("")}</optgroup>` : "");
+  $("lang-select").value = settings.lang;
+  $("extra-langs").innerHTML = langs.filter((l) => !LANGUAGES[l].main).map((l) =>
+    `<label class="check"><input type="checkbox" value="${l}"${settings.extraLangs.includes(l) ? " checked" : ""}> ` +
+    `${esc(capitalize(langName(l)))}</label>`).join("");
 }
 
 // Kielen vaihto vaihtaa myös käännöskielen (suomi -> suomi, norsk -> norja); sen voi vaihtaa erikseen
@@ -210,6 +241,12 @@ async function loadDatabase() {
 
 // --- Haku ---
 
+// Haku löytää pohjoissaamen sanat ja muodot sekä käännökset vain suomeksi tai norjaksi: valittu käännöskieli,
+// tai jos se on jokin muu kieli (englanti, inarin-, luulajan- tai eteläsaame), käyttöliittymän kieli. Muiden
+// kielten sanat (luulajansaamen lea, norjan mus suomenkielisessä haussa) eivät siis peitä pohjoissaamen
+// muotoja (lea = leahkit, mus = mun).
+const COMMON_WORD = 50000;  // korpusfrekvenssi, jota yleisemmän sanan taivutusmuoto menee käännösten edelle
+
 function queryDatabase(query) {
   const q = fold(query.trim());
   const found = new Map();
@@ -217,7 +254,8 @@ function queryDatabase(query) {
     const prev = found.get(row.id);
     if (!prev || rank < prev.rank) found.set(row.id, { ...row, rank });
   };
-  const cols = `id, sme_lemma, pos, subtype, ${TRANS_COLS}`;
+  const cols = `id, sme_lemma, pos, subtype, freq, ${TRANS_COLS}`;
+  const searchLang = LANGUAGES[settings.lang].main ? settings.lang : UI_LANGUAGES[settings.uiLang].translationLang;
 
   // 1 = saamen perusmuoto; 6 = isolla kirjoitettu erisnimi, joka osui vain kirjainkoosta riippumatta.
   // Perusmuoto ilman käännöstä valitulla kielellä 5.5: ensin sana, jonka taivutusmuoto haku on
@@ -228,31 +266,34 @@ function queryDatabase(query) {
     add(r, r.sme_lemma !== query.trim() && first !== first.toLowerCase() ? 6 : r[col] ? 1 : 5.5);
   }
   // 1.5 = käänteisen sanakirjan (dict-fin-sme, dict-nob-sme) hakusana, sen ensisijainen saamennos ensin;
-  // 2 = ainoa käännös, 3 = ensimmäinen käännös, 4 = jokin muu; muun kuin valitun kielen osuma hieman alempana
+  // 2 = ainoa käännös, 3 = ensimmäinen käännös, 4 = jokin muu
   for (const r of all(
     `SELECT d.${cols.split(", ").join(", d.")}, t.fold, t.lang, t.nr FROM trans_search t JOIN dictionary d ON d.id = t.word_id
-     WHERE t.fold = ? OR t.fold LIKE ? OR t.fold LIKE ? OR t.fold LIKE ?`,
-    [q, `${q},%`, `%, ${q},%`, `%, ${q}`]
+     WHERE t.lang = ? AND (t.fold = ? OR t.fold LIKE ? OR t.fold LIKE ? OR t.fold LIKE ?)`,
+    [searchLang, q, `${q},%`, `%, ${q},%`, `%, ${q}`]
   )) {
-    const rank = r.nr !== null ? (r.fold === q ? 1.5 + Math.min(r.nr, 9) / 100 : 4)
-      : r.fold === q ? 2 : r.fold.startsWith(`${q},`) ? 3 : 4;
-    add(r, rank + (r.lang === settings.lang ? 0 : 0.5));
+    add(r, r.nr !== null ? (r.fold === q ? 1.5 + Math.min(r.nr, 9) / 100 : 4)
+      : r.fold === q ? 2 : r.fold.startsWith(`${q},`) ? 3 : 4);
   }
-  // 5 = taivutusmuoto (manan -> mannat)
+  // 5 = taivutusmuoto (manan -> mannat); hyvin yleisen sanan muoto 1.2 eli käännösten edelle
+  // (lei = leahkit eikä norjan "lei", mus = mun eikä norjan "mus")
   const forms = [q, capitalize(q), nordic(q), capitalize(nordic(q))];
   for (const r of all(
     `SELECT DISTINCT d.${cols.split(", ").join(", d.")}
      FROM paradigms p JOIN dictionary d ON d.id = p.word_id WHERE p.surface IN (?, ?, ?, ?)`, forms
-  )) add(r, 5);
+  )) add(r, r.freq >= COMMON_WORD ? 1.2 : 5);
   // 7 = perusmuoto alkaa hakusanalla; monisanaiset ilmaukset (dahkat iežas ...) vain, jos haussa on välilyönti
   const phrases = q.includes(" ") ? "" : "AND instr(lemma_fold, ' ') = 0";
   for (const r of all(`SELECT ${cols} FROM dictionary WHERE lemma_fold >= ? AND lemma_fold < ? ${phrases} LIMIT 60`, [q, q + "￿"])) add(r, 7);
 
-  // Tasatilanteessa ensin sana, jolla on käännös valitulla kielellä (ei "(ingen norsk oversettelse)" ensimmäisenä)
+  // Tasatilanteessa saamen sanoista (perusmuoto tai taivutusmuoto) ensin korpuksessa yleisempi
+  // (sutnje: son eikä suotnjat), sitten sana, jolla on käännös valitulla kielellä, sitten verbit.
+  // Käännösosumien keskinäinen järjestys tulee sanakirjasta (nr), joten frekvenssiä ei käytetä niille.
   const translated = (r) => (r[col] ? 1 : 0);
+  const samiFreq = (r) => ([1, 1.2, 5, 5.5].includes(r.rank) ? r.freq || 0 : 0);
   return [...found.values()]
-    .sort((a, b) => a.rank - b.rank || translated(b) - translated(a) || (b.pos === "V") - (a.pos === "V")
-      || a.sme_lemma.localeCompare(b.sme_lemma, "se"))
+    .sort((a, b) => a.rank - b.rank || samiFreq(b) - samiFreq(a) || translated(b) - translated(a)
+      || (b.pos === "V") - (a.pos === "V") || a.sme_lemma.localeCompare(b.sme_lemma, "se"))
     .slice(0, 30);
 }
 
@@ -899,6 +940,15 @@ function bindEvents() {
     settings.lang = e.target.value; saveSettings();
     if (state.results.length) searchAgainKeepingWord();
   };
+  $("extra-langs").onchange = (e) => {
+    const lang = e.target.value;
+    settings.extraLangs = e.target.checked ? [...settings.extraLangs, lang] : settings.extraLangs.filter((l) => l !== lang);
+    // Pois valitun kielen käännökset vaihtuvat käyttöliittymän kielen käännöksiin
+    if (!e.target.checked && settings.lang === lang) settings.lang = UI_LANGUAGES[settings.uiLang].translationLang;
+    saveSettings();
+    renderLangSelect();
+    if (state.results.length) searchAgainKeepingWord();
+  };
   $("theme-select").value = settings.theme;
   $("theme-select").onchange = (e) => { settings.theme = e.target.value; saveSettings(); applyTheme(); };
 
@@ -935,6 +985,7 @@ function bindEvents() {
     if (b) setUiLanguage(b.dataset.lang);
   });
   $("sidebar-toggle").onclick = () => document.body.classList.toggle("sidebar-open");
+  $("drawer-scrim").onclick = closeDrawer;
   $("sidebar").addEventListener("click", (e) => { if (e.target.closest("a")) document.body.classList.remove("sidebar-open"); });
   $("clear-history").onclick = () => { settings.history = []; saveSettings(); renderSidebar(); };
   window.addEventListener("popstate", routeFromHash);
@@ -947,6 +998,9 @@ function bindEvents() {
 async function main() {
   if (!UI_LANGUAGES[settings.uiLang]) settings.uiLang = "fi";
   if (!LANGUAGES[settings.lang]) settings.lang = UI_LANGUAGES[settings.uiLang].translationLang;
+  // Aiemmin valittu muu käännöskieli (ennen Muut kielet -asetusta) pysyy valikossa
+  settings.extraLangs = (settings.extraLangs || []).filter((l) => LANGUAGES[l] && !LANGUAGES[l].main);
+  if (!LANGUAGES[settings.lang].main && !settings.extraLangs.includes(settings.lang)) settings.extraLangs.push(settings.lang);
   applyTheme();
   const ex = $("examples");
   for (const w of EXAMPLE_WORDS) {

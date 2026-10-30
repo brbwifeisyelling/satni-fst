@@ -56,11 +56,11 @@
     </div>
     <button class="primary-btn" id="search-btn" data-i18n="search" disabled>Hae</button>
     <div class="search-options">
-      <label class="check"><input type="checkbox" id="grade-toggle" checked> <span data-i18n="showGrade">Näytä aste (GD/HD)</span></label>
+      <label class="check" id="grade-option"><input type="checkbox" id="grade-toggle" checked> <span data-i18n="showGrade">Näytä aste (GD/HD)</span></label>
       <label class="voice"><span data-i18n="translations">Käännökset</span>
         <select id="lang-select"></select>
       </label>
-      <label class="voice"><span data-i18n="voice">Ääni</span>
+      <label class="voice" id="voice-option"><span data-i18n="voice">Ääni</span>
         <select id="voice-select">
           <option>Biret</option><option>Máhtte</option><option>Sunná</option>
         </select>
@@ -68,8 +68,13 @@
     </div>
   </div>
 
+  <div id="drawer-scrim" class="drawer-scrim"></div>
   <div class="layout">
     <aside id="sidebar" class="sidebar">
+      <!-- Android: ääni ja aste siirretään tänne valikkoon (app.js: setupPlatformLayout) -->
+      <section id="settings-section" hidden>
+        <h3 data-i18n="settings">Asetukset</h3>
+      </section>
       <section>
         <h3 data-i18n="favourites">★ Suosikit</h3>
         <ul id="favourites" class="word-list"></ul>
@@ -78,6 +83,11 @@
         <h3 data-i18n="history">Historia</h3>
         <ul id="history" class="word-list"></ul>
         <button class="link-btn" id="clear-history" data-i18n="clearHistory">Tyhjennä historia</button>
+      </section>
+      <section>
+        <h3 data-i18n="otherLanguages">Muut kielet</h3>
+        <p class="muted small" data-i18n="extraLangsHint"></p>
+        <div id="extra-langs" class="extra-langs"></div>
       </section>
     </aside>
 

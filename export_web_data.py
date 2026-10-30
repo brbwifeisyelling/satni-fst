@@ -44,7 +44,8 @@ def main():
             id INTEGER PRIMARY KEY, sme_lemma TEXT, pos TEXT, subtype TEXT, finnish_translation TEXT,
             nob_translation TEXT, eng_translation TEXT, smn_translation TEXT, smj_translation TEXT,
             sma_translation TEXT, notes TEXT, gradation TEXT, gd_cluster TEXT, hd_cluster TEXT,
-            gradation_group TEXT, gradation_row TEXT, lemma_fold TEXT
+            -- freq: korpusfrekvenssi (GiellaLT), haun tasatilanteisiin (web/app.js: queryDatabase)
+            gradation_group TEXT, gradation_row TEXT, freq INTEGER, lemma_fold TEXT
         );
         -- nr: käänteisen sanakirjan (dict-fin-sme, dict-nob-sme) järjestys, 0 = ensisijainen saamennos;
         -- NULL = sanan oma käännös (dict-sme-*)
@@ -65,7 +66,7 @@ def main():
     trans_cols = ", ".join(TRANSLATION_COLUMNS.values())
     rows = src.execute(
         f"SELECT id, sme_lemma, pos, subtype, {trans_cols}, notes, gradation, gd_cluster, hd_cluster, "
-        "gradation_group, gradation_row FROM dictionary"
+        "gradation_group, gradation_row, freq FROM dictionary"
     ).fetchall()
     dst.executemany(f"INSERT INTO dictionary VALUES ({', '.join('?' * (len(rows[0]) + 1))})",
                     [r + (fold(r[1]),) for r in rows])
