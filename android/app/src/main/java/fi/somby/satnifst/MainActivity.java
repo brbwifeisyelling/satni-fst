@@ -16,6 +16,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import java.util.Map;
  * koska file://-osoitteista selain ei salli sanakirjan lataamista eikä välimuistia (sama syy kuin
  * työpöytäversion satni://-osoitteessa). Ulkoiset linkit (Giellatekno, sähköposti) avataan muissa
  * sovelluksissa, ja takaisin-painike kulkee sovelluksen omassa historiassa (#/sana/...).
+ * Muista sovelluksista jaettu teksti (Jaa -> Sátni FST) avataan suoraan hakuna (openShared, web/app.js).
  */
 public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
@@ -85,9 +88,35 @@ public class MainActivity extends Activity {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
                     android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::goBackOrFinish);
         }
-        if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) {
+        String shared = sharedText(getIntent());
+        if (shared != null) {
+            web.loadUrl(START_URL + "?text=" + Uri.encode(shared));
+        } else if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) {
             web.loadUrl(START_URL);
         }
+    }
+
+    /** Sovellus on jo auki (launchMode singleTask): uusi jaettu teksti haetaan samassa ikkunassa. */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String shared = sharedText(intent);
+        if (shared == null) {
+            return;
+        }
+        String text = JSONObject.quote(shared);
+        web.evaluateJavascript("window.openShared ? openShared(" + text + ")"
+                + " : location.replace('index.html?text=' + encodeURIComponent(" + text + "))", null);
+    }
+
+    /** Jaa-toiminnon (SEND) teksti, muuten null. */
+    private static String sharedText(Intent intent) {
+        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) {
+            return null;
+        }
+        CharSequence text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+        return text == null || text.toString().trim().isEmpty() ? null : text.toString();
     }
 
     private WindowInsets lastInsets;

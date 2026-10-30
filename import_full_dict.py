@@ -331,8 +331,12 @@ def parse_reverse_dictionaries(entries, by_lemma):
                             added += 1
                         data = entries[key]
                         data.setdefault("reverse", []).append((lang, headword, order))
-                        # Vain käänteisistä sanakirjoista löytyneen sanan käännöksiksi tulevat sen hakusanat
-                        if data["new_from"].endswith("-sme"):
+                        # Hakusanat tulevat käännöksiksi, jos sanalla ei ole tämän kielen käännöstä muista
+                        # sanakirjoista (esim. vain dict-sme-nob:ssa ollut sana saa suomennoksen dict-fin-sme:stä)
+                        filled = data.setdefault("reverse_langs", set())
+                        if not data["translations"].get(lang):
+                            filled.add(lang)
+                        if lang in filled:
                             trans = data["translations"].setdefault(lang, [])
                             if headword not in trans:
                                 trans.append(headword)
