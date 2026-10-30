@@ -965,6 +965,98 @@ function applyTheme() {
   else delete document.documentElement.dataset.theme;
 }
 
+// --- Tekstintunnistus valokuvasta (vain Android-sovellus: Ocr.java, window.SatniOcr) ---
+
+// ML Kitin yleinen latinalainen malli ei tunne kaikkia saamen kirjaimia: tarkkeet jäävät pois (čáhci -> cahci)
+// tai tilalle tulee samannäköinen merkki (ð voi olla d tai đ, joten se palautetaan ensin d:ksi). Sana korjataan
+// muotoon, joka löytyy sanakirjasta perusmuotona tai taivutusmuotona (enintään kolme korjattua kirjainta,
+// vähiten korjauksia ensin).
+const OCR_LOOKALIKES = { "ð": "d", "ɖ": "d", "η": "n", "ţ": "t", "ş": "s", "ș": "s", "ć": "c", "ż": "z" };
+const OCR_DIACRITICS = { a: "á", c: "č", d: "đ", n: "ŋ", s: "š", t: "ŧ", z: "ž" };
+
+function ocrCorrector() {
+  const lemma = db.prepare("SELECT 1 FROM dictionary WHERE lemma_fold = ? LIMIT 1");
+  const form = db.prepare("SELECT 1 FROM paradigms WHERE surface IN (?, ?) LIMIT 1");
+  const exists = (stmt, params) => { stmt.bind(params); const found = stmt.step(); stmt.reset(); return found; };
+  const isSami = (w) => exists(lemma, [fold(w)]) || exists(form, [w, capitalize(w)]);
+  const cache = new Map();
+  const correct = (word) => {
+    const w = [...word.toLowerCase()].map((c) => OCR_LOOKALIKES[c] || c).join("");
+    if (isSami(w)) return w;
+    const spots = [...w].map((c, i) => (OCR_DIACRITICS[c] ? i : -1)).filter((i) => i >= 0).slice(0, 10);
+    const variant = (picked) => [...w].map((c, i) => (picked.includes(i) ? OCR_DIACRITICS[c] : c)).join("");
+    const combos = (k, from = 0) => (k === 0 ? [[]] : spots.slice(from).flatMap((s, j) =>
+      combos(k - 1, from + j + 1).map((rest) => [s, ...rest])));
+    for (let k = 1; k <= 3; k++) {
+      for (const picked of combos(k)) {
+        const v = variant(picked);
+        if (isSami(v)) return v;
+      }
+    }
+    // Suomen- tai norjankielinen sana (ei pelkkä "alkaa hakusanalla" -osuma)
+    return queryDatabase(word).some((r) => r.rank < PREFIX_RANK) ? word.toLowerCase() : null;
+  };
+  return {
+    correct: (word) => { if (!cache.has(word)) cache.set(word, correct(word)); return cache.get(word); },
+    free: () => { lemma.free(); form.free(); },
+  };
+}
+
+function openOcr() {
+  $("ocr-status").textContent = t("ocrIntro");
+  $("ocr-words").innerHTML = "";
+  $("ocr-photo").innerHTML = "";
+  $("ocr-view").hidden = false;
+}
+
+// Takaisin-ele (MainActivity.goBackOrFinish) ja Sulje-painike
+function closeOcr() {
+  const open = !$("ocr-view").hidden;
+  $("ocr-view").hidden = true;
+  return open;
+}
+
+function scanPhoto(source) {
+  $("ocr-status").textContent = t("ocrWorking");
+  window.SatniOcr.scan(source);
+}
+
+function ocrResult(r) {
+  if (!r) { $("ocr-status").textContent = t("ocrIntro"); return; }  // kuvan otto peruttiin
+  if (r.error) { $("ocr-status").textContent = t(r.error === "noApp" ? "ocrNoApp" : "ocrError"); return; }
+  const corrector = ocrCorrector();
+  const words = r.words.map((w) => {
+    const clean = w.t.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
+    return { ...w, word: clean.length > 1 ? corrector.correct(clean) : null, clean };
+  });
+  corrector.free();
+  const found = [...new Set(words.map((w) => w.word).filter(Boolean))];
+  $("ocr-status").textContent = !words.length ? t("ocrNoText") : found.length ? t("ocrFound", found.length) : t("ocrNoWords");
+  $("ocr-words").innerHTML = found.map((w) => `<button data-word="${esc(w)}">${esc(w)}</button>`).join("");
+  const pct = (v, total) => `${(100 * v / total).toFixed(2)}%`;
+  $("ocr-photo").innerHTML = `<img src="${r.image}" alt="">` + words.filter((w) => w.clean).map((w) =>
+    `<button class="${w.word ? "hit" : ""}" data-word="${esc(w.word || w.clean)}" title="${esc(w.word || w.clean)}"
+      style="left:${pct(w.x, r.width)};top:${pct(w.y, r.height)};width:${pct(w.w, r.width)};height:${pct(w.h, r.height)}"></button>`
+  ).join("");
+}
+
+function bindOcr() {
+  if (!window.SatniOcr) return;
+  $("ocr-btn").hidden = false;
+  $("ocr-btn").onclick = openOcr;
+  $("ocr-camera").onclick = () => scanPhoto("camera");
+  $("ocr-gallery").onclick = () => scanPhoto("gallery");
+  $("ocr-close").onclick = closeOcr;
+  const pick = (e) => {
+    const b = e.target.closest("[data-word]");
+    if (!b) return;
+    closeOcr();
+    search(b.dataset.word);
+  };
+  $("ocr-words").onclick = pick;
+  $("ocr-photo").onclick = pick;
+}
+
 // --- Osoite (#/sana/dahkat/1) ---
 
 // Muusta sovelluksesta jaettu teksti (Android: Jaa -> Sátni FST; asennettu selainversio:
@@ -1088,6 +1180,7 @@ async function main() {
   ex.appendChild(rnd);
   applyStaticTexts();
   bindEvents();
+  bindOcr();
   renderSidebar();
   if (FIRST_RUN) showFirstRun();
 
@@ -1108,6 +1201,7 @@ async function main() {
   }
   $("search").disabled = false;
   $("search-btn").disabled = false;
+  $("ocr-btn").disabled = false;
   if (pendingShared) openShared(pendingShared);
   else routeFromHash();
   if (!location.hash) $("search").focus();

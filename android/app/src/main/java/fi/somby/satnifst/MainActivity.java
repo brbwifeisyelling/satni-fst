@@ -31,6 +31,7 @@ import java.util.Map;
  * työpöytäversion satni://-osoitteessa). Ulkoiset linkit (Giellatekno, sähköposti) avataan muissa
  * sovelluksissa, ja takaisin-painike kulkee sovelluksen omassa historiassa (#/sana/...).
  * Muista sovelluksista jaettu teksti (Jaa -> Sátni FST) avataan suoraan hakuna (openShared, web/app.js).
+ * Valokuvan tekstistä voi hakea sanoja (tekstintunnistus, ks. Ocr).
  */
 public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
@@ -50,6 +51,7 @@ public class MainActivity extends Activity {
     }
 
     private WebView web;
+    private Ocr ocr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +85,9 @@ public class MainActivity extends Activity {
         // Ei venytystä reunojen yli vierittäessä (sovellus ei ole verkkosivu)
         web.setOverScrollMode(android.view.View.OVER_SCROLL_NEVER);
         web.setWebViewClient(new Client());
+        // Vain sovelluksen omat sivut latautuvat WebViewiin (ulkoiset linkit avataan muissa sovelluksissa)
+        ocr = new Ocr(this, web);
+        web.addJavascriptInterface(ocr, "SatniOcr");
         // Android 13+: takaisin-ele tulee tätä kautta (onBackPressed ei aina tule kutsutuksi)
         if (Build.VERSION.SDK_INT >= 33) {
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
@@ -175,10 +180,17 @@ public class MainActivity extends Activity {
         web.saveState(outState);
     }
 
-    /** Takaisin: ensin suljetaan avoin valikko (☰), sitten edellinen haku (#/sana/...) tai aloitussivu;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (!ocr.onResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    /** Takaisin: ensin suljetaan avoin tekstintunnistusnäkymä tai valikko (☰), sitten edellinen haku (#/sana/...) tai aloitussivu;
      *  vasta sen jälkeen sovellus suljetaan. */
     private void goBackOrFinish() {
-        web.evaluateJavascript("window.closeDrawer ? closeDrawer() : false", result -> {
+        web.evaluateJavascript("(window.closeOcr && closeOcr()) || (window.closeDrawer ? closeDrawer() : false)", result -> {
             if ("true".equals(result)) {
                 return;
             }
@@ -198,6 +210,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        ocr.close();
         web.destroy();
         super.onDestroy();
     }

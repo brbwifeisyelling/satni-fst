@@ -260,6 +260,21 @@ dialog {
   max-width: 540px; padding: 24px 28px;
 }
 dialog::backdrop { background: rgba(0, 0, 0, .4); }
+/* Tekstintunnistus (Android-sovellus): kuva koko näytön päällä, sanat napautettavina */
+.ocr-btn { font-size: 18px; padding: 6px 10px; line-height: 1.2; }
+.ocr-view { position: fixed; inset: 0; z-index: 45; overflow-y: auto; background: var(--bg); padding: 12px; }
+.ocr-head { display: flex; flex-wrap: wrap; gap: 8px; }
+.ocr-head #ocr-close { margin-left: auto; }
+.ocr-words { margin: 4px 0 12px; }
+.ocr-photo { position: relative; }
+.ocr-photo img { display: block; width: 100%; height: auto; border-radius: 8px; }
+.ocr-photo button {
+  position: absolute; padding: 0; cursor: pointer; border-radius: 3px;
+  border: 1px dashed color-mix(in srgb, var(--muted) 70%, transparent); background: transparent;
+}
+.ocr-photo button.hit {
+  border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
 .toast {
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50;
   background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: 14px;

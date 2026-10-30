@@ -45,6 +45,8 @@
       <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
     </div>
     <button class="primary-btn" id="search-btn" data-i18n="search" disabled>Hae</button>
+    <!-- Tekstintunnistus valokuvasta: vain Android-sovelluksessa (window.SatniOcr, MainActivity) -->
+    <button class="chip-btn ocr-btn" id="ocr-btn" data-i18n-title="ocrTitle" data-i18n-aria="ocrTitle" hidden disabled>📷</button>
   </div>
 
   <div id="drawer-scrim" class="drawer-scrim"></div>
@@ -146,6 +148,18 @@
     <div data-i18n-html="aboutBody"></div>
     <form method="dialog"><button class="chip-btn" data-i18n="close">Sulje</button></form>
   </dialog>
+
+  <!-- Tekstintunnistus: kuva ja sen sanat (app.js: openOcr, ocrResult) -->
+  <div id="ocr-view" class="ocr-view" hidden>
+    <div class="ocr-head">
+      <button class="chip-btn" id="ocr-camera" data-i18n="ocrCamera">📷 Ota kuva</button>
+      <button class="chip-btn" id="ocr-gallery" data-i18n="ocrGallery">🖼️ Valitse kuva</button>
+      <button class="chip-btn" id="ocr-close" data-i18n="close">Sulje</button>
+    </div>
+    <p id="ocr-status" class="muted small"></p>
+    <div id="ocr-words" class="chips ocr-words"></div>
+    <div id="ocr-photo" class="ocr-photo"></div>
+  </div>
 
   <div id="toast" class="toast" hidden></div>
 

@@ -7,7 +7,7 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="Sátni FST"
+        android:label="${appLabel}"
         android:supportsRtl="false"
         android:theme="@style/AppTheme">
         <activity
@@ -27,5 +27,23 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        <!-- Tekstintunnistus: kamerasovellus kirjoittaa kuvan tähän (MainActivity.Ocr). CAMERA-lupaa ei
+             pyydetä: kuvan ottaa järjestelmän kamerasovellus, ja ilmoitettu mutta myöntämätön lupa estäisi sen. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/ocr_paths" />
+        </provider>
     </application>
+
+    <!-- Android 11+: kamerasovelluksen löytäminen (pakettien näkyvyys) -->
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
 </manifest>

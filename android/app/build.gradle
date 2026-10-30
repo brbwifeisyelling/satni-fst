@@ -14,6 +14,10 @@ android {
         // build_apk.sh antaa nämä version.py:stä (0.7.3.20261030.6 -> 2026103006)
         versionCode((project.findProperty("satniVersionCode") ?: "1") as int)
         versionName(project.findProperty("satniVersionName") ?: "dev")
+        // test-haara: oma sovellus-id ja nimi, jotta koeversio asentuu dev- ja julkaisuversion rinnalle.
+        // Poistetaan, kun test yhdistetään deviin.
+        applicationIdSuffix ".test"
+        manifestPlaceholders = [appLabel: "Sátni FST test"]
     }
 
     // Sama web-käyttöliittymä kuin PWA:ssa ja työpöytäversiossa (web/, sanakirja web/data/)
@@ -54,4 +58,14 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+}
+
+dependencies {
+    // Tekstintunnistus kuvasta (OCR) laitteella: malli on APK:ssa ("bundled"), joten se toimii ilman
+    // verkkoyhteyttä ja Google Play -palveluita. Kuvat eivät lähde laitteelta.
+    implementation "com.google.mlkit:text-recognition:16.0.1"
+    // FileProvider: kamerasovellus tallentaa kuvan sovelluksen välimuistiin (ei CAMERA-lupaa)
+    implementation "androidx.core:core:1.13.1"
+    // Riippuvuudet tuovat Kotlinin peruskirjastosta eri versioita: yksi versio kaikille
+    implementation platform("org.jetbrains.kotlin:kotlin-bom:1.8.22")
 }
