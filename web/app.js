@@ -1060,8 +1060,9 @@ function ocrResult(r) {
   img.src = r.image;
 }
 
-// Sanan taustaväri ja tekstin väri kuvasta: sanan alueen pikseleistä suurin osa on taustaa, joten mediaanin
-// puoleinen ääripää (vaaleimmat tai tummimmat 40 %) on tausta ja vastakkainen ääripää (15 %) teksti.
+// Käännöksen taustaväri kuvasta: sanan alueen pikseleistä suurin osa on taustaa, joten mediaanin puoleinen
+// ääripää (vaaleimmat tai tummimmat 40 %) on tausta. Tausta vaalennetaan lähes valkoiseksi (tai tummennetaan
+// lähes mustaksi) vain pieni sävy kuvasta jättäen, ja teksti on musta (valkoinen), jotta käännös on selvä.
 function ocrColors(img, words) {
   const canvas = document.createElement("canvas");
   canvas.width = img.naturalWidth;
@@ -1075,7 +1076,7 @@ function ocrColors(img, words) {
     const ex = (cos * w.w + sin * w.h) / 2, ey = (sin * w.w + cos * w.h) / 2;
     const x0 = Math.max(0, Math.floor(w.cx - ex)), y0 = Math.max(0, Math.floor(w.cy - ey));
     const x1 = Math.min(canvas.width, Math.ceil(w.cx + ex)), y1 = Math.min(canvas.height, Math.ceil(w.cy + ey));
-    if (x1 - x0 < 2 || y1 - y0 < 2) { w.bg = "#fff"; w.fg = "#111"; continue; }
+    if (x1 - x0 < 2 || y1 - y0 < 2) { w.bg = "rgb(248, 248, 246)"; w.fg = "#111"; continue; }
     const data = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
     const px = [];
     for (let i = 0; i < data.length; i += 8) px.push([data[i], data[i + 1], data[i + 2]]);
@@ -1085,10 +1086,10 @@ function ocrColors(img, words) {
     const light = mean(px.slice(px.length * 0.6 | 0));
     const lightBg = lum(px[px.length >> 1]) - lum(dark) > lum(light) - lum(px[px.length >> 1]);
     const bg = lightBg ? light : mean(px.slice(0, Math.max(1, px.length * 0.4 | 0)));
-    let fg = lightBg ? dark : mean(px.slice(px.length * 0.85 | 0));
-    if (Math.abs(lum(bg) - lum(fg)) < 90) fg = lum(bg) > 128 ? [17, 17, 17] : [255, 255, 255];
-    w.bg = css(bg);
-    w.fg = css(fg);
+    const isLight = lum(bg) > 110;
+    const base = isLight ? [250, 250, 248] : [28, 28, 30];
+    w.bg = css(bg.map((v, i) => base[i] * 0.8 + v * 0.2));
+    w.fg = isLight ? "#111" : "#fff";
   }
 }
 
@@ -1106,8 +1107,8 @@ function layoutOcr(reset) {
   photo.style.height = `${ocr.base.h}px`;
   for (const el of photo.querySelectorAll(".ocr-word")) {
     const w = words[el.dataset.i];
-    const width = w.w * k + 2, height = w.h * k * 1.1;
-    let size = w.h * k * 0.8;
+    const width = w.w * k + 4, height = w.h * k * 1.15;
+    let size = w.h * k * 0.82;
     Object.assign(el.style, {
       left: `${w.cx * k}px`, top: `${w.cy * k}px`, width: `${width}px`, height: `${height}px`,
       fontSize: `${size}px`, transform: `translate(-50%, -50%) rotate(${w.a || 0}deg)`,
@@ -1135,11 +1136,13 @@ function applyOcrView() {
 }
 
 // Kosketus: yksi sormi siirtää, kaksi zoomaa sormien välistä kohtaa, napautus sanaan hakee sen,
-// kaksoisnapautus muualle zoomaa (tai palauttaa koko kuvan).
+// kaksoisnapautus muualle zoomaa (tai palauttaa koko kuvan). Sormen pitäminen paikallaan näyttää kuvan
+// alkuperäisen tekstin niin kauan kuin sormi on kuvassa.
 function bindOcrGestures() {
   const stage = $("ocr-stage");
   const pointers = new Map();
-  let tap = null, lastTap = 0, prev = null;
+  let tap = null, lastTap = 0, prev = null, hold = 0;
+  const peek = (on) => { clearTimeout(hold); $("ocr-photo").classList.toggle("peek", on); };
   const local = (e) => { const b = stage.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
   const pinch = () => {
     const [a, b] = [...pointers.values()];
@@ -1157,12 +1160,15 @@ function bindOcrGestures() {
     pointers.set(e.pointerId, local(e));
     tap = pointers.size === 1 ? { ...local(e), cx: e.clientX, cy: e.clientY, time: Date.now() } : null;
     prev = pointers.size === 2 ? pinch() : null;
+    clearTimeout(hold);
+    if (pointers.size === 1) hold = setTimeout(() => { peek(true); tap = null; }, 300);
+    else peek(false);
   });
   stage.addEventListener("pointermove", (e) => {
     if (!ocr || !pointers.has(e.pointerId)) return;
     const p = local(e), old = pointers.get(e.pointerId);
     pointers.set(e.pointerId, p);
-    if (tap && Math.hypot(p.x - tap.x, p.y - tap.y) > 10) tap = null;
+    if (tap && Math.hypot(p.x - tap.x, p.y - tap.y) > 10) { tap = null; clearTimeout(hold); }
     if (pointers.size === 1) {
       ocr.view.x += p.x - old.x;
       ocr.view.y += p.y - old.y;
@@ -1180,6 +1186,7 @@ function bindOcrGestures() {
   const end = (e) => {
     pointers.delete(e.pointerId);
     prev = pointers.size === 2 ? pinch() : null;
+    if (!pointers.size) peek(false);
     if (!tap || e.type !== "pointerup" || Date.now() - tap.time > 500) { tap = null; return; }
     const hit = document.elementFromPoint(tap.cx, tap.cy)?.closest(".ocr-word");
     if (hit) {

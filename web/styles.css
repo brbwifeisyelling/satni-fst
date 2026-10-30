@@ -273,6 +273,7 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 #ocr-status { margin: 8px 2px; }
 .ocr-stage {
   position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
   border-radius: 8px; background: #111;
 }
 .ocr-photo { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
@@ -289,7 +290,13 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
   white-space: nowrap; line-height: 1; border-radius: 2px;
 }
 .ocr-word span { display: inline-block; visibility: hidden; }
-.mode-translate .ocr-word.hit { background: var(--word-bg); color: var(--word-fg); }
+.mode-translate .ocr-word.hit {
+  background: var(--word-bg); color: var(--word-fg); font-weight: 600; border-radius: 3px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased;
+}
+/* Sormi kuvan päällä: alkuperäinen teksti näkyviin */
+.ocr-word { transition: opacity .12s; }
+.ocr-photo.peek .ocr-word { opacity: 0; }
 .mode-translate .ocr-word.hit span { visibility: visible; }
 .mode-sami .ocr-word.hit { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 75%, transparent); }
 .toast {
