@@ -417,6 +417,7 @@ function selectResult(i, pushHistory = true) {
   const ownGroup = (groups.find(([lang]) => lang === settings.lang) || [settings.lang, []])[1];
   const first = ownGroup[0];
   let trans = first ? splitList(first.translations || first.explanations).slice(0, 4).join(", ") : translationOf(w, 3);
+  state.transWords = first ? splitList(first.translations).slice(0, 4) : splitList(w[LANGUAGES[settings.lang].col]).slice(0, 3);
   if (first && first.restrictions) trans += ` (${first.restrictions})`;
   $("translation").textContent = trans || t("noTranslationIn")[settings.lang];
   $("more-meanings").textContent = ownGroup.length > 1 ? t("moreMeanings", ownGroup.length - 1) :
@@ -442,9 +443,125 @@ function renderInfo(w) {
       }
     }
   }
-  if (matches.length && q !== fold(w.sme_lemma)) info.push(t("searchedForm", state.query, [...new Set(matches)].join(", ")));
+  let formTrans = "";
+  if (matches.length && q !== fold(w.sme_lemma)) {
+    info.push(t("searchedForm", state.query, [...new Set(matches)].join(", ")));
+    if (FORM_PHRASES[settings.lang]) formTrans = translationOfForm(w, matches.map((m) => m.split(" ")[0]));
+  }
+  // Haetun muodon käännös omalle rivilleen käännöksen alle (viesus ≈ talossa / talosta, i huset / fra huset)
+  $("form-translation").hidden = !formTrans;
+  $("form-translation").innerHTML = formTrans ? t("formIn", esc(state.query), esc(formTrans), settings.lang) : "";
   if (w.notes) info.push(w.notes);
   $("word-info").textContent = info.join("  ·  ");
+}
+
+// --- Käännöksen taivutus: haetun saamen muodon vastine suomeksi tai norjaksi ---
+// Muodot taulukoissa fin_forms (GiellaLT lang-fin, ks. fin_forms.py) ja nob_forms (Norsk ordbank, nob_forms.py).
+
+const NOB_PRONOUNS = { Sg1: "jeg", Sg2: "du", Sg3: "han/hun", Du1: "vi to", Du2: "dere to", Du3: "de to",
+                       Pl1: "vi", Pl2: "dere", Pl3: "de" };
+// Saamen duaali on suomeksi monikko (moai dagaime = me (kaksi) teemme)
+const FIN_PERSON = { Sg1: "Sg1", Sg2: "Sg2", Sg3: "Sg3", Du1: "Pl1", Du2: "Pl2", Du3: "Pl3", Pl1: "Pl1", Pl2: "Pl2", Pl3: "Pl3" };
+
+// "Sg+Indef=hus;Sg+Def=huset;..." -> {"Sg+Indef": "hus", ...}; vaihtoehdoista (husene/husa) ensimmäinen
+function translationForms(lang, word, pos) {
+  try {
+    const row = all(`SELECT forms FROM ${lang}_forms WHERE word = ? AND pos = ?`, [word, pos])[0];
+    return row && Object.fromEntries(row.forms.split(";").map((c) => c.split("=")).map(([k, v]) => [k, v.split("/")[0]]));
+  } catch (e) {
+    return null;  // vanha tietokanta ilman taulua
+  }
+}
+
+// Saamen muodon tagi (Sg+Loc, Ind+Prs+Sg1 ...) -> norjankielinen ilmaus, esim. "i huset / fra huset".
+// Saamessa ei ole määräistä artikkelia: prepositioiden kanssa käytetään määräistä muotoa.
+function nobPhrase(tag, pos, f) {
+  const parts = tag.split("+");
+  if (pos === "V") {
+    const person = parts.find((p) => NOB_PRONOUNS[p]);
+    if (tag === "Inf") return f.Inf && `å ${f.Inf}`;
+    if (tag === "PrfPrc") return f.PrfPrc && `har ${f.PrfPrc}`;
+    // Kieltoverbin kanssa käytettävä muoto (ii daga = gjør ikke)
+    if (tag === "Ind+Prs+ConNeg") return f.Prs && `(ikke) ${f.Prs}`;
+    if (tag === "Ind+Prt+ConNeg") return f.Prt && `(ikke) ${f.Prt}`;
+    if (tag === "Imprt+ConNeg") return f.Imp && `ikke ${f.Imp}!`;
+    if (!person) return null;
+    const who = NOB_PRONOUNS[person];
+    if (parts[0] === "Ind") return parts[1] === "Prs" ? f.Prs && `${who} ${f.Prs}` : f.Prt && `${who} ${f.Prt}`;
+    if (parts[0] === "Cond") return f.Inf && `${who} ville ${f.Inf}`;
+    if (parts[0] === "Pot") return f.Prs && `${who} ${f.Prs} kanskje`;
+    if (parts[0] === "Imprt") return ["Sg2", "Du2", "Pl2"].includes(person) ? f.Imp && `${f.Imp}!` : f.Inf && `la ${person === "Sg1" ? "meg" : person.endsWith("1") ? "oss" : "dem"} ${f.Inf}`;
+    return null;
+  }
+  if (pos === "A") {
+    if (parts[0] === "Comp") return f.Comp;
+    if (parts[0] === "Superl") return f.Superl;
+    return parts[0] === "Pl" ? f.Pl : f.Pos;
+  }
+  const pl = parts[0] === "Pl";
+  const indef = f[pl ? "Pl+Indef" : "Sg+Indef"], def = f[pl ? "Pl+Def" : "Sg+Def"];
+  switch (parts[parts.length - 1]) {
+    case "Nom": case "Acc": return indef;
+    case "Gen": return def && def + (/[sxz]$/.test(def) ? "'" : "s");
+    case "Ill": return def && `til ${def}`;
+    case "Loc": return def && `i ${def} / fra ${def}`;
+    case "Com": return def && `med ${def}`;
+    case "Ess": return f["Sg+Indef"] && `som ${f["Sg+Indef"]}`;
+  }
+  return null;
+}
+
+// Saamen muodon tagi -> suomenkielinen muoto. Saamen lokatiivi on suomeksi sisä- tai ulkopaikallissija
+// (viesus = talossa / talosta), illatiivi illatiivi tai allatiivi (taloon / talolle), komitatiivi "kanssa".
+function finPhrase(tag, pos, f) {
+  const parts = tag.split("+");
+  const join = (...forms) => forms.filter(Boolean).join(" / ") || null;
+  if (pos === "V") {
+    const person = FIN_PERSON[parts[parts.length - 1]];
+    if (tag === "Inf") return f.Inf;
+    if (tag === "PrfPrc") return f.PrfPrc;
+    if (tag === "Ind+Prs+ConNeg") return f["Prs+ConNeg"] && `(ei) ${f["Prs+ConNeg"]}`;
+    if (tag === "Ind+Prt+ConNeg") return f.PrfPrc && `(ei) ${f.PrfPrc}`;
+    if (tag === "Cond+Prs+ConNeg") return f["Cond+ConNeg"] && `(ei) ${f["Cond+ConNeg"]}`;
+    if (tag === "Pot+Prs+ConNeg") return f["Pot+ConNeg"] && `(ei) ${f["Pot+ConNeg"]}`;
+    if (tag === "Imprt+ConNeg") return f["Prs+ConNeg"] && `(älä) ${f["Prs+ConNeg"]}`;
+    if (!person) return null;
+    if (parts[0] === "Ind") return f[`${parts[1]}+${person}`];
+    if (parts[0] === "Cond" || parts[0] === "Pot" || parts[0] === "Imprt") return f[`${parts[0]}+${person}`];
+    return null;
+  }
+  if (pos === "A") {
+    if (parts[0] === "Comp") return f.Comp;
+    if (parts[0] === "Superl") return f.Superl;
+    if (tag === "Attr") return f["Sg+Nom"];
+  }
+  const n = parts[0] === "Pl" ? "Pl" : "Sg";
+  switch (parts[parts.length - 1]) {
+    case "Nom": return f[`${n}+Nom`];
+    case "Acc": return join(f[n === "Sg" ? "Sg+Gen" : "Pl+Nom"], f[`${n}+Par`]);  // talon / taloa (objekti)
+    case "Gen": return f[`${n}+Gen`];
+    case "Ill": return join(f[`${n}+Ill`], f[`${n}+All`]);
+    case "Loc": return join(f[`${n}+Ine`], f[`${n}+Ela`]);
+    case "Com": return f[`${n}+Gen`] && `${f[`${n}+Gen`]} kanssa`;
+    case "Ess": return f["Sg+Ess"];
+  }
+  return null;
+}
+
+const FORM_PHRASES = { fin: finPhrase, nob: nobPhrase };
+
+// Haetun muodon tagit -> "jeg lager, jeg gjør" (yksi ilmaus käännöstä kohden, tagien vaihtoehdot /-merkillä)
+function translationOfForm(w, tags) {
+  const pos = ["N", "V", "A"].find((p) => p === w.pos.toUpperCase());
+  if (!pos) return "";
+  const out = [];
+  for (const word of state.transWords || []) {
+    const forms = translationForms(settings.lang, word.replace(/\(.*?\)/g, "").trim(), pos);
+    if (!forms) continue;
+    const phrases = [...new Set(tags.map((tag) => FORM_PHRASES[settings.lang](tag, pos, forms)).filter(Boolean))];
+    if (phrases.length) out.push(phrases.join(" / "));
+  }
+  return [...new Set(out)].join(", ");
 }
 
 function renderGradation() {

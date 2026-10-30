@@ -33,6 +33,10 @@ web/data/
 /dict-nob-sme/
 /lang-fin/
 /lang-sme/
+# Norsk ordbank (Språkbanken), haetaan samalla skriptillä
+/ordbank-nob/
+# GiellaLT lang-fin -mallit (nightly), haetaan samalla skriptillä
+/giella-fin/
 
 # Paikalliset asetukset ja työkalut (Windows-virtuaalikone, Claude Code)
 build_qt_exe.local

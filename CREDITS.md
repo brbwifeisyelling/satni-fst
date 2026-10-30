@@ -44,6 +44,26 @@ The inflection tables are generated with the North Sámi analyser and generator 
 Inga Lill Sigga Mikkelsen, Sjur N. Moshagen, Flammie A Pirinen, Trond Trosterud, Børre Gaup and the
 lang-sme contributors. The compiled models are in [`src/fst/`](src/fst/SOURCE.md).
 
+## Finnish inflection — GiellaLT lang-fin, GPL-3.0
+
+The inflected forms of the Finnish translations (*talo – talossa – taloon*, *tehdä – teen – tekisin*)
+are generated with the Finnish analyser and generator from [giellalt/lang-fin](https://github.com/giellalt/lang-fin)
+(GiellaLT / Giellatekno, UiT The Arctic University of Norway; based on the Omorfi lexicon), licensed under the
+[GNU General Public License v3.0 or later](LICENSE). The compiled models come from GiellaLT's nightly
+package `giella-fin` and are downloaded by [`hae_sanakirjat.sh`](hae_sanakirjat.sh); they are not part of
+this repository. [`fin_forms.py`](fin_forms.py) keeps only the forms of words used as translations and drops
+archaic and dialectal variants (*vaattehien*, *taloin*, *kirkko-laissa*).
+
+## Norwegian inflection — Norsk ordbank, CC BY
+
+The inflected forms of the Norwegian translations (*hus – huset – husene*, *gjøre – gjorde – gjort*)
+come from [Norsk ordbank – bokmål 2005](https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-5/)
+(dump of 2022-02-01), © Språkbanken / Nasjonalbiblioteket, licensed under
+[CC BY](https://creativecommons.org/licenses/by/4.0/). It is downloaded by
+[`hae_sanakirjat.sh`](hae_sanakirjat.sh) and is not part of this repository.
+Changes: [`nob_forms.py`](nob_forms.py) keeps only the forms of words used as translations, and
+inflects compounds missing from the word bank by their last part (*arealgrense* like *grense*).
+
 ## Consonant gradation table — Oahpa
 
 The gradation groups and series shown in the app (`gradation.py`) follow the

@@ -56,6 +56,10 @@ def main():
                                restrictions TEXT, labels TEXT, geo TEXT);
         CREATE TABLE examples (word_id INTEGER, lang TEXT, meaning_nr INTEGER, sme TEXT, translation TEXT,
                                source TEXT);
+        -- Käännösten taivutus: norja (Norsk ordbank, nob_forms.py) ja suomi (GiellaLT lang-fin, fin_forms.py).
+        -- WITHOUT ROWID: avain toimii hakemistona, eikä erillistä indeksiä (sanojen kopiota) tarvita
+        CREATE TABLE nob_forms (word TEXT, pos TEXT, forms TEXT, PRIMARY KEY (word, pos)) WITHOUT ROWID;
+        CREATE TABLE fin_forms (word TEXT, pos TEXT, forms TEXT, PRIMARY KEY (word, pos)) WITHOUT ROWID;
     """)
 
     trans_cols = ", ".join(TRANSLATION_COLUMNS.values())
@@ -87,6 +91,11 @@ def main():
         "ORDER BY word_id, rowid"))
     dst.executemany("INSERT INTO examples VALUES (?,?,?,?,?,?)", src.execute(
         "SELECT word_id, lang, meaning_nr, sme, translation, source FROM examples ORDER BY word_id, rowid"))
+
+    for table in ("nob_forms", "fin_forms"):
+        if src.execute("SELECT 1 FROM sqlite_master WHERE name = ?", (table,)).fetchone():
+            dst.executemany(f"INSERT INTO {table} VALUES (?,?,?)",
+                            src.execute(f"SELECT word, pos, forms FROM {table} ORDER BY word, pos"))
 
     dst.executescript("""
         CREATE INDEX idx_lemma_fold ON dictionary(lemma_fold);
