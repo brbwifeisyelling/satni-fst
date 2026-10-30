@@ -288,6 +288,22 @@ function queryDatabase(query) {
     `SELECT DISTINCT d.${cols.split(", ").join(", d.")}
      FROM paradigms p JOIN dictionary d ON d.id = p.word_id WHERE p.surface IN (?, ?, ?, ?)`, forms
   )) add(r, r.freq >= COMMON_WORD ? 1.2 : 5);
+  // 4.5–4.9 = taivutettu suomen- tai norjankielinen sana (juon, taloon, husene): sen perusmuodon (juoda, talo, hus)
+  // saamennokset perusmuodon omassa järjestyksessä, kaikkien suorien käännösosumien jälkeen. Muodot ovat taulussa
+  // fin_forms / nob_forms (sama kuin viesus ≈ talossa -rivillä), joten tämä ei kasvata tietokantaa.
+  for (const { base, cell, pos } of translationFormsOf(query.trim().toLowerCase(), searchLang)) {
+    const b = fold(base);
+    if (b === q) continue;
+    for (const r of all(
+      `SELECT d.${cols.split(", ").join(", d.")}, t.fold, t.nr FROM trans_search t JOIN dictionary d ON d.id = t.word_id
+       WHERE t.lang = ? AND d.pos = ? AND (t.fold = ? OR t.fold LIKE ? OR t.fold LIKE ? OR t.fold LIKE ?)`,
+      [searchLang, pos, b, `${b},%`, `%, ${b},%`, `%, ${b}`]
+    )) {
+      const rank = r.nr !== null ? (r.fold === b ? 1.5 + Math.min(r.nr, 9) / 100 : 4)
+        : r.fold === b ? 2 : r.fold.startsWith(`${b},`) ? 3 : 4;
+      add({ ...r, via: { base, cell } }, 4.5 + rank / 10);  // suora osuma (pienempi rank) säilyy ennallaan
+    }
+  }
   // 7 = perusmuoto alkaa hakusanalla; monisanaiset ilmaukset (dahkat iežas ...) vain, jos haussa on välilyönti
   const phrases = q.includes(" ") ? "" : "AND instr(lemma_fold, ' ') = 0";
   for (const r of all(`SELECT ${cols} FROM dictionary WHERE lemma_fold >= ? AND lemma_fold < ? ${phrases} LIMIT 60`, [q, q + "￿"])) add(r, 7);
@@ -301,6 +317,43 @@ function queryDatabase(query) {
     .sort((a, b) => a.rank - b.rank || samiFreq(b) - samiFreq(a) || translated(b) - translated(a)
       || (b.pos === "V") - (a.pos === "V") || a.sme_lemma.localeCompare(b.sme_lemma, "se"))
     .slice(0, 30);
+}
+
+// Taivutettu suomen- tai norjankielinen sana -> [{base, cell, pos}] (juon -> juoda, Prs+Sg1, V). forms-sarake on
+// muotoa "Prs+Sg1=juon;Prs+Sg2=juot;..." ja vaihtoehdot /-merkillä (husene/husa), joten haku rajataan erottimin.
+function translationFormsOf(word, lang) {
+  if (!word || word.includes(" ") || !FORM_PHRASES[lang]) return [];
+  const out = [];
+  try {
+    for (const r of all(
+      `SELECT word, pos, forms FROM ${lang}_forms WHERE ';' || forms || ';' LIKE ? OR ';' || forms || ';' LIKE ?
+         OR ';' || forms || ';' LIKE ? OR ';' || forms || ';' LIKE ?`,
+      [`%=${word};%`, `%=${word}/%`, `%/${word};%`, `%/${word}/%`]
+    )) {
+      for (const cell of r.forms.split(";")) {
+        const [c, v] = cell.split("=");
+        if (v.split("/").includes(word)) out.push({ base: r.word, cell: c, pos: r.pos });
+      }
+    }
+  } catch (e) { /* vanha tietokanta ilman taulua */ }
+  return out;
+}
+
+// Suomen muodon solu -> saamen paradigman tagi samassa muodossa (Prs+Sg1 -> Ind+Prs+Sg1 = jugan). null, jos
+// saamessa ei ole yhtä vastinetta (partitiivi, adessiivi ...): silloin näytetään vain perusmuoto.
+function samiTagOfFinCell(cell, pos) {
+  const p = cell.split("+");
+  if (pos === "V") {
+    if (cell === "Inf" || cell === "PrfPrc") return cell;
+    if ((p[0] === "Prs" || p[0] === "Prt") && p[1] !== "ConNeg") return `Ind+${p[0]}+${p[1]}`;
+    if ((p[0] === "Cond" || p[0] === "Pot") && p[1] !== "ConNeg") return `${p[0]}+Prs+${p[1]}`;
+    if (p[0] === "Imprt") return `Imprt+${p[1]}`;
+    return null;
+  }
+  if (cell === "Comp" || cell === "Superl") return `${cell}+Sg+Nom`;
+  const cases = { Nom: "Nom", Gen: "Gen", Ine: "Loc", Ela: "Loc", Ill: "Ill", All: "Ill" };
+  if (p[1] === "Ess") return "Ess";
+  return cases[p[1]] ? `${p[0]}+${cases[p[1]]}` : null;
 }
 
 function suggestWords(prefix) {
@@ -433,6 +486,7 @@ function selectResult(i, pushHistory = true) {
   if (location.hash !== hash) history.replaceState(null, "", hash);
 
   const data = loadWord(r.id);
+  state.via = r.via || null;  // haettu taivutettu käännös (juon = juoda), ks. queryDatabase
   state.word = data.word;
   state.paradigm = data.paradigm;
   state.grades = data.grades;
@@ -509,9 +563,16 @@ function renderInfo(w) {
     info.push(t("searchedForm", state.query, [...new Set(matches)].join(", ")));
     if (FORM_PHRASES[settings.lang]) formTrans = translationOfForm(w, matches.map((m) => m.split(" ")[0]));
   }
-  // Haetun muodon käännös omalle rivilleen käännöksen alle (viesus ≈ talossa / talosta, i huset / fra huset)
-  $("form-translation").hidden = !formTrans;
-  $("form-translation").innerHTML = formTrans ? t("formIn", esc(state.query), esc(formTrans), settings.lang) : "";
+  // Haetun muodon käännös omalle rivilleen käännöksen alle (viesus ≈ talossa / talosta, i huset / fra huset).
+  // Toiseen suuntaan: taivutettu käännös (juon = juoda ≈ jugan), jos haku ei ollut saamen muoto.
+  let html = formTrans ? t("formIn", esc(state.query), esc(formTrans), settings.lang) : "";
+  if (!html && state.via) {
+    const tag = settings.lang === "fin" ? samiTagOfFinCell(state.via.cell, w.pos.toUpperCase()) : null;
+    const sme = tag && (state.paradigm.get(tag) || [])[0];
+    html = t("viaForm", esc(state.query), esc(state.via.base), sme ? esc(sme) : "", sme ? tag : "");
+  }
+  $("form-translation").hidden = !html;
+  $("form-translation").innerHTML = html;
   if (w.notes) info.push(w.notes);
   $("word-info").textContent = info.join("  ·  ");
 }
