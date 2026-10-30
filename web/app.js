@@ -1002,11 +1002,13 @@ function ocrCorrector() {
   };
 }
 
+// Viimeisin kuva säilyy: sanan haun jälkeen 📷 palaa samaan kuvaan samassa zoomauksessa
+let ocr = null;  // { r: Ocr.java:n tulos, words, base: sovitettu koko, view: { s, x, y } }
+
 function openOcr() {
-  $("ocr-status").textContent = t("ocrIntro");
-  $("ocr-words").innerHTML = "";
-  $("ocr-photo").innerHTML = "";
   $("ocr-view").hidden = false;
+  if (ocr) layoutOcr(false);
+  else $("ocr-status").textContent = t("ocrIntro");
 }
 
 // Takaisin-ele (MainActivity.goBackOrFinish) ja Sulje-painike
@@ -1022,22 +1024,123 @@ function scanPhoto(source) {
 }
 
 function ocrResult(r) {
-  if (!r) { $("ocr-status").textContent = t("ocrIntro"); return; }  // kuvan otto peruttiin
+  if (!r) { $("ocr-status").textContent = ocr ? ocr.status : t("ocrIntro"); return; }  // kuvan otto peruttiin
   if (r.error) { $("ocr-status").textContent = t(r.error === "noApp" ? "ocrNoApp" : "ocrError"); return; }
   const corrector = ocrCorrector();
   const words = r.words.map((w) => {
     const clean = w.t.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
     return { ...w, word: clean.length > 1 ? corrector.correct(clean) : null, clean };
-  });
+  }).filter((w) => w.clean);
   corrector.free();
-  const found = [...new Set(words.map((w) => w.word).filter(Boolean))];
-  $("ocr-status").textContent = !words.length ? t("ocrNoText") : found.length ? t("ocrFound", found.length) : t("ocrNoWords");
-  $("ocr-words").innerHTML = found.map((w) => `<button data-word="${esc(w)}">${esc(w)}</button>`).join("");
-  const pct = (v, total) => `${(100 * v / total).toFixed(2)}%`;
-  $("ocr-photo").innerHTML = `<img src="${r.image}" alt="">` + words.filter((w) => w.clean).map((w) =>
-    `<button class="${w.word ? "hit" : ""}" data-word="${esc(w.word || w.clean)}" title="${esc(w.word || w.clean)}"
-      style="left:${pct(w.x, r.width)};top:${pct(w.y, r.height)};width:${pct(w.w, r.width)};height:${pct(w.h, r.height)}"></button>`
-  ).join("");
+  const found = new Set(words.map((w) => w.word).filter(Boolean)).size;
+  const status = !words.length ? t("ocrNoText") : found ? t("ocrFound", found) : t("ocrNoWords");
+  ocr = { r, words, status };
+  $("ocr-photo").innerHTML = `<img src="${r.image}" alt="">` + words.map((w, i) =>
+    `<div class="ocr-word${w.word ? " hit" : ""}" data-i="${i}"><span>${esc(w.word || w.clean)}</span></div>`).join("");
+  layoutOcr(true);
+}
+
+// Kuva sovitetaan alueeseen kokonaan näkyviin, ja sanatarrat asetetaan kuvan pikseleistä sovitettuun kokoon.
+// Tarran teksti kavennetaan tarvittaessa sanan levyiseksi.
+function layoutOcr(reset) {
+  const stage = $("ocr-stage"), photo = $("ocr-photo");
+  $("ocr-status").textContent = ocr.status;
+  const { r, words } = ocr;
+  const k = Math.min(stage.clientWidth / r.width, stage.clientHeight / r.height);
+  ocr.base = { w: r.width * k, h: r.height * k };
+  photo.style.width = `${ocr.base.w}px`;
+  photo.style.height = `${ocr.base.h}px`;
+  for (const el of photo.querySelectorAll(".ocr-word")) {
+    const w = words[el.dataset.i];
+    // Tarra hieman sanaa suurempi, jotta alkuperäinen teksti peittyy
+    const height = Math.max(w.h * k, 12);
+    Object.assign(el.style, {
+      left: `${w.cx * k}px`, top: `${w.cy * k}px`, width: `${w.w * k + height * 0.5}px`, height: `${height * 1.2}px`,
+      fontSize: `${height * 0.8}px`, transform: `translate(-50%, -50%) rotate(${w.a || 0}deg)`,
+    });
+    const span = el.firstChild;
+    span.style.transform = "";
+    const fit = el.clientWidth / span.offsetWidth;
+    if (fit < 1) span.style.transform = `scaleX(${fit})`;
+  }
+  if (reset || !ocr.view) ocr.view = { s: 1, x: 0, y: 0 };
+  applyOcrView();
+}
+
+// Zoomaus 1–8-kertaiseksi; kuva pysyy alueen sisällä (pienempi kuin alue -> keskelle)
+function applyOcrView() {
+  const stage = $("ocr-stage"), v = ocr.view;
+  v.s = Math.min(8, Math.max(1, v.s));
+  const clamp = (pos, size, room) => (size <= room ? (room - size) / 2 : Math.min(0, Math.max(room - size, pos)));
+  v.x = clamp(v.x, ocr.base.w * v.s, stage.clientWidth);
+  v.y = clamp(v.y, ocr.base.h * v.s, stage.clientHeight);
+  $("ocr-photo").style.transform = `translate(${v.x}px, ${v.y}px) scale(${v.s})`;
+}
+
+// Kosketus: yksi sormi siirtää, kaksi zoomaa sormien välistä kohtaa, napautus sanaan hakee sen,
+// kaksoisnapautus muualle zoomaa (tai palauttaa koko kuvan).
+function bindOcrGestures() {
+  const stage = $("ocr-stage");
+  const pointers = new Map();
+  let tap = null, lastTap = 0, prev = null;
+  const local = (e) => { const b = stage.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
+  const pinch = () => {
+    const [a, b] = [...pointers.values()];
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) };
+  };
+  const zoomAt = (x, y, s) => {
+    const v = ocr.view;
+    v.x = x - (x - v.x) * (s / v.s);
+    v.y = y - (y - v.y) * (s / v.s);
+    v.s = s;
+  };
+  stage.addEventListener("pointerdown", (e) => {
+    if (!ocr) return;
+    stage.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, local(e));
+    tap = pointers.size === 1 ? { ...local(e), cx: e.clientX, cy: e.clientY, time: Date.now() } : null;
+    prev = pointers.size === 2 ? pinch() : null;
+  });
+  stage.addEventListener("pointermove", (e) => {
+    if (!ocr || !pointers.has(e.pointerId)) return;
+    const p = local(e), old = pointers.get(e.pointerId);
+    pointers.set(e.pointerId, p);
+    if (tap && Math.hypot(p.x - tap.x, p.y - tap.y) > 10) tap = null;
+    if (pointers.size === 1) {
+      ocr.view.x += p.x - old.x;
+      ocr.view.y += p.y - old.y;
+    } else if (pointers.size === 2) {
+      const now = pinch();
+      if (prev && prev.d > 0) {
+        zoomAt(now.x, now.y, Math.min(8, Math.max(1, ocr.view.s * now.d / prev.d)));
+        ocr.view.x += now.x - prev.x;
+        ocr.view.y += now.y - prev.y;
+      }
+      prev = now;
+    }
+    applyOcrView();
+  });
+  const end = (e) => {
+    pointers.delete(e.pointerId);
+    prev = pointers.size === 2 ? pinch() : null;
+    if (!tap || e.type !== "pointerup" || Date.now() - tap.time > 500) { tap = null; return; }
+    const hit = document.elementFromPoint(tap.cx, tap.cy)?.closest(".ocr-word");
+    if (hit) {
+      const w = ocr.words[hit.dataset.i];
+      closeOcr();
+      search(w.word || w.clean);
+    } else if (Date.now() - lastTap < 350) {
+      zoomAt(tap.x, tap.y, ocr.view.s > 1.5 ? 1 : 3);
+      applyOcrView();
+      lastTap = 0;
+    } else {
+      lastTap = Date.now();
+    }
+    tap = null;
+  };
+  stage.addEventListener("pointerup", end);
+  stage.addEventListener("pointercancel", end);
+  window.addEventListener("resize", () => { if (ocr && !$("ocr-view").hidden) layoutOcr(true); });
 }
 
 function bindOcr() {
@@ -1047,14 +1150,7 @@ function bindOcr() {
   $("ocr-camera").onclick = () => scanPhoto("camera");
   $("ocr-gallery").onclick = () => scanPhoto("gallery");
   $("ocr-close").onclick = closeOcr;
-  const pick = (e) => {
-    const b = e.target.closest("[data-word]");
-    if (!b) return;
-    closeOcr();
-    search(b.dataset.word);
-  };
-  $("ocr-words").onclick = pick;
-  $("ocr-photo").onclick = pick;
+  bindOcrGestures();
 }
 
 // --- Osoite (#/sana/dahkat/1) ---

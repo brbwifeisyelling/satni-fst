@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.media.ExifInterface;
 import android.net.Uri;
@@ -37,7 +38,8 @@ import java.util.concurrent.Executors;
 /**
  * Tekstintunnistus valokuvasta (ML Kit, laitteella; kuva ei lähde laitteelta). Web-käyttöliittymä kutsuu
  * SatniOcr.scan("camera" | "gallery"), ja tulos palaa funktiolle ocrResult (web/app.js):
- * {width, height, image: JPEG data-URL, words: [{t, x, y, w, h}]}, peruttaessa null, virheessä {error}.
+ * {width, height, image: JPEG data-URL, words: [{t, cx, cy, w, h, a}]} (sanan keskipiste, leveys ja korkeus
+ * tekstin suunnassa sekä kulma asteina), peruttaessa null, virheessä {error}.
  *
  * Lupia ei tarvita: kuvan ottaa järjestelmän kamerasovellus (tallentaa sen FileProviderin kautta
  * välimuistiin), ja kuvan valinta tehdään järjestelmän kuvanvalitsimella (Android 13+) tai tiedostovalitsimella.
@@ -164,19 +166,31 @@ final class Ocr {
         return in;
     }
 
-    /** Sanat lukujärjestyksessä (tekstilohko, rivi, sana) sijainteineen kuvan pikseleinä. */
+    /** Sanat lukujärjestyksessä (tekstilohko, rivi, sana) sijainteineen kuvan pikseleinä. Vino teksti: kulmapisteistä
+     *  (vasen ylä, oikea ylä, oikea ala, vasen ala) sanan oma leveys, korkeus ja kulma, jotta sanan päälle piirretty
+     *  teksti kääntyy samaan asentoon. */
     private static String toJson(Bitmap bitmap, Text text) {
         try {
             JSONArray words = new JSONArray();
             for (Text.TextBlock block : text.getTextBlocks()) {
                 for (Text.Line line : block.getLines()) {
                     for (Text.Element element : line.getElements()) {
+                        JSONObject word = new JSONObject().put("t", element.getText());
+                        Point[] p = element.getCornerPoints();
                         Rect r = element.getBoundingBox();
-                        if (r == null) {
+                        if (p != null && p.length == 4) {
+                            word.put("cx", (p[0].x + p[1].x + p[2].x + p[3].x) / 4.0)
+                                    .put("cy", (p[0].y + p[1].y + p[2].y + p[3].y) / 4.0)
+                                    .put("w", Math.hypot(p[1].x - p[0].x, p[1].y - p[0].y))
+                                    .put("h", Math.hypot(p[3].x - p[0].x, p[3].y - p[0].y))
+                                    .put("a", Math.toDegrees(Math.atan2(p[1].y - p[0].y, p[1].x - p[0].x)));
+                        } else if (r != null) {
+                            word.put("cx", r.exactCenterX()).put("cy", r.exactCenterY())
+                                    .put("w", r.width()).put("h", r.height()).put("a", 0);
+                        } else {
                             continue;
                         }
-                        words.put(new JSONObject().put("t", element.getText())
-                                .put("x", r.left).put("y", r.top).put("w", r.width()).put("h", r.height()));
+                        words.put(word);
                     }
                 }
             }
