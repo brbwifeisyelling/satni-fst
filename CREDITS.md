@@ -104,4 +104,18 @@ drawn as a drop ([`packaging/icon/satni-icon.svg`](packaging/icon/satni-icon.svg
 
 ## Sátni FST
 
-© 2026 Juha Somby. Licensed under the [GNU General Public License v3.0](LICENSE).
+© 2026 Juha Somby. Licensed under the [GNU General Public License v3.0](LICENSE), with the additional
+permission below.
+
+### Additional permission under GNU GPL version 3 section 7
+
+If you modify this Program, or any covered work, by linking or combining it with Google ML Kit
+(including ML Kit Text Recognition and the libraries it depends on, or a modified version of them),
+containing parts covered by the terms of the ML Kit Terms of Service, the licensor of this Program
+grants you additional permission to convey the resulting work. Corresponding Source for a non-source
+form of such a combination shall not include the source code for the parts of Google ML Kit used, as
+well as that of the covered work.
+
+This permission is given by Juha Somby for the parts of Sátni FST he holds the copyright to. It does
+not change the licences of the third-party parts listed above. The Android app uses ML Kit only for
+the experimental photo search; the desktop apps and the web version do not contain it.

@@ -114,7 +114,9 @@ Comments in the source code are in Finnish; the release notes and commit message
 
 ## Licence
 
-Sátni FST is free software under the [GNU General Public License v3.0](LICENSE).
+Sátni FST is free software under the [GNU General Public License v3.0](LICENSE), with an additional
+permission that allows the Android app to include Google ML Kit (closed source, used for the experimental
+photo search; see [CREDITS.md](CREDITS.md#additional-permission-under-gnu-gpl-version-3-section-7)).
 The dictionaries are © GiellaLT and licensed under CC BY 4.0, the morphology (lang-sme) under GPL-3.0 —
 see [CREDITS.md](CREDITS.md) for all sources, licences and the changes made to the data.
 
