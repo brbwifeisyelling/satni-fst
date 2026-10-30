@@ -78,7 +78,8 @@ way as [sátni.org](https://satni.org). It is a network service: no voices are i
 Divvun has confirmed (2026-10-29) that the app may use the API this way.
 The voice menu's sample sentence (*Bures boahtin Sápmái*, one per voice) is included in the app as small
 audio files ([`web/voices/`](web/voices/), made with [`hae_aaninaytteet.sh`](hae_aaninaytteet.sh) from the
-same service) so that it plays without a network connection; Divvun has been asked about this (2026-10-30).
+same service) so that it plays without a network connection. Divvun (UiT The Arctic University of Norway)
+has given permission (2026-10-30) to keep generated samples in the app.
 
 ## Other links
 

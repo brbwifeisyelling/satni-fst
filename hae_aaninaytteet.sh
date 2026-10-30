@@ -3,7 +3,7 @@
 # valikossa (web/app.js: VOICE_SAMPLE). Näytteet ovat sovelluspaketissa, joten ne toimivat jo ensimmäisellä
 # käynnistyksellä ilman verkkoyhteyttä; muut ääntämiset haetaan palvelusta kuten ennenkin.
 # LÄHDE: Divvunin ja Giellateknon puhesynteesi (UiT), api-giellalt.uit.no. Divvun on hyväksynyt API:n käytön
-# (2026-10-29); näytteiden mukaan ottamista on kysytty 2026-10-30. Ks. CREDITS.md.
+# (2026-10-29) ja vahvistanut, että generoidut näytteet saa pitää sovelluksessa (2026-10-30). Ks. CREDITS.md.
 cd "$(dirname "$0")" || exit 1
 
 TEXT="Bures boahtin Sápmái"  # sama kuin web/app.js: VOICE_SAMPLE
