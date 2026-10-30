@@ -308,6 +308,9 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 }
 .ocr-bubble .b-speak { background: var(--speak-bg); color: var(--speak); margin-right: -4px; }
 .ocr-bubble .b-speak.busy { opacity: .6; }
+/* Ei Androidin omaa napautuskorostusta (se korosti koko kuplan); painettu painike korostetaan itse */
+.ocr-stage, .ocr-stage * { -webkit-tap-highlight-color: transparent; }
+.ocr-bubble .pressed { filter: brightness(.85); transform: scale(.9); transition: transform .08s; }
 .ocr-bubble svg { width: 18px; height: 18px; }
 
 /* Kokeelliset ominaisuudet: kytkin valikon lopussa */

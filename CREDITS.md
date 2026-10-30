@@ -94,7 +94,7 @@ The "Giellatekno" button opens the word's full paradigm in Giellatekno's
 | [Qt for Python / PySide6](https://doc.qt.io/qtforpython/) 6.9.3 (incl. Qt WebEngine) | desktop builds only, not in this repository | LGPL-3.0 |
 | [PyInstaller](https://pyinstaller.org/) | builds the desktop apps | GPL-2.0 with bootloader exception |
 | [HFST](https://hfst.github.io/) (`hfst-lookup`) | used when building the database, not distributed | see HFST |
-| [Google ML Kit Text Recognition v2](https://developers.google.com/ml-kit/vision/text-recognition/v2) 16.0.1 (bundled model) | Android app only (experimental photo search), downloaded by Gradle, not in this repository | [ML Kit Terms of Service](https://developers.google.com/ml-kit/terms); closed source, free to use. Runs on the phone: photos are not sent anywhere |
+| [Google ML Kit Text Recognition v2](https://developers.google.com/ml-kit/vision/text-recognition/v2) 16.0.1 (bundled model) | Android app only (experimental photo search), downloaded by Gradle, not in this repository | [ML Kit Terms of Service](https://developers.google.com/ml-kit/terms); closed source, free to use. Runs on the phone: photos are not sent anywhere. According to Google, ML Kit sends anonymous usage and performance statistics to Google and may download model updates (only when the photo search is used) |
 | [AndroidX Core](https://developer.android.com/jetpack/androidx/releases/core) 1.13.1 (FileProvider) | Android app only, downloaded by Gradle | Apache-2.0 |
 
 ## Logo

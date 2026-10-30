@@ -107,7 +107,8 @@ const UI_TEXTS = {
       <p>Lisenssit: sanakirjat © GiellaLT (CC BY 4.0, yhdistetty ja täydennetty taivutusmuodoilla),
          taivutus GiellaLT lang-sme (GPL-3.0), käännösten taivutus GiellaLT lang-fin (GPL-3.0) ja Norsk ordbank
          (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Android-sovelluksen kokeellinen
-         tekstintunnistus: Google ML Kit (Googlen käyttöehdot; kuva käsitellään puhelimessa). Sátni FST on vapaa ohjelma (GPL-3.0).
+         tekstintunnistus: Google ML Kit (Googlen käyttöehdot). Kuva käsitellään puhelimessa eikä lähde laitteelta;
+         ML Kit voi lähettää Googlelle nimettömiä käyttötilastoja, kun tekstintunnistusta käytetään. Sátni FST on vapaa ohjelma (GPL-3.0).
          Lähteet ja tehdyt muutokset: CREDITS.md lähdekoodin mukana.</p>
       <p>Jos huomaat ongelman, ota yhteyttä sähköpostitse <a href="mailto:satni@somby.fi">satni@somby.fi</a>
          tai tee ilmoitus GitHubissa: <a href="https://github.com/brbwifeisyelling/satni-fst/issues" target="_blank" rel="noopener">github.com/brbwifeisyelling/satni-fst/issues</a>.
@@ -213,7 +214,8 @@ const UI_TEXTS = {
       <p>Lisenser: ordbøkene © GiellaLT (CC BY 4.0, slått sammen og utvidet med bøyingsformer),
          bøying GiellaLT lang-sme (GPL-3.0), bøying av oversettelsene GiellaLT lang-fin (GPL-3.0) og Norsk ordbank
          (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Eksperimentell tekstgjenkjenning i
-         Android-appen: Google ML Kit (Googles vilkår; bildet behandles på telefonen). Sátni FST er fri programvare (GPL-3.0).
+         Android-appen: Google ML Kit (Googles vilkår). Bildet behandles på telefonen og forlater ikke enheten;
+         ML Kit kan sende anonym bruksstatistikk til Google når tekstgjenkjenningen brukes. Sátni FST er fri programvare (GPL-3.0).
          Kilder og endringer: CREDITS.md i kildekoden.</p>
       <p>Hvis du finner et problem, ta kontakt på e-post <a href="mailto:satni@somby.fi">satni@somby.fi</a>
          eller meld det på GitHub: <a href="https://github.com/brbwifeisyelling/satni-fst/issues" target="_blank" rel="noopener">github.com/brbwifeisyelling/satni-fst/issues</a>.

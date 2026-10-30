@@ -1149,7 +1149,9 @@ function applyOcrView() {
 function bindOcrGestures() {
   const stage = $("ocr-stage");
   const pointers = new Map();
-  let tap = null, lastTap = 0, prev = null;
+  let tap = null, lastTap = 0, prev = null, pressed = null;
+  // Painettava kuplan painike: kuuntele, tai sanakirjalinkki kun painetaan muuta kuplan kohtaa
+  const press = (el) => { pressed?.classList.remove("pressed"); pressed = el; el?.classList.add("pressed"); };
   const local = (e) => { const b = stage.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
   const pinch = () => {
     const [a, b] = [...pointers.values()];
@@ -1167,12 +1169,13 @@ function bindOcrGestures() {
     pointers.set(e.pointerId, local(e));
     tap = pointers.size === 1 ? { ...local(e), cx: e.clientX, cy: e.clientY, time: Date.now() } : null;
     prev = pointers.size === 2 ? pinch() : null;
+    press(tap ? e.target.closest(".b-speak") || (e.target.closest("#ocr-bubble") && $("ocr-bubble").querySelector(".b-open")) : null);
   });
   stage.addEventListener("pointermove", (e) => {
     if (!ocr || !pointers.has(e.pointerId)) return;
     const p = local(e), old = pointers.get(e.pointerId);
     pointers.set(e.pointerId, p);
-    if (tap && Math.hypot(p.x - tap.x, p.y - tap.y) > 10) tap = null;
+    if (tap && Math.hypot(p.x - tap.x, p.y - tap.y) > 10) { tap = null; press(null); }
     if (pointers.size === 1) {
       ocr.view.x += p.x - old.x;
       ocr.view.y += p.y - old.y;
@@ -1190,6 +1193,7 @@ function bindOcrGestures() {
   const end = (e) => {
     pointers.delete(e.pointerId);
     prev = pointers.size === 2 ? pinch() : null;
+    press(null);
     if (!tap || e.type !== "pointerup" || Date.now() - tap.time > 500) { tap = null; return; }
     const target = document.elementFromPoint(tap.cx, tap.cy);
     const word = target?.closest(".ocr-word");
