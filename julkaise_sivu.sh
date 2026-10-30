@@ -25,6 +25,14 @@ sed -i -e "s/^const VERSION = \"\(satni-v[0-9]*\)\";/const VERSION = \"\1-$APP_H
        -e "s/^const DATA_CACHE = \"\(satni-data-v[0-9]*\)\";/const DATA_CACHE = \"\1-$DATA_HASH\";/" "$OUT/app/sw.js"
 grep -q "satni-data-v[0-9]*-$DATA_HASH" "$OUT/app/sw.js" || { echo "sw.js:n välimuistien nimeäminen epäonnistui"; exit 1; }
 
+# Kotisivun tyyli ja skripti versioidaan sisällön mukaan (site.js?v=...): GitHub Pages antaa selainten pitää
+# tiedostoja välimuistissa 10 min, jolloin uusi sivu saattoi saada vanhan site.js:n (uusien osioiden tekstit tyhjinä).
+for f in site.css site.js; do
+    HASH=$(sha256sum "site/$f" | cut -c1-10)
+    sed -i "s|\"$f\"|\"$f?v=$HASH\"|" "$OUT/index.html"
+    grep -q "$f?v=$HASH" "$OUT/index.html" || { echo "$f:n versiointi epäonnistui"; exit 1; }
+done
+
 if [ "$1" = "--vain-kokoa" ]; then
     echo "Sivu koottu: $OUT"; exit 0
 fi
