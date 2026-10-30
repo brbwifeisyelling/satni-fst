@@ -5,7 +5,8 @@ satni.db
 sanakirja.db
 
 # Buildien tulokset ja väliaikaiset tiedostot
-dist/
+# dist on linkki Seafile-kansioon ~/Seafile/Files/Git/dist/satni-fst (ei kauttaviivaa: linkki ei ole kansio)
+/dist
 build/
 *.spec
 version.py
