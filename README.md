@@ -22,6 +22,8 @@ Sátni FST combines the open dictionaries and morphology of [GiellaLT](https://g
 - Translations in Finnish and Norwegian, and for some words English, Inari, Lule and Southern Sámi
 - Search with a North Sámi word, an inflected form (*dagan* → *dahkat*) or a Finnish/Norwegian word
 - Pronunciation with Divvun's speech synthesis (voices Biret, Máhtte, Sunná; needs a network connection)
+- Android, experimental: look up words from a photo (text recognised on the phone with Google ML Kit;
+  switch on under *Experimental features* at the bottom of the menu)
 - User interface in Finnish or Norwegian, light and dark theme, history and favourites
 
 ## Screenshots
