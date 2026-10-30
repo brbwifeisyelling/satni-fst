@@ -88,6 +88,12 @@ h3 { font-size: 17px; margin: 0 0 6px; }
 .new-grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 32px; align-items: start; }
 .new-text h3 { margin-top: 18px; }
 .new-text h3:first-child { margin-top: 0; }
+/* Versio-otsikko uutuuksien välissä (0.7.4, 0.7.3) */
+.new-text .ver {
+  margin: 26px 0 -8px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--accent);
+}
+.new-text .ver:first-child { margin-top: 0; }
 .new-text p { margin: 0; color: var(--muted); }
 .phone-row.steps { grid-template-columns: repeat(3, 1fr); }
 .story p { max-width: 760px; font-size: 17px; margin: 0; }

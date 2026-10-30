@@ -49,7 +49,8 @@ const state = { query: "", results: [], index: 0, word: null, paradigm: null, gr
 
 const DEFAULT_SETTINGS = {
   theme: "auto", voice: "Biret", uiLang: "fi", lang: "fin", showGrade: true, history: [], favourites: [],
-  // Muut kielet (asetus sivupaneelissa): näkyvät käännösvalikossa; oletuksena ei yhtään. Hakuun ne eivät vaikuta.
+  // Muut kielet (asetus valikossa): niiden käännökset näkyvät sanakortissa pääkäännöksen lisäksi; oletuksena
+  // ei yhtään. Hakuun ne eivät vaikuta.
   extraLangs: [],
 };
 // Ensimmäinen käynnistys: asetuksia ei ole vielä tallennettu, joten kysytään käyttöliittymän kieli
@@ -90,35 +91,15 @@ function applyStaticTexts() {
   $("about-version").textContent = !version ? t("aboutWeb")
     : window.SATNI_PLATFORM === "android" ? t("aboutAndroid", version) : t("aboutDesktop", version);
   $("random-btn").textContent = t("randomWord");
-  setupDrawerLayout();
+  renderExtraLangs();
 
-  renderLangSelect();
-
-  // Lippunappi ja sen valikko yläpalkissa sekä valitsin aloitussivulla
-  $("ui-lang-btn").innerHTML = FLAGS[settings.uiLang];
-  $("ui-lang-menu").innerHTML = Object.entries(UI_LANGUAGES).map(([code, l]) =>
-    `<li role="menuitemradio" aria-checked="${code === settings.uiLang}" data-lang="${code}" tabindex="-1">` +
-    `${FLAGS[code]}<span>${esc(l.name)}</span></li>`).join("");
+  // Käyttöliittymän kieli valikossa ja aloitussivulla
   const langButtons = Object.entries(UI_LANGUAGES).map(([code, l]) =>
     `<button role="radio" aria-checked="${code === settings.uiLang}" data-lang="${code}"` +
     `${code === settings.uiLang ? ' class="active"' : ""}>${FLAGS[code]}<span>${esc(l.name)}</span></button>`).join("");
   $("welcome-lang").innerHTML = langButtons;
   $("drawer-lang").innerHTML = langButtons;
   renderVoiceList();
-}
-
-// ☰ vasemmassa yläkulmassa avaa vasemmalta liukuvan valikon (kuten Android-sovelluksissa yleensä), jossa ovat
-// käyttöliittymän kieli, teema, ääni ja aste sekä suosikit, historia ja muut kielet. Sama asettelu kaikilla
-// alustoilla (Android, työpöytä, selain); sisältö saa koko leveyden.
-function setupDrawerLayout() {
-  if (document.body.classList.contains("drawer-layout")) return;
-  document.body.classList.add("drawer-layout");
-  document.querySelector(".topbar").prepend($("sidebar-toggle"));
-  const section = $("settings-section");
-  section.classList.add("settings-section");
-  $("theme-row").append($("theme-select"));
-  section.insertBefore($("grade-option"), section.querySelector(".voice-head"));
-  section.hidden = false;
 }
 
 // Äänet valikossa: valinta ja 🔈-näyte, sama lause kaikilla äänillä. Näytteet ovat sovelluspaketissa
@@ -162,22 +143,14 @@ function closeDrawer() {
   return open;
 }
 
-// Käännöskielivalikko: pääkielet aina, muut kielet vain jos ne on valittu asetuksista (sivupaneeli). Muut kielet
-// näkyvät myös Merkitykset-välilehdellä aina, kun sana on valittu.
-function renderLangSelect() {
-  const option = (l) => `<option value="${l}">${esc(langName(l))}</option>`;
-  const langs = Object.keys(LANGUAGES);
-  const extra = langs.filter((l) => !LANGUAGES[l].main && settings.extraLangs.includes(l));
-  $("lang-select").innerHTML =
-    `<optgroup label="${esc(t("mainLanguages"))}">${langs.filter((l) => LANGUAGES[l].main).map(option).join("")}</optgroup>` +
-    (extra.length ? `<optgroup label="${esc(t("otherLanguages"))}">${extra.map(option).join("")}</optgroup>` : "");
-  $("lang-select").value = settings.lang;
-  $("extra-langs").innerHTML = langs.filter((l) => !LANGUAGES[l].main).map((l) =>
+// Muut kielet valikossa: valittujen kielten käännökset näytetään sanakortissa (renderExtraTranslations)
+function renderExtraLangs() {
+  $("extra-langs").innerHTML = Object.keys(LANGUAGES).filter((l) => !LANGUAGES[l].main).map((l) =>
     `<label class="check"><input type="checkbox" value="${l}"${settings.extraLangs.includes(l) ? " checked" : ""}> ` +
     `${esc(capitalize(langName(l)))}</label>`).join("");
 }
 
-// Kielen vaihto vaihtaa myös käännöskielen (suomi -> suomi, norsk -> norja); sen voi vaihtaa erikseen
+// Käännökset ovat aina käyttöliittymän kielellä (suomi -> suomi, norsk -> norja)
 function setUiLanguage(code) {
   if (!UI_LANGUAGES[code]) return;
   settings.uiLang = code;
@@ -194,14 +167,6 @@ function searchAgainKeepingWord() {
   const id = state.index ? state.results[state.index]?.id : undefined;
   const index = queryDatabase(state.query).findIndex((r) => r.id === id);
   search(state.query, Math.max(index, 0), false);
-}
-
-function toggleUiLangMenu(open) {
-  const menu = $("ui-lang-menu");
-  open = open ?? menu.hidden;
-  menu.hidden = !open;
-  $("ui-lang-btn").setAttribute("aria-expanded", String(open));
-  if (open) menu.querySelector('[aria-checked="true"]')?.focus();
 }
 
 // --- Apufunktiot ---
@@ -231,8 +196,8 @@ function toast(text, ms = 3500) {
 }
 
 // Vain valitun kielen käännös (muut kielet näkyvät Merkitykset-välilehdellä omina ryhminään)
-function translationOf(row, max) {
-  return splitList(row[LANGUAGES[settings.lang].col]).slice(0, max).join(", ");
+function translationOf(row, max, lang = settings.lang) {
+  return splitList(row[LANGUAGES[lang].col]).slice(0, max).join(", ");
 }
 
 // Merkitykset kielittäin, valittu kieli ensin
@@ -296,7 +261,7 @@ function queryDatabase(query) {
     if (!prev || rank < prev.rank) found.set(row.id, { ...row, rank });
   };
   const cols = `id, sme_lemma, pos, subtype, freq, ${TRANS_COLS}`;
-  const searchLang = LANGUAGES[settings.lang].main ? settings.lang : UI_LANGUAGES[settings.uiLang].translationLang;
+  const searchLang = settings.lang;
 
   // 1 = saamen perusmuoto; 6 = isolla kirjoitettu erisnimi, joka osui vain kirjainkoosta riippumatta.
   // Perusmuoto ilman käännöstä valitulla kielellä 5.5: ensin sana, jonka taivutusmuoto haku on
@@ -492,25 +457,39 @@ function selectResult(i, pushHistory = true) {
     encodeURIComponent(t("askAi", w.sme_lemma, wordClassLabel(w.pos, w.subtype).toLowerCase(), known)));
   updateFavButton();
 
-  // Ensimmäinen merkitys käyttörajoituksineen (esim. hyppiä – paksussa lumessa, porosta), valitulla
-  // kielellä tai sen puuttuessa ensimmäisellä muulla kielellä
-  // vain valitulla kielellä; jos sitä ei ole, "(ei suomennosta)" ja linkki muihin kieliin
-  const groups = meaningsByLanguage(data.meanings);
+  // Merkitykset vain käyttöliittymän kielellä ja Muut kielet -asetuksessa valituilla kielillä; muita kieliä
+  // ei näytetä missään (sanakortti, Merkitykset-välilehti), ennen kuin ne valitaan valikosta.
+  const meanings = data.meanings.filter((m) => m.lang === settings.lang || settings.extraLangs.includes(m.lang));
+  // Ensimmäinen merkitys käyttörajoituksineen (esim. hyppiä – paksussa lumessa, porosta) käyttöliittymän
+  // kielellä; jos sitä ei ole, "(ei suomennosta)" ja valittujen muiden kielten käännökset sen alla
+  const groups = meaningsByLanguage(meanings);
   const ownGroup = (groups.find(([lang]) => lang === settings.lang) || [settings.lang, []])[1];
   const first = ownGroup[0];
   let trans = first ? splitList(first.translations || first.explanations).slice(0, 4).join(", ") : translationOf(w, 3);
   state.transWords = first ? splitList(first.translations).slice(0, 4) : splitList(w[LANGUAGES[settings.lang].col]).slice(0, 3);
   if (first && first.restrictions) trans += ` (${first.restrictions})`;
   $("translation").textContent = trans || t("noTranslationIn")[settings.lang];
+  renderExtraTranslations(w, groups);
   $("more-meanings").textContent = ownGroup.length > 1 ? t("moreMeanings", ownGroup.length - 1) :
     groups.some(([lang]) => lang !== settings.lang) ? t("otherLangs") : "";
 
   renderGradation();
   renderInfo(w);
   renderTable();
-  renderMeanings(data.meanings);
+  renderMeanings(meanings);
   renderRaw();
   if (pushHistory) addHistory(w.sme_lemma);
+}
+
+// Muut kielet -asetuksessa valittujen kielten käännökset pääkäännöksen alle (Englanniksi: house)
+function renderExtraTranslations(w, groups) {
+  const lines = settings.extraLangs.filter((l) => LANGUAGES[l]).map((lang) => {
+    const own = (groups.find(([l]) => l === lang) || [lang, []])[1][0];
+    const text = own ? splitList(own.translations || own.explanations).slice(0, 4).join(", ") : translationOf(w, 3, lang);
+    return text && `<span class="muted">${esc(t("langIn")[lang])}:</span> ${esc(text)}`;
+  }).filter(Boolean);
+  $("extra-translations").hidden = !lines.length;
+  $("extra-translations").innerHTML = lines.join("<br>");
 }
 
 function renderInfo(w) {
@@ -975,12 +954,7 @@ function bindEvents() {
     settings.showGrade = e.target.checked; saveSettings();
     if (state.word) { renderTable(); renderRaw(); }
   };
-  $("voice-select").value = settings.voice;
-  $("voice-select").onchange = (e) => { settings.voice = e.target.value; saveSettings(); renderVoiceList(); };
-  $("voice-list").addEventListener("change", (e) => {
-    settings.voice = e.target.value; saveSettings();
-    $("voice-select").value = settings.voice;
-  });
+  $("voice-list").addEventListener("change", (e) => { settings.voice = e.target.value; saveSettings(); });
   $("voice-list").addEventListener("click", (e) => {
     const b = e.target.closest(".sample-btn");
     if (b) playVoiceSample(b.dataset.voice, b);
@@ -989,17 +963,10 @@ function bindEvents() {
     const b = e.target.closest("[data-lang]");
     if (b) setUiLanguage(b.dataset.lang);
   });
-  $("lang-select").onchange = (e) => {
-    settings.lang = e.target.value; saveSettings();
-    if (state.results.length) searchAgainKeepingWord();
-  };
   $("extra-langs").onchange = (e) => {
     const lang = e.target.value;
     settings.extraLangs = e.target.checked ? [...settings.extraLangs, lang] : settings.extraLangs.filter((l) => l !== lang);
-    // Pois valitun kielen käännökset vaihtuvat käyttöliittymän kielen käännöksiin
-    if (!e.target.checked && settings.lang === lang) settings.lang = UI_LANGUAGES[settings.uiLang].translationLang;
     saveSettings();
-    renderLangSelect();
     if (state.results.length) searchAgainKeepingWord();
   };
   $("theme-select").value = settings.theme;
@@ -1016,23 +983,6 @@ function bindEvents() {
     speak(form.dataset.speak).finally(() => form.classList.remove("playing"));
   });
   $("about-btn").onclick = () => $("about").showModal();
-  $("ui-lang-btn").onclick = (e) => { e.stopPropagation(); toggleUiLangMenu(); };
-  $("ui-lang-menu").addEventListener("click", (e) => {
-    const li = e.target.closest("[data-lang]");
-    if (li) { toggleUiLangMenu(false); setUiLanguage(li.dataset.lang); $("ui-lang-btn").focus(); }
-  });
-  $("ui-lang-menu").addEventListener("keydown", (e) => {
-    const items = [...$("ui-lang-menu").children];
-    const i = items.indexOf(document.activeElement);
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-      e.preventDefault();
-      items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
-    } else if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      if (i >= 0) items[i].click();
-    } else if (e.key === "Escape") { toggleUiLangMenu(false); $("ui-lang-btn").focus(); }
-  });
-  document.addEventListener("click", (e) => { if (!e.target.closest(".ui-lang")) toggleUiLangMenu(false); });
   $("welcome-lang").addEventListener("click", (e) => {
     const b = e.target.closest("[data-lang]");
     if (b) setUiLanguage(b.dataset.lang);
@@ -1051,10 +1001,13 @@ function bindEvents() {
 
 async function main() {
   if (!UI_LANGUAGES[settings.uiLang]) settings.uiLang = "fi";
-  if (!LANGUAGES[settings.lang]) settings.lang = UI_LANGUAGES[settings.uiLang].translationLang;
-  // Aiemmin valittu muu käännöskieli (ennen Muut kielet -asetusta) pysyy valikossa
+  // Käännökset käyttöliittymän kielellä. Aiemmin käännöskieleksi valittu muu kieli (englanti, inarin-, luulajan-
+  // tai eteläsaame) siirtyy Muut kielet -asetukseen, jolloin sen käännökset näkyvät edelleen sanakortissa.
   settings.extraLangs = (settings.extraLangs || []).filter((l) => LANGUAGES[l] && !LANGUAGES[l].main);
-  if (!LANGUAGES[settings.lang].main && !settings.extraLangs.includes(settings.lang)) settings.extraLangs.push(settings.lang);
+  if (LANGUAGES[settings.lang] && !LANGUAGES[settings.lang].main && !settings.extraLangs.includes(settings.lang)) {
+    settings.extraLangs.push(settings.lang);
+  }
+  settings.lang = UI_LANGUAGES[settings.uiLang].translationLang;
   applyTheme();
   const ex = $("examples");
   for (const w of EXAMPLE_WORDS) {

@@ -21,8 +21,9 @@
     if (location.hostname === "appassets.androidplatform.net") document.documentElement.classList.add("android-app");
   </script>
 </head>
-<body>
+<body class="drawer-layout">
   <header class="topbar">
+    <button class="icon-btn" id="sidebar-toggle" data-i18n-aria="sidebar" data-i18n-title="sidebar">☰</button>
     <div class="brand">
       <img src="icons/icon-192.png" alt="" class="brand-icon">
       <div>
@@ -31,17 +32,6 @@
       </div>
     </div>
     <div class="topbar-actions">
-      <button class="icon-btn" id="sidebar-toggle" data-i18n-aria="sidebar" data-i18n-title="sidebar">☰</button>
-      <div class="ui-lang">
-        <button class="flag-btn" id="ui-lang-btn" aria-haspopup="menu" aria-expanded="false"
-                data-i18n-aria="uiLanguage" data-i18n-title="uiLanguage"></button>
-        <ul id="ui-lang-menu" class="ui-lang-menu" role="menu" hidden></ul>
-      </div>
-      <select id="theme-select" data-i18n-aria="theme">
-        <option value="auto" data-i18n="themeAuto">Automaattinen</option>
-        <option value="light" data-i18n="themeLight">Vaalea</option>
-        <option value="dark" data-i18n="themeDark">Tumma</option>
-      </select>
       <button class="chip-btn" id="about-btn" data-i18n="about">Tietoa</button>
     </div>
   </header>
@@ -55,28 +45,25 @@
       <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
     </div>
     <button class="primary-btn" id="search-btn" data-i18n="search" disabled>Hae</button>
-    <div class="search-options">
-      <label class="check" id="grade-option"><input type="checkbox" id="grade-toggle" checked> <span data-i18n="showGrade">Näytä aste (GD/HD)</span></label>
-      <label class="voice"><span data-i18n="translations">Käännökset</span>
-        <select id="lang-select"></select>
-      </label>
-      <label class="voice" id="voice-option"><span data-i18n="voice">Ääni</span>
-        <select id="voice-select">
-          <option>Biret</option><option>Máhtte</option><option>Sunná</option>
-        </select>
-      </label>
-    </div>
   </div>
 
   <div id="drawer-scrim" class="drawer-scrim"></div>
   <div class="layout">
     <aside id="sidebar" class="sidebar">
-      <!-- Asetukset: kieli, teema, aste ja ääni siirretään tänne valikkoon (app.js: setupDrawerLayout) -->
-      <section id="settings-section" hidden>
+      <!-- ☰-valikko: asetukset, suosikit, historia ja muut kielet. Käännökset ovat aina käyttöliittymän
+           kielellä (suomi/norja); Muut kielet -asetuksella valittujen kielten käännökset näkyvät lisäksi
+           sanakortissa, ja kaikki kielet Merkitykset-välilehdellä. -->
+      <section id="settings-section" class="settings-section">
         <h3 data-i18n="settings">Asetukset</h3>
         <div class="setting-row stack"><span data-i18n="language">Kieli</span>
           <div id="drawer-lang" class="lang-switch" role="radiogroup" data-i18n-aria="uiLanguage"></div></div>
-        <div class="setting-row" id="theme-row"><span data-i18n="theme">Teema</span></div>
+        <div class="setting-row" id="theme-row"><span data-i18n="theme">Teema</span>
+          <select id="theme-select" data-i18n-aria="theme">
+            <option value="auto" data-i18n="themeAuto">Automaattinen</option>
+            <option value="light" data-i18n="themeLight">Vaalea</option>
+            <option value="dark" data-i18n="themeDark">Tumma</option>
+          </select></div>
+        <label class="check" id="grade-option"><input type="checkbox" id="grade-toggle" checked> <span data-i18n="showGrade">Näytä aste (GD/HD)</span></label>
         <div class="setting-row voice-head"><span data-i18n="voice">Ääni</span></div>
         <div id="voice-list" class="voice-list" role="radiogroup" data-i18n-aria="voice"></div>
       </section>
@@ -130,6 +117,7 @@
         </div>
         <p class="translation"><span id="translation"></span> <a href="#" id="more-meanings" class="more"></a></p>
         <p id="form-translation" class="form-translation" hidden></p>
+        <p id="extra-translations" class="extra-translations" hidden></p>
         <div id="gradation" class="gradation"></div>
         <p id="word-info" class="muted small"></p>
       </article>
