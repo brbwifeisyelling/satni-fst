@@ -22,6 +22,10 @@ Sátni FST combines the open dictionaries and morphology of [GiellaLT](https://g
 - Translations in Finnish and Norwegian, and for some words English, Inari, Lule and Southern Sámi
 - Search with a North Sámi word, an inflected form (*dagan* → *dahkat*) or a Finnish/Norwegian word
 - Pronunciation with Divvun's speech synthesis (voices Biret, Máhtte, Sunná; needs a network connection)
+- Android, experimental: look up words from a photo, from Sámi to Finnish/Norwegian and back — tap a marked word
+  for its translation and pronunciation (text recognised on the phone with Google ML Kit; the photo stays on the
+  phone, ML Kit may send anonymous usage statistics to Google; switch on under *Experimental features* at the
+  bottom of the menu)
 - User interface in Finnish or Norwegian, light and dark theme, history and favourites
 
 ## Screenshots
@@ -112,9 +116,12 @@ Comments in the source code are in Finnish; the release notes and commit message
 
 ## Licence
 
-Sátni FST is free software under the [GNU General Public License v3.0](LICENSE).
+Sátni FST is free software under the [GNU General Public License v3.0](LICENSE), with an additional
+permission that allows the Android app to include Google ML Kit (closed source, used for the experimental
+photo search; see [CREDITS.md](CREDITS.md#additional-permission-under-gnu-gpl-version-3-section-7)).
 The dictionaries are © GiellaLT and licensed under CC BY 4.0, the morphology (lang-sme) under GPL-3.0 —
 see [CREDITS.md](CREDITS.md) for all sources, licences and the changes made to the data.
+Changes in each version: [CHANGELOG.md](CHANGELOG.md).
 
 ## Contact
 

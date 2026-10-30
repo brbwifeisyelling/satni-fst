@@ -45,6 +45,8 @@
       <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
     </div>
     <button class="primary-btn" id="search-btn" data-i18n="search" disabled>Hae</button>
+    <!-- Tekstintunnistus valokuvasta: vain Android-sovelluksessa (window.SatniOcr, MainActivity) -->
+    <button class="chip-btn ocr-btn" id="ocr-btn" data-i18n-title="ocrTitle" data-i18n-aria="ocrTitle" hidden disabled>📷</button>
   </div>
 
   <div id="drawer-scrim" class="drawer-scrim"></div>
@@ -80,6 +82,18 @@
         <h3 data-i18n="otherLanguages">Muut kielet</h3>
         <p class="muted small" data-i18n="extraLangsHint"></p>
         <div id="extra-langs" class="extra-langs"></div>
+      </section>
+      <!-- Kokeelliset ominaisuudet, oletuksena pois päältä. Nyt: kuvasta haku (📷, vain Android-sovellus). -->
+      <section id="experimental-section" class="experimental" hidden>
+        <label class="switch-row">
+          <span class="switch-text">
+            <span data-i18n="experimental">Kokeelliset ominaisuudet</span>
+            <span class="muted small"><span class="state-off" data-i18n="experimentalOff">Pois käytöstä</span><span
+              class="state-on" data-i18n="experimentalOn">Käytössä</span></span>
+          </span>
+          <input type="checkbox" id="experimental-toggle" class="switch" role="switch">
+        </label>
+        <p class="muted small" data-i18n="experimentalHint"></p>
       </section>
     </aside>
 
@@ -146,6 +160,34 @@
     <div data-i18n-html="aboutBody"></div>
     <form method="dialog"><button class="chip-btn" data-i18n="close">Sulje</button></form>
   </dialog>
+
+  <!-- Tekstintunnistus: kuva ja sen sanat (app.js: openOcr, ocrResult) -->
+  <div id="ocr-view" class="ocr-view" hidden>
+    <div class="ocr-head">
+      <button class="chip-btn" id="ocr-camera" data-i18n="ocrCamera">📷 Ota kuva</button>
+      <button class="chip-btn" id="ocr-gallery" data-i18n="ocrGallery">🖼️ Valitse kuva</button>
+      <button class="chip-btn" id="ocr-close" data-i18n="close">Sulje</button>
+    </div>
+    <!-- Suunta (saame -> käyttöliittymän kieli tai toisin päin) ja merkintätyyli (kehys/alleviivaus, väri) -->
+    <div class="ocr-bar">
+      <button class="ocr-dir" id="ocr-dir"></button>
+      <button class="ocr-style-btn" id="ocr-style-btn" data-i18n-title="ocrStyle" data-i18n-aria="ocrStyle"></button>
+      <div id="ocr-style" class="ocr-style" hidden>
+        <div class="lang-switch ocr-seg" id="ocr-style-seg" role="radiogroup">
+          <button data-style="frame" data-i18n="ocrFrame">Kehys</button>
+          <button data-style="underline" data-i18n="ocrUnderline">Alleviivaus</button>
+        </div>
+        <div class="ocr-swatches" id="ocr-swatches" role="radiogroup"></div>
+      </div>
+    </div>
+    <p id="ocr-status" class="muted small"></p>
+    <!-- Kuva koko jäljellä olevalla alueella: zoomaus kahdella sormella, siirto vetämällä. Sanakirjan sanat
+         alleviivattuina; napautus avaa kuplan (sana, käännös, kuuntele), kuplan napautus sanakirjan. -->
+    <div id="ocr-stage" class="ocr-stage">
+      <div id="ocr-photo" class="ocr-photo"></div>
+      <div id="ocr-bubble" class="ocr-bubble" role="group" hidden></div>
+    </div>
+  </div>
 
   <div id="toast" class="toast" hidden></div>
 
