@@ -2,6 +2,13 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/brbwifeisyelling/satni-fst/releases).
 
+## 0.7.7 — not released yet
+
+- **Listen and copy any form:** tap a form in the inflection table or the *All forms* tab to open a small bubble
+  with 🔈 and a copy button. Copying works on Android, Windows, Linux and the web version.
+- **New listen button:** a round 🔈 button next to the word replaces the *Listen* button; a spinning ring shows
+  while the sound is fetched.
+
 ## 0.7.6.1 — 2026-10-30
 
 - **Experimental, Android: look up words from a photo.** Take a photo of text or pick one, and the words found in
