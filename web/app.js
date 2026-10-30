@@ -121,9 +121,19 @@ function setupDrawerLayout() {
   section.hidden = false;
 }
 
-// Äänet valikossa: valinta ja 🔈-näyte, sama lause kaikilla äänillä. Näyte haetaan Divvunin puhesynteesistä
-// ensimmäisellä kuuntelukerralla ja tallennetaan laitteelle kuten muutkin ääntämiset (speak).
+// Äänet valikossa: valinta ja 🔈-näyte, sama lause kaikilla äänillä. Näytteet ovat sovelluspaketissa
+// (web/voices/, hae_aaninaytteet.sh), joten ne toimivat ilman verkkoyhteyttä; jos tiedostoa ei ole, näyte haetaan
+// Divvunin puhesynteesistä ja tallennetaan laitteelle kuten muutkin ääntämiset (speak).
 const VOICE_SAMPLE = "Bures boahtin Sápmái";
+async function playVoiceSample(name, button) {
+  try {
+    const res = await fetch(`voices/${VOICES[name]}.wav`);
+    if (!res.ok) throw new Error(res.status);
+    await new Audio(URL.createObjectURL(await res.blob())).play();
+  } catch (e) {
+    await speak(VOICE_SAMPLE, button, name);
+  }
+}
 function renderVoiceList() {
   $("voice-list").innerHTML = Object.keys(VOICES).map((name) =>
     `<div class="voice-row"><label><input type="radio" name="voice" value="${name}"` +
@@ -973,7 +983,7 @@ function bindEvents() {
   });
   $("voice-list").addEventListener("click", (e) => {
     const b = e.target.closest(".sample-btn");
-    if (b) speak(VOICE_SAMPLE, b, b.dataset.voice);
+    if (b) playVoiceSample(b.dataset.voice, b);
   });
   $("drawer-lang").addEventListener("click", (e) => {
     const b = e.target.closest("[data-lang]");

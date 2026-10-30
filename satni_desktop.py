@@ -57,6 +57,7 @@ DEBUG = bool(os.environ.get("SATNI_DEBUG"))
 MIME_TYPES = {
     ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".wasm": "application/wasm",
     ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png",
+    ".wav": "audio/wav",  # äänivalinnan näytteet (web/voices/)
     # Pakattu sanakirja tarjotaan sellaisenaan; web-käyttöliittymä purkaa sen itse
     ".gz": "application/octet-stream",
 }
