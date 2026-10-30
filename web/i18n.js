@@ -12,7 +12,7 @@ const UI_TEXTS = {
   fi: {
     title: "Sátni FST – pohjoissaamen sanakirja ja taivutin",
     brandSub: "Pohjoissaamen avoin sanakirja ja taivutusgeneraattori",
-    uiLanguage: "Käyttöliittymän kieli",
+    uiLanguage: "Käyttöliittymän kieli", language: "Kieli",
     sidebar: "Historia ja suosikit",
     theme: "Teema", themeAuto: "Automaattinen", themeLight: "Vaalea", themeDark: "Tumma",
     about: "Tietoa",
@@ -20,6 +20,8 @@ const UI_TEXTS = {
     search: "Hae",
     showGrade: "Näytä aste (GD/HD)",
     translations: "Käännökset", mainLanguages: "Pääkielet", otherLanguages: "Muut kielet",
+    settings: "Asetukset",
+    extraLangsHint: "Valitut kielet näkyvät käännösvalikossa. Haku toimii aina saameksi ja suomeksi tai norjaksi.",
     voice: "Ääni",
     favourites: "★ Suosikit", history: "Historia", clearHistory: "Tyhjennä historia",
     noFavourites: "Ei vielä suosikkeja", noHistory: "Ei hakuja",
@@ -50,6 +52,7 @@ const UI_TEXTS = {
     morePrefix: (n, q) => `+${n} muuta sanaa, jotka alkavat ”${q}”`, fewerPrefix: "Näytä vähemmän",
     moreMeanings: (n) => `+${n} merkitystä`, otherLangs: "muut kielet",
     searchedForm: (q, tags) => `Haettu muoto ${q}: ${tags}`,
+    formIn: (q, forms, lang) => `<b>${q}</b> ≈ ${forms} <span class="muted small">(${lang === "fin" ? "suomeksi" : "norjaksi"}, likimäärin)</span>`,
     gradation: "Astevaihtelu", noGradation: "ei näkyvää astevaihtelua",
     gradeLegend: `Aste: <b class="gd">vihreä = GD</b> vahva aste &nbsp;&nbsp; <b class="hd">oranssi = HD</b> heikko aste`,
     noForms: "FST-generaattori ei tuottanut tälle sanalle taivutusmuotoja.",
@@ -93,7 +96,8 @@ const UI_TEXTS = {
       <p>Ääntäminen: Divvunin ja Giellateknon puhesynteesi (UiT Norjan arktinen yliopisto), äänet Biret,
          Máhtte ja Sunná. Äänet haetaan palvelusta api-giellalt.uit.no samaan tapaan kuin sátni.org-sivustolla.</p>
       <p>Lisenssit: sanakirjat © GiellaLT (CC BY 4.0, yhdistetty ja täydennetty taivutusmuodoilla),
-         taivutus GiellaLT lang-sme (GPL-3.0), sql.js (MIT). Sátni FST on vapaa ohjelma (GPL-3.0).
+         taivutus GiellaLT lang-sme (GPL-3.0), käännösten taivutus GiellaLT lang-fin (GPL-3.0) ja Norsk ordbank
+         (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Sátni FST on vapaa ohjelma (GPL-3.0).
          Lähteet ja tehdyt muutokset: CREDITS.md lähdekoodin mukana.</p>
       <p>Ohjelma on tuore ja voi sisältää huomattavia virheitä, eikä sille ole virallista tukea.</p>
       <p>Tekijä: Juha Somby · Palaute: <a href="mailto:satni@somby.fi">satni@somby.fi</a></p>`,
@@ -103,7 +107,7 @@ const UI_TEXTS = {
   nb: {
     title: "Sátni FST – nordsamisk ordbok og bøyingsverktøy",
     brandSub: "Åpen nordsamisk ordbok og bøyingsgenerator",
-    uiLanguage: "Språk i brukergrensesnittet",
+    uiLanguage: "Språk i brukergrensesnittet", language: "Språk",
     sidebar: "Historikk og favoritter",
     theme: "Tema", themeAuto: "Automatisk", themeLight: "Lyst", themeDark: "Mørkt",
     about: "Om",
@@ -111,6 +115,8 @@ const UI_TEXTS = {
     search: "Søk",
     showGrade: "Vis stadium (GD/HD)",
     translations: "Oversettelser", mainLanguages: "Hovedspråk", otherLanguages: "Andre språk",
+    settings: "Innstillinger",
+    extraLangsHint: "Valgte språk vises i oversettelsesmenyen. Søket virker alltid på samisk og norsk eller finsk.",
     voice: "Stemme",
     favourites: "★ Favoritter", history: "Historikk", clearHistory: "Tøm historikken",
     noFavourites: "Ingen favoritter ennå", noHistory: "Ingen søk",
@@ -141,6 +147,7 @@ const UI_TEXTS = {
     morePrefix: (n, q) => `+${n} andre ord som begynner med «${q}»`, fewerPrefix: "Vis færre",
     moreMeanings: (n) => `+${n} betydninger`, otherLangs: "andre språk",
     searchedForm: (q, tags) => `Søkt form ${q}: ${tags}`,
+    formIn: (q, forms, lang) => `<b>${q}</b> ≈ ${forms} <span class="muted small">(${lang === "fin" ? "på finsk" : "på norsk"}, omtrent)</span>`,
     gradation: "Stadieveksling", noGradation: "ingen synlig stadieveksling",
     gradeLegend: `Stadium: <b class="gd">grønn = GD</b> sterkt stadium &nbsp;&nbsp; <b class="hd">oransje = HD</b> svakt stadium`,
     noForms: "FST-generatoren ga ingen bøyingsformer for dette ordet.",
@@ -183,7 +190,8 @@ const UI_TEXTS = {
       <p>Uttale: talesyntese fra Divvun og Giellatekno (UiT Norges arktiske universitet), stemmene Biret,
          Máhtte og Sunná. Lyden hentes fra tjenesten api-giellalt.uit.no på samme måte som på nettstedet sátni.org.</p>
       <p>Lisenser: ordbøkene © GiellaLT (CC BY 4.0, slått sammen og utvidet med bøyingsformer),
-         bøying GiellaLT lang-sme (GPL-3.0), sql.js (MIT). Sátni FST er fri programvare (GPL-3.0).
+         bøying GiellaLT lang-sme (GPL-3.0), bøying av oversettelsene GiellaLT lang-fin (GPL-3.0) og Norsk ordbank
+         (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Sátni FST er fri programvare (GPL-3.0).
          Kilder og endringer: CREDITS.md i kildekoden.</p>
       <p>Programmet er nytt og kan inneholde betydelige feil, og det har ingen offisiell støtte.</p>
       <p>Laget av: Juha Somby · Tilbakemelding: <a href="mailto:satni@somby.fi">satni@somby.fi</a></p>`,

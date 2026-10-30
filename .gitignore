@@ -5,11 +5,11 @@ satni.db
 sanakirja.db
 
 # Buildien tulokset ja väliaikaiset tiedostot
-dist/
+# dist on linkki Seafile-kansioon ~/Seafile/Files/Git/dist/satni-fst (ei kauttaviivaa: linkki ei ole kansio)
+/dist
 build/
 *.spec
 version.py
-build_number.txt
 
 # Python
 __pycache__/
@@ -33,6 +33,10 @@ web/data/
 /dict-nob-sme/
 /lang-fin/
 /lang-sme/
+# Norsk ordbank (Språkbanken), haetaan samalla skriptillä
+/ordbank-nob/
+# GiellaLT lang-fin -mallit (nightly), haetaan samalla skriptillä
+/giella-fin/
 
 # Paikalliset asetukset ja työkalut (Windows-virtuaalikone, Claude Code)
 build_qt_exe.local

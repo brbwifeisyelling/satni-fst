@@ -18,6 +18,8 @@ import threading
 import xml.etree.ElementTree as ET
 
 import gradation
+import fin_forms
+import nob_forms
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 GENERATOR = os.path.join(SCRIPT_DIR, "src", "fst", "generator-gt-norm.hfst")
@@ -31,6 +33,8 @@ XML_DIRS = {lang: os.path.join(SCRIPT_DIR, f"dict-sme-{lang}", "src") for lang i
 REVERSE_DIRS = {lang: os.path.join(SCRIPT_DIR, f"dict-{lang}-sme", "src") for lang in ("fin", "nob")}
 TRANSLATION_COLUMNS = {lang: "finnish_translation" if lang == "fin" else f"{lang}_translation" for lang in LANGUAGES}
 CORRECTIONS_FILE = os.path.join(SCRIPT_DIR, "korjaukset.tsv")
+# <t t_type="..."> -viittaukset kielioppisivuille (oahpa.no), eivät käännöksiä eivätkä saamen sanoja
+GRAMMAR_POINTERS = ("grammar", "grammarexpl")
 
 # Montako hfst-lookup-prosessia ajetaan rinnakkain
 WORKERS = max(1, min(8, os.cpu_count() or 1))
@@ -139,7 +143,8 @@ def parse_meaning(mg, lang="fin"):
             continue
         for t_elem in tg.findall('t'):
             text = fix(_clean(t_elem.text))
-            if not text:
+            # t_type="grammar"/"grammarexpl" on viittaus kielioppisivulle ("Les om lokativ"), ei käännös
+            if not text or t_elem.get('t_type') in GRAMMAR_POINTERS:
                 continue
             # t_type="expl" on selitys (esim. "naisen nimi"), ei varsinainen käännös
             target = meaning["explanations"] if t_elem.get('t_type') == "expl" else meaning["translations"]
@@ -197,6 +202,84 @@ def existing_lemma_entry(by_lemma, lemma, pos):
     keys = by_lemma.get(lemma, [])
     same_pos = [k for k in keys if k[1] == pos]
     return (same_pos or keys or [None])[0]
+
+
+def sibling_with_translation(entries, by_lemma, lemma, pos, lang, headword):
+    """Saman lemman ja sanaluokan sanoista se, jolla hakusana jo on käännöksenä (dikšu "hoitaja" kuuluu
+    tekijännimelle dikšu NomAg eikä sanalle dikšu "hoito"). None, jos sellaista ei ole tai sanoja on vain yksi."""
+    keys = [k for k in by_lemma.get(lemma, []) if k[1] == pos]
+    if len(keys) < 2:
+        return None
+    return next((k for k in keys if headword in entries[k]["translations"].get(lang, [])), None)
+
+
+def merge_duplicate_entries(entries, by_lemma):
+    """Yhdistää saman lemman ja sanaluokan rinnakkaiset sanat, kun toinen ei tuo mitään omaa:
+      - tyhjä kuori ilman suomen- ja norjankielisiä käännöksiä (addi, jábmi: vain muiden kielten sanakirjasta)
+      - sana, jonka suomen- ja norjankieliset käännökset sisältyvät toisen käännöksiin (mii Interr "mikä"
+        = mii Rel "mikä, hva"; juohkehaš "jokainen" = juohkehaš Indef)
+      - alaluokaton sekoitus, jonka suomennokset kuuluvat eri rinnakkaissanoille (mii "me, mikä": me = Pers,
+        mikä = Rel) tai jolla ei ole suomennosta lainkaan; sen käännökset jaetaan niille ja ylijäävät sille,
+        jolla on eniten yhteisiä (tasatilanteessa aakkosissa viimeinen alaluokka: Rel ennen Pers)
+    Sanaluokaton sana (?, dict-sme-eng) yhdistetään ensin mihin tahansa saman lemman sanaan, koska sen
+    sanaluokka päätellään vasta FST:llä (muuten addi ? -> addi N olisi toinen addi N).
+    Oikeat homografit säilyvät (dikšu "hoito" ja dikšu NomAg "hoitaja"). Kohteeksi valitaan yleisin sana."""
+    main = ("fin", "nob")
+    tr = lambda k, lang: set(entries[k]["translations"].get(lang, []))
+    merged = 0
+    for lemma, keys in list(by_lemma.items()):
+        # Sanaluokaton sana (dict-sme-eng) sille saman lemman sanalle, jonka käännökset sen kattavat; useasta
+        # yleisin tai käännöksiltään laajin (manni ? "(bird's) egg" -> manni N NomAg "muna", ei manni A "menevä")
+        for a in [k for k in keys if k[1] == UNKNOWN_POS]:
+            known = sorted((b for b in by_lemma[lemma] if b[1] != UNKNOWN_POS),
+                           key=lambda b: (-(entries[b]["freq"] or 0), -sum(len(tr(b, l)) for l in main)))
+            target = next((b for b in known if all(tr(a, l) <= tr(b, l) for l in main)), None)
+            if target:
+                _merge_entry(entries[target], entries.pop(a))
+                by_lemma[lemma].remove(a)
+                merged += 1
+        for pos in {k[1] for k in by_lemma[lemma]}:
+            changed = True
+            while changed:
+                changed = False
+                group = [k for k in by_lemma[lemma] if k[1] == pos]
+                if len(group) < 2:
+                    break
+                for a in group:
+                    others = sorted((b for b in group if b != a),
+                                    key=lambda b: (-(entries[b]["freq"] or 0), -sum(len(tr(b, l)) for l in main)))
+                    target = next((b for b in others if all(tr(a, l) <= tr(b, l) for l in main)), None)
+                    if target is None and not a[2] and not entries[a]["freq"]:
+                        union = {l: set().union(*(tr(b, l) for b in others)) for l in main}
+                        if tr(a, "fin") <= union["fin"]:
+                            # Jaetaan: kukin käännös sille, jolla se jo on; ylijäävät eniten yhteisiä omaavalle
+                            target = max(others, key=lambda b: (sum(len(tr(a, l) & tr(b, l)) for l in main), b[2]))
+                            for lang, items in entries[a]["translations"].items():
+                                for item in items:
+                                    if not any(item in entries[b]["translations"].get(lang, []) for b in others):
+                                        entries[target]["translations"].setdefault(lang, []).append(item)
+                            entries[a]["translations"] = {}
+                    if target is None:
+                        continue
+                    _merge_entry(entries[target], entries.pop(a))
+                    by_lemma[lemma].remove(a)
+                    merged += 1
+                    changed = True
+                    break
+    print(f"Yhdistettiin {merged} rinnakkaista sanaa (saman sanan kaksoiskappaleet)")
+
+
+def _merge_entry(dst, src):
+    for lang, items in src["translations"].items():
+        target = dst["translations"].setdefault(lang, [])
+        target.extend(i for i in items if i not in target)
+    known = {(m["lang"], tuple(m["translations"]), tuple(m["explanations"])) for m in dst["meanings"]}
+    dst["meanings"].extend(m for m in src["meanings"]
+                           if (m["lang"], tuple(m["translations"]), tuple(m["explanations"])) not in known)
+    dst.setdefault("reverse", []).extend(r for r in src.get("reverse", []) if r not in dst.get("reverse", []))
+    dst["freq"] = max(dst["freq"] or 0, src["freq"] or 0) or None
+    dst["notes"].extend(n for n in src["notes"] if n not in dst["notes"])
+    dst["sem_type"] = dst["sem_type"] or src["sem_type"]
 
 
 def parse_xml_dictionaries():
@@ -275,6 +358,7 @@ def parse_xml_dictionaries():
             print(f"  dict-sme-{lang}: {merged} käännöstä olemassa oleviin sanoihin, {added} uutta sanaehdokasta")
 
     parse_reverse_dictionaries(entries, by_lemma)
+    merge_duplicate_entries(entries, by_lemma)
 
     words = [
         (lemma, pos, subtype, data["sem_type"], {l: ", ".join(t) for l, t in data["translations"].items() if t})
@@ -316,14 +400,18 @@ def parse_reverse_dictionaries(entries, by_lemma):
                         continue
                     for t_elem in tg.findall('t'):
                         lemma = _clean(t_elem.text)
-                        if not lemma or _placeholder(lemma):
+                        # Kielioppiviittaus ("Les om lokativ") ja selitys ("bruk verb som beskriver handlinga")
+                        # eivät ole saamen sanoja
+                        if (not lemma or _placeholder(lemma) or t_elem.get('t_type') in GRAMMAR_POINTERS
+                                or t_elem.get('t_type') == "expl"):
                             continue
                         pos = detect_pos(t_elem.get('pos') or head_elem.get('pos'), filename)
                         subtype = ""
                         if pos == "Prop":
                             pos, subtype = "N", "Prop"
-                        key = find_entry(entries, by_lemma, lemma, pos, subtype) or existing_lemma_entry(
-                            by_lemma, lemma, pos) or (lemma, pos, subtype)
+                        key = (sibling_with_translation(entries, by_lemma, lemma, pos, lang, headword)
+                               or find_entry(entries, by_lemma, lemma, pos, subtype)
+                               or existing_lemma_entry(by_lemma, lemma, pos) or (lemma, pos, subtype))
                         if key not in entries:
                             entries[key] = {"sem_type": "", "translations": {}, "meanings": [],
                                             "freq": None, "notes": [], "new_from": f"{lang}-sme"}
@@ -747,6 +835,8 @@ def main():
             s[1] += 1
 
     add_gradation(cursor)
+    nob_forms.add_nob_forms(cursor)
+    fin_forms.add_fin_forms(cursor)
 
     print("Luodaan tietokantaan indeksit...")
     cursor.execute("CREATE INDEX idx_lemma ON dictionary(sme_lemma COLLATE NOCASE);")

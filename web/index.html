@@ -56,11 +56,11 @@
     </div>
     <button class="primary-btn" id="search-btn" data-i18n="search" disabled>Hae</button>
     <div class="search-options">
-      <label class="check"><input type="checkbox" id="grade-toggle" checked> <span data-i18n="showGrade">Näytä aste (GD/HD)</span></label>
+      <label class="check" id="grade-option"><input type="checkbox" id="grade-toggle" checked> <span data-i18n="showGrade">Näytä aste (GD/HD)</span></label>
       <label class="voice"><span data-i18n="translations">Käännökset</span>
         <select id="lang-select"></select>
       </label>
-      <label class="voice"><span data-i18n="voice">Ääni</span>
+      <label class="voice" id="voice-option"><span data-i18n="voice">Ääni</span>
         <select id="voice-select">
           <option>Biret</option><option>Máhtte</option><option>Sunná</option>
         </select>
@@ -68,8 +68,18 @@
     </div>
   </div>
 
+  <div id="drawer-scrim" class="drawer-scrim"></div>
   <div class="layout">
     <aside id="sidebar" class="sidebar">
+      <!-- Asetukset: kieli, teema, aste ja ääni siirretään tänne valikkoon (app.js: setupDrawerLayout) -->
+      <section id="settings-section" hidden>
+        <h3 data-i18n="settings">Asetukset</h3>
+        <div class="setting-row stack"><span data-i18n="language">Kieli</span>
+          <div id="drawer-lang" class="lang-switch" role="radiogroup" data-i18n-aria="uiLanguage"></div></div>
+        <div class="setting-row" id="theme-row"><span data-i18n="theme">Teema</span></div>
+        <div class="setting-row voice-head"><span data-i18n="voice">Ääni</span></div>
+        <div id="voice-list" class="voice-list" role="radiogroup" data-i18n-aria="voice"></div>
+      </section>
       <section>
         <h3 data-i18n="favourites">★ Suosikit</h3>
         <ul id="favourites" class="word-list"></ul>
@@ -78,6 +88,11 @@
         <h3 data-i18n="history">Historia</h3>
         <ul id="history" class="word-list"></ul>
         <button class="link-btn" id="clear-history" data-i18n="clearHistory">Tyhjennä historia</button>
+      </section>
+      <section>
+        <h3 data-i18n="otherLanguages">Muut kielet</h3>
+        <p class="muted small" data-i18n="extraLangsHint"></p>
+        <div id="extra-langs" class="extra-langs"></div>
       </section>
     </aside>
 
@@ -114,6 +129,7 @@
           </div>
         </div>
         <p class="translation"><span id="translation"></span> <a href="#" id="more-meanings" class="more"></a></p>
+        <p id="form-translation" class="form-translation" hidden></p>
         <div id="gradation" class="gradation"></div>
         <p id="word-info" class="muted small"></p>
       </article>
@@ -128,6 +144,13 @@
       <section id="panel-raw" class="card panel" hidden></section>
     </main>
   </div>
+
+  <!-- Ensimmäinen käynnistys: käyttöliittymän kieli (app.js: showFirstRun) -->
+  <dialog id="first-run" class="first-run">
+    <h2>Sátni FST</h2>
+    <p>Valitse kieli · Velg språk</p>
+    <div id="first-run-lang" class="first-run-lang"></div>
+  </dialog>
 
   <dialog id="about">
     <h2>Sátni FST</h2>
