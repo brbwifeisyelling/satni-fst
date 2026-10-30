@@ -52,8 +52,8 @@ const DEFAULT_SETTINGS = {
   // Muut kielet (asetus valikossa): niiden käännökset näkyvät sanakortissa pääkäännöksen lisäksi; oletuksena
   // ei yhtään. Hakuun ne eivät vaikuta.
   extraLangs: [],
-  // Tekstintunnistus: "translate" = käännökset kuvan päällä, "sami" = kuva sellaisenaan
-  ocrMode: "translate",
+  // Kokeelliset ominaisuudet (valikon lopussa): nyt kuvasta haku Android-sovelluksessa
+  experimental: false,
 };
 // Ensimmäinen käynnistys: asetuksia ei ole vielä tallennettu, joten kysytään käyttöliittymän kieli
 const FIRST_RUN = (() => { try { return localStorage.getItem("satni-settings") === null; } catch (e) { return false; } })();
@@ -1004,21 +1004,30 @@ function ocrCorrector() {
   };
 }
 
-// Viimeisin kuva säilyy: sanan haun jälkeen 📷 palaa samaan kuvaan samassa zoomauksessa
-let ocr = null;  // { r: Ocr.java:n tulos, words, base: sovitettu koko, view: { s, x, y } }
+// Viimeisin kuva säilyy: 📷 palaa samaan kuvaan samassa zoomauksessa
+let ocr = null;  // { r: Ocr.java:n tulos, words, status, base: sovitettu koko, view: { s, x, y }, picked: sanan nro }
+let ocrReturnHash = null;  // kuvasta avatun sanan osoite: takaisin-ele palaa siitä kuvaan
 
 function openOcr() {
   $("ocr-view").hidden = false;
-  for (const b of $("ocr-mode").children) b.classList.toggle("active", b.dataset.mode === settings.ocrMode);
   if (ocr) layoutOcr(false);
   else $("ocr-status").textContent = t("ocrIntro");
 }
 
-// Takaisin-ele (MainActivity.goBackOrFinish) ja Sulje-painike
+// Takaisin-ele (MainActivity.goBackOrFinish): ensin suljetaan sanan kupla, sitten kuva
 function closeOcr() {
-  const open = !$("ocr-view").hidden;
-  $("ocr-view").hidden = true;
-  return open;
+  if ($("ocr-view").hidden) return false;
+  if (ocr && ocr.picked != null) pickOcrWord(null);
+  else $("ocr-view").hidden = true;
+  return true;
+}
+
+// Takaisin-ele sanakirjasta, kun sana avattiin kuvasta: takaisin kuvaan (sama sana valittuna)
+function backToOcr() {
+  if (!ocr || !ocrReturnHash || location.hash !== ocrReturnHash) return false;
+  ocrReturnHash = null;
+  openOcr();
+  return true;
 }
 
 function scanPhoto(source) {
@@ -1026,80 +1035,39 @@ function scanPhoto(source) {
   window.SatniOcr.scan(source);
 }
 
-// Saamen sana (perusmuoto tai taivutusmuoto) -> sen käännös käyttöliittymän kielellä; suomen- tai norjankielinen
-// sana -> saamennos. Käännös on sanan perusmuodon ensimmäinen käännös, ei taivutettu eikä lauseyhteyteen sovitettu.
+// Kuplan teksti: saamen sana (perusmuoto tai taivutusmuoto) -> perusmuoto ja käännös käyttöliittymän kielellä;
+// suomen- tai norjankielinen sana -> saamennos.
 const SAMI_RANKS = [1, 1.2, 5, 5.5, 6];
 function ocrGloss(word) {
   const row = queryDatabase(word).find((r) => r.rank < PREFIX_RANK);
-  if (!row) return word;
-  return SAMI_RANKS.includes(row.rank) ? translationOf(row, 1) || word : row.sme_lemma;
+  if (!row) return { trans: "" };
+  if (!SAMI_RANKS.includes(row.rank)) return { trans: row.sme_lemma };
+  return { lemma: fold(row.sme_lemma) !== fold(word) ? row.sme_lemma : "", trans: translationOf(row, 2) };
 }
 
 function ocrResult(r) {
   if (!r) { $("ocr-status").textContent = ocr ? ocr.status : t("ocrIntro"); return; }  // kuvan otto peruttiin
   if (r.error) { $("ocr-status").textContent = t(r.error === "noApp" ? "ocrNoApp" : "ocrError"); return; }
   const corrector = ocrCorrector();
-  const glosses = new Map();
   const words = r.words.map((w) => {
     const clean = w.t.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
-    const word = clean.length > 1 ? corrector.correct(clean) : null;
-    if (word && !glosses.has(word)) glosses.set(word, ocrGloss(word));
-    return { ...w, word, clean, gloss: word && glosses.get(word) };
-  }).filter((w) => w.clean);
+    return { ...w, word: clean.length > 1 ? corrector.correct(clean) : null };
+  }).filter((w) => w.word);
   corrector.free();
-  const status = !words.length ? t("ocrNoText") : glosses.size ? t("ocrFound", glosses.size) : t("ocrNoWords");
-  ocr = { r, words, status };
-  const img = new Image();
-  img.onload = () => {
-    ocrColors(img, words);
-    $("ocr-photo").replaceChildren(img);
-    $("ocr-photo").insertAdjacentHTML("beforeend", words.map((w, i) =>
-      `<div class="ocr-word${w.word ? " hit" : ""}" data-i="${i}" style="--word-bg:${w.bg};--word-fg:${w.fg}"><span></span></div>`).join(""));
-    layoutOcr(true);
-  };
-  img.src = r.image;
+  const found = new Set(words.map((w) => w.word)).size;
+  const status = !r.words.length ? t("ocrNoText") : found ? t("ocrFound", found) : t("ocrNoWords");
+  ocr = { r, words, status, picked: null };
+  ocrReturnHash = null;
+  $("ocr-bubble").hidden = true;
+  $("ocr-photo").innerHTML = `<img src="${r.image}" alt="">`
+    + words.map((w, i) => `<div class="ocr-word" data-i="${i}"></div>`).join("");
+  layoutOcr(true);
 }
 
-// Käännöksen taustaväri kuvasta: sanan alueen pikseleistä suurin osa on taustaa, joten mediaanin puoleinen
-// ääripää (vaaleimmat tai tummimmat 40 %) on tausta. Tausta vaalennetaan lähes valkoiseksi (tai tummennetaan
-// lähes mustaksi) vain pieni sävy kuvasta jättäen, ja teksti on musta (valkoinen), jotta käännös on selvä.
-function ocrColors(img, words) {
-  const canvas = document.createElement("canvas");
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  ctx.drawImage(img, 0, 0);
-  const mean = (px) => px.reduce((m, p) => m.map((v, i) => v + p[i] / px.length), [0, 0, 0]);
-  const css = ([r, g, b]) => `rgb(${r | 0}, ${g | 0}, ${b | 0})`;
-  for (const w of words) {
-    const rad = (w.a || 0) * Math.PI / 180, cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
-    const ex = (cos * w.w + sin * w.h) / 2, ey = (sin * w.w + cos * w.h) / 2;
-    const x0 = Math.max(0, Math.floor(w.cx - ex)), y0 = Math.max(0, Math.floor(w.cy - ey));
-    const x1 = Math.min(canvas.width, Math.ceil(w.cx + ex)), y1 = Math.min(canvas.height, Math.ceil(w.cy + ey));
-    if (x1 - x0 < 2 || y1 - y0 < 2) { w.bg = "rgb(248, 248, 246)"; w.fg = "#111"; continue; }
-    const data = ctx.getImageData(x0, y0, x1 - x0, y1 - y0).data;
-    const px = [];
-    for (let i = 0; i < data.length; i += 8) px.push([data[i], data[i + 1], data[i + 2]]);
-    const lum = ([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b;
-    px.sort((p, q) => lum(p) - lum(q));
-    const dark = mean(px.slice(0, Math.max(1, px.length * 0.15 | 0)));
-    const light = mean(px.slice(px.length * 0.6 | 0));
-    const lightBg = lum(px[px.length >> 1]) - lum(dark) > lum(light) - lum(px[px.length >> 1]);
-    const bg = lightBg ? light : mean(px.slice(0, Math.max(1, px.length * 0.4 | 0)));
-    const isLight = lum(bg) > 110;
-    const base = isLight ? [250, 250, 248] : [28, 28, 30];
-    w.bg = css(bg.map((v, i) => base[i] * 0.8 + v * 0.2));
-    w.fg = isLight ? "#111" : "#fff";
-  }
-}
-
-// Kuva sovitetaan alueeseen kokonaan näkyviin, ja sanat asetetaan kuvan pikseleistä sovitettuun kokoon.
-// Käännös pienennetään sanan levyiseksi; hyvin pitkä käännös saa leventää aluettaan.
+// Kuva sovitetaan alueeseen kokonaan näkyviin, ja alleviivaukset asetetaan kuvan pikseleistä sovitettuun kokoon
 function layoutOcr(reset) {
   const stage = $("ocr-stage"), photo = $("ocr-photo");
   $("ocr-status").textContent = ocr.status;
-  for (const b of $("ocr-mode").children) b.classList.toggle("active", b.dataset.mode === settings.ocrMode);
-  photo.className = `ocr-photo mode-${settings.ocrMode}`;
   const { r, words } = ocr;
   const k = Math.min(stage.clientWidth / r.width, stage.clientHeight / r.height);
   ocr.base = { w: r.width * k, h: r.height * k };
@@ -1107,22 +1075,57 @@ function layoutOcr(reset) {
   photo.style.height = `${ocr.base.h}px`;
   for (const el of photo.querySelectorAll(".ocr-word")) {
     const w = words[el.dataset.i];
-    const width = w.w * k + 4, height = w.h * k * 1.15;
-    let size = w.h * k * 0.82;
     Object.assign(el.style, {
-      left: `${w.cx * k}px`, top: `${w.cy * k}px`, width: `${width}px`, height: `${height}px`,
-      fontSize: `${size}px`, transform: `translate(-50%, -50%) rotate(${w.a || 0}deg)`,
+      left: `${w.cx * k}px`, top: `${w.cy * k}px`, width: `${w.w * k + 2}px`, height: `${w.h * k * 1.15}px`,
+      transform: `translate(-50%, -50%) rotate(${w.a || 0}deg)`,
     });
-    const span = el.firstChild;
-    span.textContent = settings.ocrMode === "translate" ? w.gloss || w.clean : w.word || w.clean;
-    if (span.offsetWidth > width) {
-      size = Math.max(size * width / span.offsetWidth, w.h * k * 0.45);
-      el.style.fontSize = `${size}px`;
-      el.style.width = `${Math.max(width, span.offsetWidth + 4)}px`;
-    }
   }
   if (reset || !ocr.view) ocr.view = { s: 1, x: 0, y: 0 };
   applyOcrView();
+}
+
+// Napautettu sana: kupla sanan yläpuolelle (tai alle, jos yläpuolella ei ole tilaa); null sulkee kuplan
+const OPEN_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+  stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>`;
+function pickOcrWord(i) {
+  const photo = $("ocr-photo"), bubble = $("ocr-bubble");
+  photo.querySelector(".picked")?.classList.remove("picked");
+  ocr.picked = i;
+  if (i == null) { bubble.hidden = true; return; }
+  const w = ocr.words[i];
+  if (!w.gloss) w.gloss = ocrGloss(w.word);
+  photo.querySelector(`[data-i="${i}"]`).classList.add("picked");
+  bubble.innerHTML = `<span class="b-text"><span class="b-word">${esc(w.word)}${w.gloss.lemma
+    ? ` <span class="b-lemma">(${esc(w.gloss.lemma)})</span>` : ""}</span>${w.gloss.trans
+    ? `<span class="b-trans">${esc(w.gloss.trans)}</span>` : ""}</span><span class="b-open">${OPEN_ICON}</span>`;
+  bubble.setAttribute("aria-label", w.word);
+  bubble.hidden = false;
+  placeOcrBubble();
+}
+
+function placeOcrBubble() {
+  const bubble = $("ocr-bubble"), stage = $("ocr-stage");
+  const el = $("ocr-photo").querySelector(".picked");
+  if (!el) return;
+  const s = stage.getBoundingClientRect(), b = el.getBoundingClientRect();
+  const x = b.left + b.width / 2 - s.left, top = b.top - s.top, bottom = b.bottom - s.top;
+  // Sana vieritetty pois näkyvistä: kupla piiloon siksi aikaa
+  bubble.style.visibility = bottom < 0 || top > s.height || x < 0 || x > s.width ? "hidden" : "";
+  const below = top < bubble.offsetHeight + 16;
+  bubble.classList.toggle("below", below);
+  const half = bubble.offsetWidth / 2;
+  const left = Math.min(Math.max(x, half + 8), s.width - half - 8);
+  bubble.style.left = `${left}px`;
+  bubble.style.top = `${below ? bottom : top}px`;
+  bubble.style.setProperty("--arrow", `${Math.min(Math.max(x - left + half, 16), half * 2 - 16)}px`);
+}
+
+// Kuplasta sanakirjaan; takaisin-ele palaa kuvaan (backToOcr)
+function openOcrWord() {
+  const w = ocr.words[ocr.picked];
+  $("ocr-view").hidden = true;
+  search(w.word);
+  ocrReturnHash = location.hash;
 }
 
 // Zoomaus 1–8-kertaiseksi; kuva pysyy alueen sisällä (pienempi kuin alue -> keskelle)
@@ -1133,16 +1136,16 @@ function applyOcrView() {
   v.x = clamp(v.x, ocr.base.w * v.s, stage.clientWidth);
   v.y = clamp(v.y, ocr.base.h * v.s, stage.clientHeight);
   $("ocr-photo").style.transform = `translate(${v.x}px, ${v.y}px) scale(${v.s})`;
+  if (ocr.picked != null) placeOcrBubble();
 }
 
-// Kosketus: yksi sormi siirtää, kaksi zoomaa sormien välistä kohtaa, napautus sanaan hakee sen,
-// kaksoisnapautus muualle zoomaa (tai palauttaa koko kuvan). Sormen pitäminen paikallaan näyttää kuvan
-// alkuperäisen tekstin niin kauan kuin sormi on kuvassa.
+// Kosketus: yksi sormi siirtää, kaksi zoomaa sormien välistä kohtaa. Napautus sanaan avaa kuplan, kuplan
+// (tai saman sanan) napautus sanakirjan, napautus muualle sulkee kuplan; kaksoisnapautus zoomaa (tai palauttaa
+// koko kuvan).
 function bindOcrGestures() {
   const stage = $("ocr-stage");
   const pointers = new Map();
-  let tap = null, lastTap = 0, prev = null, hold = 0;
-  const peek = (on) => { clearTimeout(hold); $("ocr-photo").classList.toggle("peek", on); };
+  let tap = null, lastTap = 0, prev = null;
   const local = (e) => { const b = stage.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
   const pinch = () => {
     const [a, b] = [...pointers.values()];
@@ -1160,15 +1163,12 @@ function bindOcrGestures() {
     pointers.set(e.pointerId, local(e));
     tap = pointers.size === 1 ? { ...local(e), cx: e.clientX, cy: e.clientY, time: Date.now() } : null;
     prev = pointers.size === 2 ? pinch() : null;
-    clearTimeout(hold);
-    if (pointers.size === 1) hold = setTimeout(() => { peek(true); tap = null; }, 300);
-    else peek(false);
   });
   stage.addEventListener("pointermove", (e) => {
     if (!ocr || !pointers.has(e.pointerId)) return;
     const p = local(e), old = pointers.get(e.pointerId);
     pointers.set(e.pointerId, p);
-    if (tap && Math.hypot(p.x - tap.x, p.y - tap.y) > 10) { tap = null; clearTimeout(hold); }
+    if (tap && Math.hypot(p.x - tap.x, p.y - tap.y) > 10) tap = null;
     if (pointers.size === 1) {
       ocr.view.x += p.x - old.x;
       ocr.view.y += p.y - old.y;
@@ -1186,13 +1186,15 @@ function bindOcrGestures() {
   const end = (e) => {
     pointers.delete(e.pointerId);
     prev = pointers.size === 2 ? pinch() : null;
-    if (!pointers.size) peek(false);
     if (!tap || e.type !== "pointerup" || Date.now() - tap.time > 500) { tap = null; return; }
-    const hit = document.elementFromPoint(tap.cx, tap.cy)?.closest(".ocr-word");
-    if (hit) {
-      const w = ocr.words[hit.dataset.i];
-      closeOcr();
-      search(w.word || w.clean);
+    const target = document.elementFromPoint(tap.cx, tap.cy);
+    const word = target?.closest(".ocr-word");
+    if (target?.closest("#ocr-bubble")) openOcrWord();
+    else if (word) {
+      if (Number(word.dataset.i) === ocr.picked) openOcrWord();
+      else pickOcrWord(Number(word.dataset.i));
+    } else if (ocr.picked != null) {
+      pickOcrWord(null);
     } else if (Date.now() - lastTap < 350) {
       zoomAt(tap.x, tap.y, ocr.view.s > 1.5 ? 1 : 3);
       applyOcrView();
@@ -1207,21 +1209,23 @@ function bindOcrGestures() {
   window.addEventListener("resize", () => { if (ocr && !$("ocr-view").hidden) layoutOcr(true); });
 }
 
+// Kuvasta haku on kokeellinen: 📷 näkyy vain, kun kokeelliset ominaisuudet on kytketty päälle valikosta
 function bindOcr() {
   if (!window.SatniOcr) return;
-  $("ocr-btn").hidden = false;
+  const toggle = $("experimental-toggle");
+  const apply = () => {
+    toggle.checked = settings.experimental;
+    $("experimental-section").classList.toggle("on", settings.experimental);
+    $("ocr-btn").hidden = !settings.experimental;
+    if (!settings.experimental) $("ocr-view").hidden = true;
+  };
+  $("experimental-section").hidden = false;
+  toggle.onchange = () => { settings.experimental = toggle.checked; saveSettings(); apply(); };
+  apply();
   $("ocr-btn").onclick = openOcr;
   $("ocr-camera").onclick = () => scanPhoto("camera");
   $("ocr-gallery").onclick = () => scanPhoto("gallery");
-  $("ocr-close").onclick = closeOcr;
-  $("ocr-mode").onclick = (e) => {
-    const b = e.target.closest("[data-mode]");
-    if (!b) return;
-    settings.ocrMode = b.dataset.mode;
-    saveSettings();
-    if (ocr) layoutOcr(false);
-    else for (const m of $("ocr-mode").children) m.classList.toggle("active", m === b);
-  };
+  $("ocr-close").onclick = () => { if (ocr) pickOcrWord(null); $("ocr-view").hidden = true; };
   bindOcrGestures();
 }
 

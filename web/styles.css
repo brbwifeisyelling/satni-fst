@@ -260,8 +260,8 @@ dialog {
   max-width: 540px; padding: 24px 28px;
 }
 dialog::backdrop { background: rgba(0, 0, 0, .4); }
-/* Tekstintunnistus (Android-sovellus): kuva koko näytön kokoisena, tunnistetut sanat kuvan päällä
-   puoliläpinäkyvinä tarroina samassa kohdassa ja asennossa kuin kuvassa */
+/* Tekstintunnistus (Android-sovellus): kuva koko näytön kokoisena, sanakirjan sanat alleviivattuina samassa
+   kohdassa ja asennossa kuin kuvassa; napautetun sanan päällä kupla (sana, käännös, linkki sanakirjaan) */
 .ocr-btn { font-size: 18px; padding: 6px 10px; line-height: 1.2; }
 .ocr-view {
   position: fixed; inset: 0; z-index: 45; background: var(--bg); padding: 12px;
@@ -278,27 +278,54 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 }
 .ocr-photo { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .ocr-photo img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; }
-.ocr-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 8px 0; }
-.ocr-bar #ocr-status { margin: 0; flex: 1 1 180px; }
-.ocr-mode { float: none; }
-.ocr-mode button { padding: 5px 12px; font-size: 14px; }
-/* Sanat kuvan päällä ilman reunuksia. Käännös-tilassa sanakirjan sana peitetään kuvasta otetulla taustavärillä
-   ja käännös kirjoitetaan sanan omalla värillä (ocrColors), jolloin se näyttää kuvaan painetulta tekstiltä.
-   Saame-tilassa kuva jää näkyviin ja sanat on vain alleviivattu. */
 .ocr-word {
-  position: absolute; display: flex; align-items: center; justify-content: center;
-  white-space: nowrap; line-height: 1; border-radius: 2px;
+  position: absolute; border-radius: 2px;
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 75%, transparent);
 }
-.ocr-word span { display: inline-block; visibility: hidden; }
-.mode-translate .ocr-word.hit {
-  background: var(--word-bg); color: var(--word-fg); font-weight: 600; border-radius: 3px;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased;
+.ocr-word.picked {
+  background: color-mix(in srgb, var(--accent) 18%, transparent); box-shadow: inset 0 -3px 0 var(--accent);
 }
-/* Sormi kuvan päällä: alkuperäinen teksti näkyviin */
-.ocr-word { transition: opacity .12s; }
-.ocr-photo.peek .ocr-word { opacity: 0; }
-.mode-translate .ocr-word.hit span { visibility: visible; }
-.mode-sami .ocr-word.hit { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent) 75%, transparent); }
+.ocr-bubble {
+  position: absolute; z-index: 2; display: flex; align-items: center; gap: 12px;
+  max-width: calc(100% - 16px); padding: 8px 8px 8px 14px; border: 0; border-radius: 14px;
+  background: var(--surface); color: var(--text); box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  font: inherit; text-align: left; cursor: pointer; transform: translate(-50%, calc(-100% - 10px));
+}
+.ocr-bubble[hidden] { display: none; }
+.ocr-bubble.below { transform: translate(-50%, 10px); }
+.ocr-bubble::after {
+  content: ""; position: absolute; left: var(--arrow, 50%); top: 100%; transform: translateX(-50%);
+  border: 8px solid transparent; border-top-color: var(--surface);
+}
+.ocr-bubble.below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--surface); }
+.ocr-bubble .b-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ocr-bubble .b-word { font-weight: 700; font-size: 17px; }
+.ocr-bubble .b-lemma { color: var(--muted); font-weight: 400; font-size: 14px; }
+.ocr-bubble .b-trans { color: var(--muted); font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ocr-bubble .b-open {
+  flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--accent-text);
+}
+.ocr-bubble .b-open svg { width: 18px; height: 18px; }
+
+/* Kokeelliset ominaisuudet: kytkin valikon lopussa */
+.experimental { border-top: 1px solid var(--border); padding-top: 14px; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 600; }
+.switch-text { display: flex; flex-direction: column; gap: 2px; }
+.switch-text .small { font-weight: 400; }
+.experimental .state-on, .experimental.on .state-off { display: none; }
+.experimental.on .state-on { display: inline; }
+.switch {
+  appearance: none; -webkit-appearance: none; flex: none; position: relative; margin: 0; cursor: pointer;
+  width: 46px; height: 28px; border-radius: 99px; background: var(--border); transition: background .2s;
+}
+.switch::before {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s;
+}
+.switch:checked { background: var(--accent); }
+.switch:checked::before { transform: translateX(18px); }
+.switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .toast {
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50;
   background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: 14px;

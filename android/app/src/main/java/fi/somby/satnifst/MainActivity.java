@@ -187,10 +187,12 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** Takaisin: ensin suljetaan avoin tekstintunnistusnäkymä tai valikko (☰), sitten edellinen haku (#/sana/...) tai aloitussivu;
+    /** Takaisin: ensin suljetaan avoin tekstintunnistusnäkymä tai valikko (☰); kuvasta avatusta sanasta palataan
+     *  kuvaan; sitten edellinen haku (#/sana/...) tai aloitussivu;
      *  vasta sen jälkeen sovellus suljetaan. */
     private void goBackOrFinish() {
-        web.evaluateJavascript("(window.closeOcr && closeOcr()) || (window.closeDrawer ? closeDrawer() : false)", result -> {
+        web.evaluateJavascript("(window.closeOcr && closeOcr()) || (window.backToOcr && backToOcr())"
+                + " || (window.closeDrawer ? closeDrawer() : false)", result -> {
             if ("true".equals(result)) {
                 return;
             }

@@ -83,6 +83,18 @@
         <p class="muted small" data-i18n="extraLangsHint"></p>
         <div id="extra-langs" class="extra-langs"></div>
       </section>
+      <!-- Kokeelliset ominaisuudet, oletuksena pois päältä. Nyt: kuvasta haku (📷, vain Android-sovellus). -->
+      <section id="experimental-section" class="experimental" hidden>
+        <label class="switch-row">
+          <span class="switch-text">
+            <span data-i18n="experimental">Kokeelliset ominaisuudet</span>
+            <span class="muted small"><span class="state-off" data-i18n="experimentalOff">Pois käytöstä</span><span
+              class="state-on" data-i18n="experimentalOn">Käytössä</span></span>
+          </span>
+          <input type="checkbox" id="experimental-toggle" class="switch" role="switch">
+        </label>
+        <p class="muted small" data-i18n="experimentalHint"></p>
+      </section>
     </aside>
 
     <main id="main">
@@ -156,16 +168,13 @@
       <button class="chip-btn" id="ocr-gallery" data-i18n="ocrGallery">🖼️ Valitse kuva</button>
       <button class="chip-btn" id="ocr-close" data-i18n="close">Sulje</button>
     </div>
-    <!-- Käännös: sanakirjan sanat käännettyinä kuvan päällä; Saame: kuva sellaisenaan, sanat alleviivattuina -->
-    <div class="ocr-bar">
-      <div id="ocr-mode" class="lang-switch ocr-mode" role="radiogroup">
-        <button data-mode="translate" data-i18n="ocrModeTranslate">Käännös</button>
-        <button data-mode="sami" data-i18n="ocrModeSami">Saame</button>
-      </div>
-      <p id="ocr-status" class="muted small"></p>
+    <p id="ocr-status" class="muted small"></p>
+    <!-- Kuva koko jäljellä olevalla alueella: zoomaus kahdella sormella, siirto vetämällä. Sanakirjan sanat
+         alleviivattuina; napautus avaa kuplan (sana ja käännös), kuplan napautus sanakirjan. -->
+    <div id="ocr-stage" class="ocr-stage">
+      <div id="ocr-photo" class="ocr-photo"></div>
+      <button id="ocr-bubble" class="ocr-bubble" hidden></button>
     </div>
-    <!-- Kuva koko jäljellä olevalla alueella: zoomaus kahdella sormella, siirto vetämällä -->
-    <div id="ocr-stage" class="ocr-stage"><div id="ocr-photo" class="ocr-photo"></div></div>
   </div>
 
   <div id="toast" class="toast" hidden></div>
