@@ -457,10 +457,12 @@ function selectResult(i, pushHistory = true) {
     encodeURIComponent(t("askAi", w.sme_lemma, wordClassLabel(w.pos, w.subtype).toLowerCase(), known)));
   updateFavButton();
 
-  // Ensimmäinen merkitys käyttörajoituksineen (esim. hyppiä – paksussa lumessa, porosta), valitulla
-  // kielellä tai sen puuttuessa ensimmäisellä muulla kielellä
-  // vain valitulla kielellä; jos sitä ei ole, "(ei suomennosta)" ja linkki muihin kieliin
-  const groups = meaningsByLanguage(data.meanings);
+  // Merkitykset vain käyttöliittymän kielellä ja Muut kielet -asetuksessa valituilla kielillä; muita kieliä
+  // ei näytetä missään (sanakortti, Merkitykset-välilehti), ennen kuin ne valitaan valikosta.
+  const meanings = data.meanings.filter((m) => m.lang === settings.lang || settings.extraLangs.includes(m.lang));
+  // Ensimmäinen merkitys käyttörajoituksineen (esim. hyppiä – paksussa lumessa, porosta) käyttöliittymän
+  // kielellä; jos sitä ei ole, "(ei suomennosta)" ja valittujen muiden kielten käännökset sen alla
+  const groups = meaningsByLanguage(meanings);
   const ownGroup = (groups.find(([lang]) => lang === settings.lang) || [settings.lang, []])[1];
   const first = ownGroup[0];
   let trans = first ? splitList(first.translations || first.explanations).slice(0, 4).join(", ") : translationOf(w, 3);
@@ -474,7 +476,7 @@ function selectResult(i, pushHistory = true) {
   renderGradation();
   renderInfo(w);
   renderTable();
-  renderMeanings(data.meanings);
+  renderMeanings(meanings);
   renderRaw();
   if (pushHistory) addHistory(w.sme_lemma);
 }
