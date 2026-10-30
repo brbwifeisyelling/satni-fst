@@ -52,6 +52,8 @@ const DEFAULT_SETTINGS = {
   // Muut kielet (asetus sivupaneelissa): näkyvät käännösvalikossa; oletuksena ei yhtään. Hakuun ne eivät vaikuta.
   extraLangs: [],
 };
+// Ensimmäinen käynnistys: asetuksia ei ole vielä tallennettu, joten kysytään käyttöliittymän kieli
+const FIRST_RUN = (() => { try { return localStorage.getItem("satni-settings") === null; } catch (e) { return false; } })();
 let settings = loadSettings();
 
 function loadSettings() {
@@ -88,7 +90,7 @@ function applyStaticTexts() {
   $("about-version").textContent = !version ? t("aboutWeb")
     : window.SATNI_PLATFORM === "android" ? t("aboutAndroid", version) : t("aboutDesktop", version);
   $("random-btn").textContent = t("randomWord");
-  setupPlatformLayout();
+  setupDrawerLayout();
 
   renderLangSelect();
 
@@ -97,24 +99,53 @@ function applyStaticTexts() {
   $("ui-lang-menu").innerHTML = Object.entries(UI_LANGUAGES).map(([code, l]) =>
     `<li role="menuitemradio" aria-checked="${code === settings.uiLang}" data-lang="${code}" tabindex="-1">` +
     `${FLAGS[code]}<span>${esc(l.name)}</span></li>`).join("");
-  $("welcome-lang").innerHTML = Object.entries(UI_LANGUAGES).map(([code, l]) =>
+  const langButtons = Object.entries(UI_LANGUAGES).map(([code, l]) =>
     `<button role="radio" aria-checked="${code === settings.uiLang}" data-lang="${code}"` +
     `${code === settings.uiLang ? ' class="active"' : ""}>${FLAGS[code]}<span>${esc(l.name)}</span></button>`).join("");
+  $("welcome-lang").innerHTML = langButtons;
+  $("drawer-lang").innerHTML = langButtons;
+  renderVoiceList();
 }
 
-// Android: ☰ avaa vasemmalta liukuvan valikon, johon siirretään ääni- ja astevalinnat (Androidin tavallinen
-// valikko). Työpöydällä ja selaimessa ne pysyvät hakukentän alla. SATNI_PLATFORM tulee Android-sovellukselta
-// sivun latauduttua (MainActivity.showVersion), joten tätä kutsutaan applyStaticTextsistä.
-function setupPlatformLayout() {
-  if (window.SATNI_PLATFORM !== "android" || document.body.classList.contains("platform-android")) return;
-  document.body.classList.add("platform-android");
+// ☰ vasemmassa yläkulmassa avaa vasemmalta liukuvan valikon (kuten Android-sovelluksissa yleensä), jossa ovat
+// käyttöliittymän kieli, teema, ääni ja aste sekä suosikit, historia ja muut kielet. Sama asettelu kaikilla
+// alustoilla (Android, työpöytä, selain); sisältö saa koko leveyden.
+function setupDrawerLayout() {
+  if (document.body.classList.contains("drawer-layout")) return;
+  document.body.classList.add("drawer-layout");
+  document.querySelector(".topbar").prepend($("sidebar-toggle"));
   const section = $("settings-section");
   section.classList.add("settings-section");
-  section.append($("grade-option"), $("voice-option"));
+  $("theme-row").append($("theme-select"));
+  section.insertBefore($("grade-option"), section.querySelector(".voice-head"));
   section.hidden = false;
 }
 
-// Android-sovelluksen takaisin-ele sulkee ensin valikon (MainActivity.goBackOrFinish)
+// Äänet valikossa: valinta ja 🔈-näyte, sama lause kaikilla äänillä. Näyte haetaan Divvunin puhesynteesistä
+// ensimmäisellä kuuntelukerralla ja tallennetaan laitteelle kuten muutkin ääntämiset (speak).
+const VOICE_SAMPLE = "Bures boahtin Sápmái";
+function renderVoiceList() {
+  $("voice-list").innerHTML = Object.keys(VOICES).map((name) =>
+    `<div class="voice-row"><label><input type="radio" name="voice" value="${name}"` +
+    `${name === settings.voice ? " checked" : ""}> ${esc(name)}</label>` +
+    `<button class="sample-btn" data-voice="${name}" aria-label="${esc(t("listenTo", name))}" ` +
+    `title="${esc(VOICE_SAMPLE)}">🔈</button></div>`).join("");
+}
+
+// Ensimmäinen käynnistys: valitaan suomi tai norja (ääni on oletus Biret, vaihdettavissa valikosta)
+function showFirstRun() {
+  $("first-run-lang").innerHTML = Object.entries(UI_LANGUAGES).map(([code, l]) =>
+    `<button data-lang="${code}">${FLAGS[code]}<span>${esc(l.name)}</span></button>`).join("");
+  $("first-run-lang").onclick = (e) => {
+    const b = e.target.closest("[data-lang]");
+    if (!b) return;
+    setUiLanguage(b.dataset.lang);
+    $("first-run").close();
+  };
+  $("first-run").showModal();
+}
+
+// Valikon sulkeminen: taustan napautus, Esc tai Android-sovelluksen takaisin-ele (MainActivity.goBackOrFinish)
 function closeDrawer() {
   const open = document.body.classList.contains("sidebar-open");
   document.body.classList.remove("sidebar-open");
@@ -779,8 +810,8 @@ const memoryCache = new Map();
 const IS_DESKTOP = location.protocol === "satni:";
 // Android-sovellus (android/) näyttää tiedostot APK:sta tällä osoitteella
 const IS_ANDROID = location.hostname === "appassets.androidplatform.net";
-async function speak(text, button) {
-  const voice = VOICES[settings.voice] || "biret";
+async function speak(text, button, voiceName = settings.voice) {
+  const voice = VOICES[voiceName] || "biret";
   const key = `tts-cache/${voice}/${encodeURIComponent(text)}`;
   if (button) button.disabled = true;
   if (button === $("speak-btn")) button.lastChild.textContent = t("fetching");
@@ -935,7 +966,19 @@ function bindEvents() {
     if (state.word) { renderTable(); renderRaw(); }
   };
   $("voice-select").value = settings.voice;
-  $("voice-select").onchange = (e) => { settings.voice = e.target.value; saveSettings(); };
+  $("voice-select").onchange = (e) => { settings.voice = e.target.value; saveSettings(); renderVoiceList(); };
+  $("voice-list").addEventListener("change", (e) => {
+    settings.voice = e.target.value; saveSettings();
+    $("voice-select").value = settings.voice;
+  });
+  $("voice-list").addEventListener("click", (e) => {
+    const b = e.target.closest(".sample-btn");
+    if (b) speak(VOICE_SAMPLE, b, b.dataset.voice);
+  });
+  $("drawer-lang").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-lang]");
+    if (b) setUiLanguage(b.dataset.lang);
+  });
   $("lang-select").onchange = (e) => {
     settings.lang = e.target.value; saveSettings();
     if (state.results.length) searchAgainKeepingWord();
@@ -986,6 +1029,7 @@ function bindEvents() {
   });
   $("sidebar-toggle").onclick = () => document.body.classList.toggle("sidebar-open");
   $("drawer-scrim").onclick = closeDrawer;
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
   $("sidebar").addEventListener("click", (e) => { if (e.target.closest("a")) document.body.classList.remove("sidebar-open"); });
   $("clear-history").onclick = () => { settings.history = []; saveSettings(); renderSidebar(); };
   window.addEventListener("popstate", routeFromHash);
@@ -1021,6 +1065,7 @@ async function main() {
   applyStaticTexts();
   bindEvents();
   renderSidebar();
+  if (FIRST_RUN) showFirstRun();
 
   // Service worker vain verkkosivuna (PWA); työpöytä- ja Android-sovellus lukevat tiedostot omasta paketistaan
   if ("serviceWorker" in navigator && location.protocol.startsWith("http") && !IS_ANDROID) {

@@ -71,9 +71,14 @@
   <div id="drawer-scrim" class="drawer-scrim"></div>
   <div class="layout">
     <aside id="sidebar" class="sidebar">
-      <!-- Android: ääni ja aste siirretään tänne valikkoon (app.js: setupPlatformLayout) -->
+      <!-- Asetukset: kieli, teema, aste ja ääni siirretään tänne valikkoon (app.js: setupDrawerLayout) -->
       <section id="settings-section" hidden>
         <h3 data-i18n="settings">Asetukset</h3>
+        <div class="setting-row stack"><span data-i18n="language">Kieli</span>
+          <div id="drawer-lang" class="lang-switch" role="radiogroup" data-i18n-aria="uiLanguage"></div></div>
+        <div class="setting-row" id="theme-row"><span data-i18n="theme">Teema</span></div>
+        <div class="setting-row voice-head"><span data-i18n="voice">Ääni</span></div>
+        <div id="voice-list" class="voice-list" role="radiogroup" data-i18n-aria="voice"></div>
       </section>
       <section>
         <h3 data-i18n="favourites">★ Suosikit</h3>
@@ -139,6 +144,13 @@
       <section id="panel-raw" class="card panel" hidden></section>
     </main>
   </div>
+
+  <!-- Ensimmäinen käynnistys: käyttöliittymän kieli (app.js: showFirstRun) -->
+  <dialog id="first-run" class="first-run">
+    <h2>Sátni FST</h2>
+    <p>Valitse kieli · Velg språk</p>
+    <div id="first-run-lang" class="first-run-lang"></div>
+  </dialog>
 
   <dialog id="about">
     <h2>Sátni FST</h2>

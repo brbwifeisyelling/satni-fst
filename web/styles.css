@@ -314,18 +314,45 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
   #theme-select { max-width: 96px; }
 }
 
-/* Android: sivupaneeli on vasemmalta liukuva valikko (☰), jossa myös asetukset (app.js: setupPlatformLayout).
-   Työpöydällä ja selaimessa asetukset ovat hakukentän alla. */
-body.platform-android .sidebar {
+/* Sivupaneeli on vasemmalta liukuva valikko (☰), jossa myös asetukset (app.js: setupDrawerLayout).
+   Sama kaikilla alustoilla: sisältö saa koko leveyden. */
+body.drawer-layout .layout { grid-template-columns: minmax(0, 1fr); }
+body.drawer-layout .sidebar {
   display: block; position: fixed; top: 8px; bottom: 0; left: 0; z-index: 40; max-height: none;
   width: min(85vw, 320px); overflow-y: auto; padding: 18px 16px 24px; border-radius: 0 12px 12px 0;
   background: var(--surface); box-shadow: 4px 0 24px rgba(0, 0, 0, .3);
   transform: translateX(-105%); transition: transform .2s ease-out;
 }
-body.platform-android.sidebar-open .sidebar { transform: none; }
+body.drawer-layout.sidebar-open .sidebar { transform: none; }
 .drawer-scrim { display: none; }
-body.platform-android.sidebar-open .drawer-scrim {
+body.drawer-layout.sidebar-open .drawer-scrim {
   display: block; position: fixed; inset: 0; z-index: 39; background: rgba(0, 0, 0, .45);
 }
-body.platform-android .icon-btn { display: inline-block; }
-.settings-section .check, .settings-section .voice { display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+body.drawer-layout .icon-btn { display: inline-block; }
+.settings-section .check { display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+/* ☰ vasempaan yläkulmaan; kieli, teema ja ääni ovat valikossa */
+body.drawer-layout .topbar { justify-content: flex-start; }
+body.drawer-layout .topbar .brand { flex: 1; }
+body.drawer-layout .ui-lang, body.drawer-layout #voice-option { display: none; }
+body.drawer-layout .topbar > #sidebar-toggle { margin-right: 4px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px; }
+.setting-row .lang-switch { float: none; }
+.setting-row.stack { flex-direction: column; align-items: flex-start; }
+.voice-head { padding-bottom: 0; }
+.voice-list { display: flex; flex-direction: column; padding: 0 8px 4px 16px; }
+.voice-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 0; }
+.voice-row label { display: flex; align-items: center; gap: 10px; flex: 1; padding: 6px 0; cursor: pointer; }
+.sample-btn {
+  border: 0; border-radius: 99px; background: var(--speak-bg); color: var(--speak); font-size: 18px;
+  width: 40px; height: 40px; cursor: pointer;
+}
+.sample-btn:disabled { opacity: .5; }
+.first-run { text-align: center; }
+.first-run p { color: var(--muted); }
+.first-run-lang { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.first-run-lang button {
+  display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 24px; font: inherit;
+  font-size: 18px; font-weight: 600; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface-alt); color: var(--text); cursor: pointer;
+}
+.first-run-lang svg { width: 32px; height: 22px; border-radius: 3px; }

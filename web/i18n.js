@@ -12,7 +12,7 @@ const UI_TEXTS = {
   fi: {
     title: "Sátni FST – pohjoissaamen sanakirja ja taivutin",
     brandSub: "Pohjoissaamen avoin sanakirja ja taivutusgeneraattori",
-    uiLanguage: "Käyttöliittymän kieli",
+    uiLanguage: "Käyttöliittymän kieli", language: "Kieli",
     sidebar: "Historia ja suosikit",
     theme: "Teema", themeAuto: "Automaattinen", themeLight: "Vaalea", themeDark: "Tumma",
     about: "Tietoa",
@@ -107,7 +107,7 @@ const UI_TEXTS = {
   nb: {
     title: "Sátni FST – nordsamisk ordbok og bøyingsverktøy",
     brandSub: "Åpen nordsamisk ordbok og bøyingsgenerator",
-    uiLanguage: "Språk i brukergrensesnittet",
+    uiLanguage: "Språk i brukergrensesnittet", language: "Språk",
     sidebar: "Historikk og favoritter",
     theme: "Tema", themeAuto: "Automatisk", themeLight: "Lyst", themeDark: "Mørkt",
     about: "Om",
