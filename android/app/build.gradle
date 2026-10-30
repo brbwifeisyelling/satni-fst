@@ -18,6 +18,13 @@ android {
         // Poistetaan, kun test yhdistetään deviin.
         applicationIdSuffix ".test"
         manifestPlaceholders = [appLabel: "Sátni FST test"]
+        // Tekstintunnistuksen natiivikirjasto on ~11 Mt suoritintyyppiä kohden: APK:hon vain puhelimien ARM-versiot.
+        // Emulaattorille (x86_64) build_apk.sh antaa -PsatniAbis=x86_64.
+        ndk { abiFilters.addAll((project.findProperty("satniAbis") ?: "arm64-v8a,armeabi-v7a").split(",")) }
+    }
+    // Natiivikirjastot pakattuina: APK on pienempi ladata, Android purkaa kirjaston asennettaessa
+    packaging {
+        jniLibs { useLegacyPackaging = true }
     }
 
     // Sama web-käyttöliittymä kuin PWA:ssa ja työpöytäversiossa (web/, sanakirja web/data/)
@@ -47,7 +54,9 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt")
             if (signingProps?.exists()) {
                 signingConfig signingConfigs.release
             }
