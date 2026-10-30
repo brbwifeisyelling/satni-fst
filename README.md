@@ -87,6 +87,24 @@ The finished apps are built from these steps. Most build steps run in Docker, so
 
 The web version (`web/`) needs only `python3 export_web_data.py` and any static web server.
 
+### Testing the Android app
+
+[`emulaattori.sh`](emulaattori.sh) runs Android emulators in Docker (needs `/dev/kvm`; the emulator and
+an Android 15 system image, ~5 GB, are downloaded on first use). There are two separate virtual devices,
+because Android won't install an app signed with a different key over the old one:
+
+| Device | Signing key | Install |
+|---|---|---|
+| `dev` | debug key | `./build_apk.sh --debug`, then `./emulaattori.sh asenna dev` |
+| `main` | release key | `./emulaattori.sh asenna main` (the published `dist/satni-fst.apk`); to test the update, `./build_apk.sh --testi` and `./emulaattori.sh asenna main testi` |
+
+```bash
+./emulaattori.sh kaynnista dev
+```
+
+Other commands: `jaa dev viesus` (share a word to the app), `kuva dev` (screenshot), `adb dev …`,
+`tila` and `pysayta`.
+
 The compiled FST models are included in [`src/fst/`](src/fst/SOURCE.md), so building
 [lang-sme](https://github.com/giellalt/lang-sme) yourself is not necessary.
 
