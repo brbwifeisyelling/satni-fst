@@ -9,6 +9,10 @@ const TTS_URL = "https://api-giellalt.uit.no/tts/se/";
 const VOICES = { "Biret": "biret", "Máhtte": "mahtte", "Sunná": "sunna" };
 // Giellateknon taivutusgeneraattori (vain linkki)
 const GIELLATEKNO_URL = "https://gtweb.uit.no/cgi-bin/smi/smi.cgi?text={word}&pos={pos}&lang=sme&mode=full&action=paradigm";
+// Haku muista lähteistä: sátni.org (Divvunin ja Giellateknon sanakirjat ja Giellagáldun termit) sekä ChatGPT
+// valmiilla kysymyksellä (i18n.js: askAi), jossa mukana sanakirjan tiedot taustaksi
+const SATNI_URL = "https://satni.org/{word}";
+const AI_URL = "https://chatgpt.com/?q={prompt}";
 const GIELLATEKNO_POS = { N: "N", V: "V", A: "A", ADV: "Adv", NUM: "Num", PRON: "Pron" };
 
 // Käännöskielet (GiellaLT:n dict-sme-*-sanakirjat) ja niiden sarakkeet tietokannassa; main = pääkieli
@@ -215,10 +219,13 @@ function queryDatabase(query) {
   };
   const cols = `id, sme_lemma, pos, subtype, ${TRANS_COLS}`;
 
-  // 1 = saamen perusmuoto; 6 = isolla kirjoitettu erisnimi, joka osui vain kirjainkoosta riippumatta
+  // 1 = saamen perusmuoto; 6 = isolla kirjoitettu erisnimi, joka osui vain kirjainkoosta riippumatta.
+  // Perusmuoto ilman käännöstä valitulla kielellä 5.5: ensin sana, jonka taivutusmuoto haku on
+  // (mas: vain dict-sme-nob:ssa omana sananaan, suomeksi ensin mii "mikä", jonka paikallissija mas on)
+  const col = LANGUAGES[settings.lang].col;
   for (const r of all(`SELECT ${cols} FROM dictionary WHERE lemma_fold = ?`, [q])) {
     const first = r.sme_lemma.charAt(0);
-    add(r, r.sme_lemma === query.trim() || first === first.toLowerCase() ? 1 : 6);
+    add(r, r.sme_lemma !== query.trim() && first !== first.toLowerCase() ? 6 : r[col] ? 1 : 5.5);
   }
   // 1.5 = käänteisen sanakirjan (dict-fin-sme, dict-nob-sme) hakusana, sen ensisijainen saamennos ensin;
   // 2 = ainoa käännös, 3 = ensimmäinen käännös, 4 = jokin muu; muun kuin valitun kielen osuma hieman alempana
@@ -242,7 +249,6 @@ function queryDatabase(query) {
   for (const r of all(`SELECT ${cols} FROM dictionary WHERE lemma_fold >= ? AND lemma_fold < ? ${phrases} LIMIT 60`, [q, q + "￿"])) add(r, 7);
 
   // Tasatilanteessa ensin sana, jolla on käännös valitulla kielellä (ei "(ingen norsk oversettelse)" ensimmäisenä)
-  const col = LANGUAGES[settings.lang].col;
   const translated = (r) => (r[col] ? 1 : 0);
   return [...found.values()]
     .sort((a, b) => a.rank - b.rank || translated(b) - translated(a) || (b.pos === "V") - (a.pos === "V")
@@ -323,6 +329,8 @@ function search(query, index = 0, pushHistory = true) {
     $("fav-btn").hidden = true;
     $("speak-btn").hidden = true;
     $("gt-link").hidden = true;
+    $("satni-link").hidden = true;
+    $("ai-link").hidden = true;
     $("translation").textContent = t("noHitsHint");
     $("more-meanings").textContent = "";
     $("gradation").innerHTML = "";
@@ -392,6 +400,14 @@ function selectResult(i, pushHistory = true) {
   $("gt-link").hidden = false;
   $("gt-link").href = GIELLATEKNO_URL.replace("{word}", encodeURIComponent(w.sme_lemma))
     .replace("{pos}", GIELLATEKNO_POS[w.pos.toUpperCase()] || "Any");
+  $("satni-link").hidden = false;
+  $("satni-link").href = SATNI_URL.replace("{word}", encodeURIComponent(w.sme_lemma));
+  // Kysymykseen sanakirjan käännökset pääkielillä (esim. vain norjaksi: politiijameašttir = politimester)
+  const known = Object.keys(LANGUAGES).filter((l) => LANGUAGES[l].main && w[LANGUAGES[l].col])
+    .map((l) => `${langName(l)}: ${splitList(w[LANGUAGES[l].col]).slice(0, 3).join(", ")}`);
+  $("ai-link").hidden = false;
+  $("ai-link").href = AI_URL.replace("{prompt}",
+    encodeURIComponent(t("askAi", w.sme_lemma, wordClassLabel(w.pos, w.subtype).toLowerCase(), known)));
   updateFavButton();
 
   // Ensimmäinen merkitys käyttörajoituksineen (esim. hyppiä – paksussa lumessa, porosta), valitulla

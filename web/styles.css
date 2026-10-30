@@ -192,7 +192,7 @@ main > * + * { margin-top: 12px; }
 .badge { background: var(--chip); color: var(--chip-text); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 600; }
 .star-btn { background: none; border: 0; font-size: 24px; color: var(--subtle); cursor: pointer; padding: 0 4px; }
 .star-btn.on { color: #eab308; }
-.word-actions { display: flex; gap: 8px; }
+.word-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .speak-btn, .gt-btn {
   display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; padding: 7px 12px;
   font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none;
@@ -202,6 +202,11 @@ main > * + * { margin-top: 12px; }
 .speak-btn:disabled { opacity: .7; cursor: progress; }
 .gt-btn { background: var(--gt-bg); color: var(--gt); }
 .gt-btn:hover { background: var(--gt-hover); }
+.ext-btn {
+  display: inline-flex; align-items: center; border-radius: 8px; padding: 7px 12px;
+  font-weight: 700; font-size: 14px; text-decoration: none; background: var(--chip); color: var(--chip-text);
+}
+.ext-btn:hover { background: var(--chip-hover); }
 .gt-mark { background: var(--gt); color: var(--gt-bg); border-radius: 5px; padding: 0 5px; font-size: 12px; }
 .translation { font-size: 19px; margin: 6px 0 10px; }
 .more { font-size: 14px; margin-left: 6px; text-decoration: none; }
