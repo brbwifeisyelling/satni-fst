@@ -235,7 +235,7 @@ table.paradigm tr.section td {
 }
 .form { cursor: pointer; border-radius: 4px; }
 .form:hover { background: var(--select); }
-.form.playing { outline: 2px solid var(--accent); }
+.form.picked { background: var(--select); outline: 2px solid var(--accent); }
 .pron { color: var(--muted); }
 .sep { color: var(--subtle); }
 .hint { color: var(--subtle); font-size: 13px; margin: 12px 0 0; }
@@ -334,15 +334,28 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 .ocr-bubble .b-word { font-weight: 700; font-size: 17px; }
 .ocr-bubble .b-lemma { color: var(--muted); font-weight: 400; font-size: 14px; }
 .ocr-bubble .b-trans { color: var(--muted); font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ocr-bubble .b-open, .ocr-bubble .b-speak {
+.ocr-bubble .b-open, .ocr-bubble .b-speak, .ocr-bubble .b-copy {
   flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
   background: var(--accent); color: var(--accent-text);
 }
 .ocr-bubble .b-speak { background: var(--speak-bg); color: var(--speak); margin-right: -4px; }
+.ocr-bubble .b-copy { background: var(--chip); color: var(--chip-text); }
+.ocr-bubble button { border: 0; padding: 0; font: inherit; cursor: pointer; }
+/* Sanakortin muodon kupla: sama ulkoasu kuin kuvan sanakuplalla, sivun päällä */
+.form-pop {
+  position: absolute; z-index: 30; padding: 6px 6px 6px 14px; gap: 10px;
+  border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+}
+.form-pop::before {
+  content: ""; position: absolute; left: var(--arrow, 50%); top: 100%; transform: translateX(-50%);
+  border: 9px solid transparent; border-top-color: var(--border);
+}
+.form-pop.below::before { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--border); }
+.form-pop .b-word { font-size: 16px; }
 
 /* Ei Androidin omaa napautuskorostusta (se korosti koko kuplan); painettu painike korostetaan itse */
 .ocr-stage, .ocr-stage * { -webkit-tap-highlight-color: transparent; }
-.ocr-bubble .b-speak, .ocr-bubble .b-open { transition: transform .1s, filter .1s; }
+.ocr-bubble .b-speak, .ocr-bubble .b-open, .ocr-bubble .b-copy { transition: transform .1s, filter .1s; }
 .ocr-bubble .pressed { filter: brightness(.8); transform: scale(.86); }
 
 /* Äänen haku: pyörivä kehä kaiutinkuvakkeen ympärillä (sanakortin Kuuntele ja kuvan sanakupla) */

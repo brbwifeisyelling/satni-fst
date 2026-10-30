@@ -68,7 +68,8 @@ class WebFileHandler(QWebEngineUrlSchemeHandler):
 
     Lisäksi satni://app/tts/<ääni>?text=... hakee ääntämisen Pythonilla (tts.py: oma varmennepaketti
     ja välimuisti ~/.cache/satni-fst/tts), koska sisäinen selain ei salli hakua omasta osoitteestaan
-    puhepalveluun.
+    puhepalveluun. satni://app/copy?text=... kopioi tekstin leikepöydälle (sanakortin Kopioi-painike):
+    sisäinen selain ei anna sivun kirjoittaa leikepöydälle.
     """
 
     tts_ready = Signal(object, object, object)  # job, äänitiedoston polku, virhe
@@ -82,6 +83,13 @@ class WebFileHandler(QWebEngineUrlSchemeHandler):
         path = job.requestUrl().path().lstrip("/") or "index.html"
         if path.startswith("tts/"):
             self.start_tts(job, path[4:])
+            return
+        if path == "copy":
+            QApplication.clipboard().setText(parse_qs(job.requestUrl().query()).get("text", [""])[0])
+            buffer = QBuffer(parent=job)
+            buffer.setData(QByteArray(b"ok"))
+            buffer.open(QBuffer.OpenModeFlag.ReadOnly)
+            job.reply(b"text/plain", buffer)
             return
         full = os.path.normpath(os.path.join(WEB_DIR, path))
         if not full.startswith(os.path.normpath(WEB_DIR) + os.sep) or not os.path.isfile(full):
@@ -238,7 +246,8 @@ def main():
 
 
 def start_self_test(app, window):
-    """--testaa: hakee sanan dagan ja testiäänen, tulostaa tuloksen ja sulkee ohjelman (paketoinnin tarkistus)."""
+    """--testaa: hakee sanan dagan ja testiäänen, kopioi sanan leikepöydälle, tulostaa tuloksen ja sulkee
+    ohjelman (paketoinnin tarkistus)."""
     from PySide6.QtCore import QTimer
     result = {"exit": 1}
     js_search = "if (typeof db !== 'undefined' && db) { location.hash = '#/sana/dagan'; 'ok' } else { 'wait' }"
@@ -250,7 +259,8 @@ def start_self_test(app, window):
               "fetch('tts/biret?text=bures').then(r => r.blob().then(b => window.__tts = r.status + ' ' + b.size))"
               ".catch(e => window.__tts = 'ERR ' + e.message);"
               "speak('bures').then(() => window.__speak = document.getElementById('toast').hidden ? 'ok' "
-              ": document.getElementById('toast').textContent)")
+              ": document.getElementById('toast').textContent);"
+              "copyText('dagan-testi')")
 
     def poll(tries=60):
         def got(answer):
@@ -266,8 +276,10 @@ def start_self_test(app, window):
 
     def report():
         def got(state):
-            print(f"Testi: {state}")
+            clip = app.clipboard().text()
+            print(f"Testi: {state} leikepöytä: {clip}")
             ok = all(part in (state or "") for part in ('"lemma":"dahkat"', '"tts":"200', '"speak":"ok"'))
+            ok = ok and clip == "dagan-testi"
             print("OK" if ok else "VIRHE")
             app.exit(0 if ok else 1)
         window.page.runJavaScript(js_state, 0, got)

@@ -405,6 +405,7 @@ function loadWord(id) {
 // --- Näkymät ---
 
 function showOnly(view) {
+  closeFormPop();
   $("welcome").hidden = view !== "welcome";
   $("loading").hidden = view !== "loading";
   for (const id of ["results", "word", "tabs"]) $(id).hidden = view !== "word";
@@ -479,6 +480,7 @@ function renderResults() {
 }
 
 function selectResult(i, pushHistory = true) {
+  closeFormPop();
   state.index = i;
   const r = state.results[i];
   if (i >= state.results.filter((x) => x.rank < PREFIX_RANK).length && !state.showPrefix) {
@@ -847,13 +849,14 @@ function renderRaw() {
   for (const [tag, forms] of state.paradigm) {
     html += `<div><span class="tag">${esc(tag)}</span>` + forms.map((f) => {
       const g = settings.showGrade ? state.grades.get(tag + "|" + f) : null;
-      return `<span class="${g === "GD" ? "gd" : g === "HD" ? "hd" : ""}">${esc(f)}</span>${g ? ` <span class="muted">${g}</span>` : ""}`;
+      return `<span class="form ${g === "GD" ? "gd" : g === "HD" ? "hd" : ""}" data-speak="${esc(f)}">${esc(f)}</span>${g ? ` <span class="muted">${g}</span>` : ""}`;
     }).join(", ") + `</div>`;
   }
   $("panel-raw").innerHTML = `<div class="raw">${html || esc(state.word.sme_lemma)}</div>`;
 }
 
 function setTab(tab) {
+  closeFormPop();
   state.tab = tab;
   for (const b of $("tabs").children) b.classList.toggle("active", b.dataset.tab === tab);
   for (const t of ["table", "meanings", "raw"]) $("panel-" + t).hidden = t !== tab;
@@ -1320,6 +1323,100 @@ function bindOcr() {
   bindOcrGestures();
 }
 
+// --- Sanakortin muodon kupla: napautettu muoto (taivutustaulukko, Kaikki muodot), kuuntele ja kopioi ---
+
+const COPY_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+  stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>`;
+const CHECK_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"
+  stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+let formPopTarget = null;
+
+function openFormPop(form) {
+  closeFormPop();
+  const pop = $("form-pop");
+  formPopTarget = form;
+  form.classList.add("picked");
+  pop.innerHTML = `<span class="b-word">${esc(form.textContent)}</span>`
+    + `<button class="b-speak" aria-label="${esc(t("listenTo", form.dataset.speak))}">${SPEAK_ICON}</button>`
+    + `<button class="b-copy" aria-label="${esc(t("copy"))}">${COPY_ICON}</button>`;
+  pop.hidden = false;
+  placeFormPop();
+}
+
+// Takaisin-ele (MainActivity.goBackOrFinish), Esc ja napautus muualle
+function closeFormPop() {
+  if (!formPopTarget) return false;
+  formPopTarget.classList.remove("picked");
+  formPopTarget = null;
+  $("form-pop").hidden = true;
+  return true;
+}
+
+// Kupla muodon yläpuolelle (tai alle, jos yläpuolella ei ole tilaa), sivun koordinaateissa
+function placeFormPop() {
+  if (!formPopTarget) return;
+  const pop = $("form-pop"), b = formPopTarget.getBoundingClientRect();
+  if (b.bottom < 0 || b.top > innerHeight) { closeFormPop(); return; }
+  const below = b.top < pop.offsetHeight + 16;
+  pop.classList.toggle("below", below);
+  const x = b.left + b.width / 2, half = pop.offsetWidth / 2;
+  const left = Math.min(Math.max(x, half + 8), document.documentElement.clientWidth - half - 8);
+  pop.style.left = `${left + scrollX}px`;
+  pop.style.top = `${(below ? b.bottom : b.top) + scrollY}px`;
+  pop.style.setProperty("--arrow", `${Math.min(Math.max(x - left + half, 16), half * 2 - 16)}px`);
+}
+
+// Leikepöydälle. Työpöytäsovelluksessa Python kopioi (satni_desktop.py: copy), muualla Clipboard API ja
+// vanhempi tapa (execCommand) varalla.
+async function copyText(text) {
+  if (IS_DESKTOP) { await fetch(`copy?text=${encodeURIComponent(text)}`); return; }
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const area = Object.assign(document.createElement("textarea"), { value: text });
+    area.style.cssText = "position:fixed;opacity:0";
+    document.body.append(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+  }
+}
+
+function bindFormPop() {
+  const pop = $("form-pop");
+  for (const id of ["panel-table", "panel-raw"]) {
+    $(id).addEventListener("click", (e) => {
+      const form = e.target.closest(".form");
+      if (form && form !== formPopTarget) openFormPop(form);
+      else closeFormPop();
+    });
+  }
+  // Painettu painike näkyy myös nopealla napautuksella (korostus pysyy hetken)
+  pop.addEventListener("pointerdown", (e) => e.target.closest("button")?.classList.add("pressed"));
+  const release = () => setTimeout(() => pop.querySelector(".pressed")?.classList.remove("pressed"), 180);
+  pop.addEventListener("pointerup", release);
+  pop.addEventListener("pointercancel", release);
+  pop.addEventListener("click", async (e) => {
+    const form = formPopTarget;
+    if (!form) return;
+    const speaker = e.target.closest(".b-speak"), copy = e.target.closest(".b-copy");
+    if (speaker && !speaker.classList.contains("loading")) speak(form.dataset.speak, speaker);
+    if (copy) {
+      await copyText(form.textContent);
+      copy.innerHTML = CHECK_ICON;
+      setTimeout(() => { if (copy.isConnected) copy.innerHTML = COPY_ICON; }, 1200);
+      // Android 13+ näyttää itse kopioidun tekstin
+      if (!(Number(navigator.userAgent.match(/Android (\d+)/)?.[1]) >= 13)) toast(t("copied", form.textContent), 1800);
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (formPopTarget && !e.target.closest("#form-pop, .form")) closeFormPop();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFormPop(); });
+  addEventListener("scroll", placeFormPop, true);
+  addEventListener("resize", placeFormPop);
+}
+
 // --- Osoite (#/sana/dahkat/1) ---
 
 // Muusta sovelluksesta jaettu teksti (Android: Jaa -> Sátni FST; asennettu selainversio:
@@ -1392,12 +1489,7 @@ function bindEvents() {
   $("more-meanings").onclick = (e) => { e.preventDefault(); setTab("meanings"); };
   $("speak-btn").onclick = () => speak(state.word.sme_lemma, $("speak-btn"));
   $("fav-btn").onclick = toggleFavourite;
-  $("panel-table").addEventListener("click", (e) => {
-    const form = e.target.closest(".form");
-    if (!form) return;
-    form.classList.add("playing");
-    speak(form.dataset.speak).finally(() => form.classList.remove("playing"));
-  });
+  bindFormPop();
   $("about-btn").onclick = () => $("about").showModal();
   $("welcome-lang").addEventListener("click", (e) => {
     const b = e.target.closest("[data-lang]");
