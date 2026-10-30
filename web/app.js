@@ -872,7 +872,6 @@ async function speak(text, button, voiceName = settings.voice) {
   const voice = VOICES[voiceName] || "biret";
   const key = `tts-cache/${voice}/${encodeURIComponent(text)}`;
   if (button) { button.disabled = true; button.classList.add("loading"); }  // pyörivä kehä (styles.css)
-  if (button === $("speak-btn")) button.lastChild.textContent = t("fetching");
   try {
     let blob = memoryCache.get(key);
     // Selaimen välimuisti vain verkkosivulla: Cache Storage hyväksyy vain http(s)-osoitteet.
@@ -904,7 +903,6 @@ async function speak(text, button, voiceName = settings.voice) {
     toast(t("ttsFailed", e.message));
   } finally {
     if (button) { button.disabled = false; button.classList.remove("loading"); }
-    if (button === $("speak-btn")) button.lastChild.textContent = t("listen");
   }
 }
 

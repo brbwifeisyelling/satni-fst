@@ -179,13 +179,19 @@ main > * + * { margin-top: 12px; }
 .star-btn { background: none; border: 0; font-size: 24px; color: var(--subtle); cursor: pointer; padding: 0 4px; }
 .star-btn.on { color: #eab308; }
 .word-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.speak-btn, .gt-btn {
+.gt-btn {
   display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; padding: 7px 12px;
   font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none;
 }
-.speak-btn { background: var(--speak-bg); color: var(--speak); }
+.speak-btn {
+  position: relative; flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px;
+  padding: 0; border: 0; border-radius: 50%; cursor: pointer; background: var(--speak-bg); color: var(--speak);
+  transition: transform .1s, filter .1s;
+}
+.speak-btn svg { width: 21px; height: 21px; }
 .speak-btn:hover { background: var(--speak-hover); }
-.speak-btn:disabled { opacity: .7; cursor: progress; }
+.speak-btn:active { transform: scale(.88); filter: brightness(.9); }
+.speak-btn:disabled { cursor: progress; }
 .gt-btn { background: var(--gt-bg); color: var(--gt); }
 .gt-btn:hover { background: var(--gt-hover); }
 .ext-btn {
@@ -360,14 +366,13 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 
 /* Äänen haku: pyörivä kehä kaiutinkuvakkeen ympärillä (sanakortin Kuuntele ja kuvan sanakupla) */
 @keyframes speak-spin { to { transform: rotate(360deg); } }
-.speak-btn .speaker, .ocr-bubble .b-speak { position: relative; }
-.speak-btn .speaker { display: inline-grid; place-items: center; width: 1.4em; height: 1.4em; }
-.speak-btn.loading .speaker::after, .ocr-bubble .b-speak.loading::after {
+.ocr-bubble .b-speak { position: relative; }
+.speak-btn.loading::after, .ocr-bubble .b-speak.loading::after {
   content: ""; position: absolute; inset: -5px; border-radius: 50%;
   border: 2.5px solid transparent; border-top-color: currentColor; border-left-color: currentColor;
   animation: speak-spin .8s linear infinite;
 }
-.speak-btn.loading .speaker::after { inset: -3px; border-width: 2px; }
+
 .ocr-bubble svg { width: 18px; height: 18px; }
 
 /* Kokeelliset ominaisuudet: kytkin valikon lopussa */

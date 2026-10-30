@@ -47,7 +47,7 @@ const UI_TEXTS = {
     welcomeTips: `<dt>Hae</dt><dd>saamen sanalla (dahkat), suomen sanalla (tehdä) tai taivutetulla muodolla (dagan).</dd>
       <dt>Taivutus</dt><dd>verbeillä kaikki tapaluokat, nomineilla sijamuodot (ol. ja ml.).</dd>
       <dt>Astevaihtelu</dt><dd>vahva aste <b class="gd">GD</b> vihreänä, heikko aste <b class="hd">HD</b> oranssina.</dd>
-      <dt>Ääntäminen</dt><dd>Kuuntele-nappi tai napautus taulukon muodossa.</dd>
+      <dt>Ääntäminen</dt><dd>🔈 sanan vieressä, tai napauta taulukon muotoa: kuuntele tai kopioi.</dd>
       <dt>Suosikit</dt><dd>★ tallentaa sanan omalle listalle.</dd>`,
     tryThese: "Kokeile:", randomWord: "Satunnainen sana",
     listen: "Kuuntele", fetching: "Haetaan…", listenTo: (text) => `Kuuntele: ${text}`,
@@ -68,7 +68,7 @@ const UI_TEXTS = {
     gradation: "Astevaihtelu", noGradation: "ei näkyvää astevaihtelua",
     gradeLegend: `Aste: <b class="gd">vihreä = GD</b> vahva aste &nbsp;&nbsp; <b class="hd">oranssi = HD</b> heikko aste`,
     noForms: "FST-generaattori ei tuottanut tälle sanalle taivutusmuotoja.",
-    tapHint: "Napauta muotoa kuullaksesi sen ääntämisen.",
+    tapHint: "Napauta muotoa: kuuntele tai kopioi.",
     noMeanings: "Ei merkitystietoja.", noExampleTranslation: "(ei käännöstä lähteessä)",
     usedIn: (place, code) => `käytössä ${place} (${code})`,
     geo: { N: "Norjassa", S: "Suomessa", R: "Ruotsissa" },
@@ -158,7 +158,7 @@ const UI_TEXTS = {
     welcomeTips: `<dt>Søk</dt><dd>med et samisk ord (dahkat), et norsk ord (gjøre) eller en bøyd form (dagan).</dd>
       <dt>Bøying</dt><dd>alle modi for verb, kasus for nomen (ol. og ml.).</dd>
       <dt>Stadieveksling</dt><dd>sterkt stadium <b class="gd">GD</b> i grønt, svakt stadium <b class="hd">HD</b> i oransje.</dd>
-      <dt>Uttale</dt><dd>Lytt-knappen, eller trykk på en form i tabellen.</dd>
+      <dt>Uttale</dt><dd>🔈 ved ordet, eller trykk på en form i tabellen: lytt eller kopier.</dd>
       <dt>Favoritter</dt><dd>★ lagrer ordet i din egen liste.</dd>`,
     tryThese: "Prøv:", randomWord: "Tilfeldig ord",
     listen: "Lytt", fetching: "Henter…", listenTo: (text) => `Lytt: ${text}`,
@@ -179,7 +179,7 @@ const UI_TEXTS = {
     gradation: "Stadieveksling", noGradation: "ingen synlig stadieveksling",
     gradeLegend: `Stadium: <b class="gd">grønn = GD</b> sterkt stadium &nbsp;&nbsp; <b class="hd">oransje = HD</b> svakt stadium`,
     noForms: "FST-generatoren ga ingen bøyingsformer for dette ordet.",
-    tapHint: "Trykk på en form for å høre uttalen.",
+    tapHint: "Trykk på en form: lytt eller kopier.",
     noMeanings: "Ingen opplysninger om betydning.", noExampleTranslation: "(ingen oversettelse i kilden)",
     usedIn: (place, code) => `brukt ${place} (${code})`,
     geo: { N: "i Norge", S: "i Finland", R: "i Sverige" },
