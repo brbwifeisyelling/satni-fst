@@ -113,3 +113,4 @@ footer { text-align: center; padding: 28px 16px 40px; color: var(--muted); font-
   .phone-row.steps figcaption { font-size: 12px; }
   .brand small { display: none; }
 }
+.share-steps { margin-top: 28px; }

@@ -168,6 +168,18 @@
       <button class="chip-btn" id="ocr-gallery" data-i18n="ocrGallery">🖼️ Valitse kuva</button>
       <button class="chip-btn" id="ocr-close" data-i18n="close">Sulje</button>
     </div>
+    <!-- Suunta (saame -> käyttöliittymän kieli tai toisin päin) ja merkintätyyli (kehys/alleviivaus, väri) -->
+    <div class="ocr-bar">
+      <button class="ocr-dir" id="ocr-dir"></button>
+      <button class="ocr-style-btn" id="ocr-style-btn" data-i18n-title="ocrStyle" data-i18n-aria="ocrStyle"></button>
+      <div id="ocr-style" class="ocr-style" hidden>
+        <div class="lang-switch ocr-seg" id="ocr-style-seg" role="radiogroup">
+          <button data-style="frame" data-i18n="ocrFrame">Kehys</button>
+          <button data-style="underline" data-i18n="ocrUnderline">Alleviivaus</button>
+        </div>
+        <div class="ocr-swatches" id="ocr-swatches" role="radiogroup"></div>
+      </div>
+    </div>
     <p id="ocr-status" class="muted small"></p>
     <!-- Kuva koko jäljellä olevalla alueella: zoomaus kahdella sormella, siirto vetämällä. Sanakirjan sanat
          alleviivattuina; napautus avaa kuplan (sana, käännös, kuuntele), kuplan napautus sanakirjan. -->

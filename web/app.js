@@ -54,6 +54,8 @@ const DEFAULT_SETTINGS = {
   extraLangs: [],
   // Kokeelliset ominaisuudet (valikon lopussa): nyt kuvasta haku Android-sovelluksessa
   experimental: false,
+  // Kuvasta haku: suunta ("sme" = saamen teksti, "ui" = käyttöliittymän kielen teksti), merkintätapa ja väri
+  ocrFrom: "sme", ocrStyle: "frame", ocrColor: "#2563eb",
 };
 // Ensimmäinen käynnistys: asetuksia ei ole vielä tallennettu, joten kysytään käyttöliittymän kieli
 const FIRST_RUN = (() => { try { return localStorage.getItem("satni-settings") === null; } catch (e) { return false; } })();
@@ -865,7 +867,7 @@ const IS_ANDROID = location.hostname === "appassets.androidplatform.net";
 async function speak(text, button, voiceName = settings.voice) {
   const voice = VOICES[voiceName] || "biret";
   const key = `tts-cache/${voice}/${encodeURIComponent(text)}`;
-  if (button) button.disabled = true;
+  if (button) { button.disabled = true; button.classList.add("loading"); }  // pyörivä kehä (styles.css)
   if (button === $("speak-btn")) button.lastChild.textContent = t("fetching");
   try {
     let blob = memoryCache.get(key);
@@ -897,7 +899,7 @@ async function speak(text, button, voiceName = settings.voice) {
   } catch (e) {
     toast(t("ttsFailed", e.message));
   } finally {
-    if (button) button.disabled = false;
+    if (button) { button.disabled = false; button.classList.remove("loading"); }
     if (button === $("speak-btn")) button.lastChild.textContent = t("listen");
   }
 }
@@ -995,8 +997,7 @@ function ocrCorrector() {
         if (isSami(v)) return v;
       }
     }
-    // Suomen- tai norjankielinen sana (ei pelkkä "alkaa hakusanalla" -osuma)
-    return queryDatabase(word).some((r) => r.rank < PREFIX_RANK) ? word.toLowerCase() : null;
+    return null;
   };
   return {
     correct: (word) => { if (!cache.has(word)) cache.set(word, correct(word)); return cache.get(word); },
@@ -1010,6 +1011,7 @@ let ocrReturnHash = null;  // kuvasta avatun sanan osoite: takaisin-ele palaa si
 
 function openOcr() {
   $("ocr-view").hidden = false;
+  applyOcrLook();
   if (ocr) layoutOcr(false);
   else $("ocr-status").textContent = t("ocrIntro");
 }
@@ -1035,53 +1037,96 @@ function scanPhoto(source) {
   window.SatniOcr.scan(source);
 }
 
-// Kuplan teksti: saamen sana (perusmuoto tai taivutusmuoto) -> perusmuoto ja käännös käyttöliittymän kielellä;
-// suomen- tai norjankielinen sana -> saamennos.
+// Saamen tekstissä sana on saamen perusmuoto tai taivutusmuoto (korjattu tarkkeet, ocrCorrector); suomen- tai
+// norjankielisessä tekstissä sana löytyy käännöksistä, myös taivutettuna (taloon -> talo -> viessu).
 const SAMI_RANKS = [1, 1.2, 5, 5.5, 6];
+const uiRows = (word) => queryDatabase(word).filter((r) => r.rank < PREFIX_RANK && !SAMI_RANKS.includes(r.rank));
+
+// Kuplan teksti. Saamesta: perusmuoto ja käännös käyttöliittymän kielellä; kuuntele lausuu kuvan sanan.
+// Suomesta/norjasta: saamennokset; kuuntele lausuu ensimmäisen saamennoksen.
 function ocrGloss(word) {
-  const row = queryDatabase(word).find((r) => r.rank < PREFIX_RANK);
-  if (!row) return { trans: "" };
-  if (!SAMI_RANKS.includes(row.rank)) return { trans: row.sme_lemma };
-  return { lemma: fold(row.sme_lemma) !== fold(word) ? row.sme_lemma : "", trans: translationOf(row, 2) };
+  if (settings.ocrFrom === "ui") {
+    const rows = uiRows(word);
+    const base = rows.find((r) => r.via)?.via.base;
+    const sami = [...new Set(rows.map((r) => r.sme_lemma))];
+    return { lemma: base && base !== word ? base : "", trans: sami.slice(0, 3).join(", "), say: sami[0] || "" };
+  }
+  const row = queryDatabase(word).find((r) => SAMI_RANKS.includes(r.rank));
+  if (!row) return { trans: "", say: word };
+  return { lemma: fold(row.sme_lemma) !== fold(word) ? row.sme_lemma : "", trans: translationOf(row, 2), say: word };
 }
 
 function ocrResult(r) {
   if (!r) { $("ocr-status").textContent = ocr ? ocr.status : t("ocrIntro"); return; }  // kuvan otto peruttiin
   if (r.error) { $("ocr-status").textContent = t(r.error === "noApp" ? "ocrNoApp" : "ocrError"); return; }
-  const corrector = ocrCorrector();
-  const words = r.words.map((w) => {
-    const clean = w.t.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
-    return { ...w, word: clean.length > 1 ? corrector.correct(clean) : null };
-  }).filter((w) => w.word);
-  corrector.free();
-  const found = new Set(words.map((w) => w.word)).size;
-  const status = !r.words.length ? t("ocrNoText") : found ? t("ocrFound", found) : t("ocrNoWords");
-  ocr = { r, words, status, picked: null };
+  for (const w of r.words) w.clean = w.t.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
+  ocr = { r, view: null };
   ocrReturnHash = null;
+  analyzeOcr();
+}
+
+// Kuvan sanat valitun suunnan mukaan; suunnan vaihto laskee ne uudelleen samasta kuvasta
+function analyzeOcr() {
+  const { r } = ocr;
+  const corrector = settings.ocrFrom === "sme" ? ocrCorrector() : null;
+  const cache = new Map();
+  const match = (clean) => {
+    if (clean.length < 2) return null;
+    if (corrector) return corrector.correct(clean);
+    if (!cache.has(clean)) cache.set(clean, uiRows(clean).length ? clean.toLowerCase() : null);
+    return cache.get(clean);
+  };
+  const words = r.words.map((w) => ({ ...w, word: match(w.clean) })).filter((w) => w.word);
+  corrector?.free();
+  const found = new Set(words.map((w) => w.word)).size;
+  ocr.words = words;
+  ocr.picked = null;
+  ocr.status = !r.words.length ? t("ocrNoText") : found ? t("ocrFound", found) : t("ocrNoWords");
   $("ocr-bubble").hidden = true;
   $("ocr-photo").innerHTML = `<img src="${r.image}" alt="">`
     + words.map((w, i) => `<div class="ocr-word" data-i="${i}"></div>`).join("");
-  layoutOcr(true);
+  layoutOcr(!ocr.view);
 }
 
-// Kuva sovitetaan alueeseen kokonaan näkyviin, ja alleviivaukset asetetaan kuvan pikseleistä sovitettuun kokoon
+// Kuva sovitetaan alueeseen kokonaan näkyviin, ja merkinnät asetetaan kuvan pikseleistä sovitettuun kokoon
 function layoutOcr(reset) {
   const stage = $("ocr-stage"), photo = $("ocr-photo");
   $("ocr-status").textContent = ocr.status;
+  applyOcrLook();
   const { r, words } = ocr;
   const k = Math.min(stage.clientWidth / r.width, stage.clientHeight / r.height);
   ocr.base = { w: r.width * k, h: r.height * k };
   photo.style.width = `${ocr.base.w}px`;
   photo.style.height = `${ocr.base.h}px`;
+  const frame = settings.ocrStyle === "frame";
   for (const el of photo.querySelectorAll(".ocr-word")) {
-    const w = words[el.dataset.i];
+    const w = words[el.dataset.i], h = w.h * k;
     Object.assign(el.style, {
-      left: `${w.cx * k}px`, top: `${w.cy * k}px`, width: `${w.w * k + 2}px`, height: `${w.h * k * 1.15}px`,
+      left: `${w.cx * k}px`, top: `${w.cy * k}px`,
+      width: `${w.w * k + (frame ? h * 0.3 : 2)}px`, height: `${h * (frame ? 1.3 : 1.15)}px`,
       transform: `translate(-50%, -50%) rotate(${w.a || 0}deg)`,
     });
   }
   if (reset || !ocr.view) ocr.view = { s: 1, x: 0, y: 0 };
   applyOcrView();
+}
+
+// Suuntapainike (Saame → Suomi), merkintätapa ja väri asetuksista
+const OCR_COLORS = ["#2563eb", "#16a34a", "#ea580c", "#db2777", "#7c3aed", "#ca8a04"];
+const SWAP_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+  stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/></svg>`;
+function applyOcrLook() {
+  const [from, to] = settings.ocrFrom === "ui" ? [t("ocrUiLang"), t("ocrSami")] : [t("ocrSami"), t("ocrUiLang")];
+  $("ocr-dir").innerHTML = `<span>${esc(from)} → ${esc(to)}</span>${SWAP_ICON}`;
+  $("ocr-dir").title = t("ocrDirTitle");
+  $("ocr-style-btn").innerHTML = "<span></span>";
+  $("ocr-style-btn").style.setProperty("--mark-preview", settings.ocrColor);
+  const photo = $("ocr-photo");
+  photo.classList.toggle("style-frame", settings.ocrStyle === "frame");
+  photo.classList.toggle("style-underline", settings.ocrStyle !== "frame");
+  photo.style.setProperty("--mark", settings.ocrColor);
+  for (const b of $("ocr-style-seg").children) b.classList.toggle("active", b.dataset.style === settings.ocrStyle);
+  for (const b of $("ocr-swatches").children) b.classList.toggle("active", b.dataset.color === settings.ocrColor);
 }
 
 // Napautettu sana: kupla sanan yläpuolelle (tai alle, jos yläpuolella ei ole tilaa); null sulkee kuplan.
@@ -1101,7 +1146,7 @@ function pickOcrWord(i) {
   bubble.innerHTML = `<span class="b-text"><span class="b-word">${esc(w.word)}${w.gloss.lemma
     ? ` <span class="b-lemma">(${esc(w.gloss.lemma)})</span>` : ""}</span>${w.gloss.trans
     ? `<span class="b-trans">${esc(w.gloss.trans)}</span>` : ""}</span><span class="b-speak" role="button"
-    aria-label="${esc(t("listen"))}">${SPEAK_ICON}</span><span class="b-open">${OPEN_ICON}</span>`;
+    aria-label="${esc(t("listen"))}" ${w.gloss.say ? "" : "hidden"}>${SPEAK_ICON}</span><span class="b-open">${OPEN_ICON}</span>`;
   bubble.setAttribute("aria-label", w.word);
   bubble.hidden = false;
   placeOcrBubble();
@@ -1124,9 +1169,15 @@ function placeOcrBubble() {
   bubble.style.setProperty("--arrow", `${Math.min(Math.max(x - left + half, 16), half * 2 - 16)}px`);
 }
 
-// Kuplasta sanakirjaan; takaisin-ele palaa kuvaan (backToOcr)
+// Kuplasta sanakirjaan; takaisin-ele palaa kuvaan (backToOcr). Napautuksen perään selain lähettää vielä
+// click-tapahtuman samaan kohtaan, joka on nyt sanakortilla (esim. sátni.org-linkki): se ohitetaan.
+let suppressClickUntil = 0;
+document.addEventListener("click", (e) => {
+  if (Date.now() < suppressClickUntil) { e.preventDefault(); e.stopPropagation(); }
+}, true);
 function openOcrWord() {
   const w = ocr.words[ocr.picked];
+  suppressClickUntil = Date.now() + 700;
   $("ocr-view").hidden = true;
   search(w.word);
   ocrReturnHash = location.hash;
@@ -1151,7 +1202,13 @@ function bindOcrGestures() {
   const pointers = new Map();
   let tap = null, lastTap = 0, prev = null, pressed = null;
   // Painettava kuplan painike: kuuntele, tai sanakirjalinkki kun painetaan muuta kuplan kohtaa
-  const press = (el) => { pressed?.classList.remove("pressed"); pressed = el; el?.classList.add("pressed"); };
+  // Korostus pysyy hetken irrottamisen jälkeen, jotta nopeakin napautus näkyy
+  const press = (el) => {
+    const old = pressed;
+    if (old && old !== el) setTimeout(() => old.classList.remove("pressed"), 180);
+    pressed = el;
+    el?.classList.add("pressed");
+  };
   const local = (e) => { const b = stage.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; };
   const pinch = () => {
     const [a, b] = [...pointers.values()];
@@ -1164,6 +1221,7 @@ function bindOcrGestures() {
     v.s = s;
   };
   stage.addEventListener("pointerdown", (e) => {
+    $("ocr-style").hidden = true;
     if (!ocr) return;
     stage.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, local(e));
@@ -1199,10 +1257,7 @@ function bindOcrGestures() {
     const word = target?.closest(".ocr-word");
     const speaker = target?.closest(".b-speak");
     if (speaker) {
-      if (!speaker.classList.contains("busy")) {
-        speaker.classList.add("busy");
-        speak(ocr.words[ocr.picked].word).finally(() => speaker.classList.remove("busy"));
-      }
+      if (!speaker.classList.contains("loading")) speak(ocr.words[ocr.picked].gloss.say, speaker);
     } else if (target?.closest("#ocr-bubble")) openOcrWord();
     else if (word) {
       if (Number(word.dataset.i) === ocr.picked) openOcrWord();
@@ -1240,6 +1295,27 @@ function bindOcr() {
   $("ocr-camera").onclick = () => scanPhoto("camera");
   $("ocr-gallery").onclick = () => scanPhoto("gallery");
   $("ocr-close").onclick = () => { if (ocr) pickOcrWord(null); $("ocr-view").hidden = true; };
+  $("ocr-swatches").innerHTML = OCR_COLORS.map((c) =>
+    `<button data-color="${c}" style="--c:${c}" aria-label="${c}"></button>`).join("");
+  const relook = () => { saveSettings(); if (ocr) layoutOcr(false); else applyOcrLook(); };
+  $("ocr-dir").onclick = () => {
+    settings.ocrFrom = settings.ocrFrom === "ui" ? "sme" : "ui";
+    saveSettings();
+    if (ocr) analyzeOcr(); else applyOcrLook();
+  };
+  $("ocr-style-btn").onclick = (e) => { e.stopPropagation(); $("ocr-style").hidden = !$("ocr-style").hidden; };
+  $("ocr-style-seg").onclick = (e) => {
+    const b = e.target.closest("[data-style]");
+    if (b) { settings.ocrStyle = b.dataset.style; relook(); }
+  };
+  $("ocr-swatches").onclick = (e) => {
+    const b = e.target.closest("[data-color]");
+    if (b) { settings.ocrColor = b.dataset.color; relook(); }
+  };
+  $("ocr-view").addEventListener("click", (e) => {
+    if (!e.target.closest("#ocr-style, #ocr-style-btn")) $("ocr-style").hidden = true;
+  });
+  applyOcrLook();
   bindOcrGestures();
 }
 
