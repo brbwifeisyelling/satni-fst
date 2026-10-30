@@ -85,18 +85,25 @@ h3 { font-size: 17px; margin: 0 0 6px; }
 .card strong { font-size: 18px; color: var(--accent); }
 .card .size { font-size: 13px; color: var(--muted); }
 
+.new-grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 32px; align-items: start; }
+.new-text h3 { margin-top: 18px; }
+.new-text h3:first-child { margin-top: 0; }
+.new-text p { margin: 0; color: var(--muted); }
+.phone-row.steps { grid-template-columns: repeat(3, 1fr); }
 .story p { max-width: 760px; font-size: 17px; margin: 0; }
 .credits ul { padding-left: 20px; }
 .credits li { margin: 4px 0; }
 footer { text-align: center; padding: 28px 16px 40px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); }
 
 @media (max-width: 860px) {
-  .hero { grid-template-columns: 1fr; }
+  .hero, .new-grid { grid-template-columns: 1fr; }
   .features { grid-template-columns: 1fr 1fr; }
   .phone-row, .cards { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 520px) {
   section { padding: 36px 0; }
   .features { grid-template-columns: 1fr; }
+  .phone-row.steps { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .phone-row.steps figcaption { font-size: 12px; }
   .brand small { display: none; }
 }
