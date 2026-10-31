@@ -191,12 +191,12 @@ function showRelease() {
   info.textContent = t.release(release.tag_name, date);
 }
 
-// Uusin julkaisu, myös esijulkaisu (GitHubin "latest" ohittaa esijulkaisut)
+// Uusin vakaa julkaisu: esijulkaisut (testiversiot, esim. v0.8.2-dev) ja luonnokset ohitetaan
 async function loadRelease() {
   try {
     const res = await fetch("https://api.github.com/repos/sombyduodji/satni-fst/releases?per_page=10");
     if (!res.ok) throw new Error(res.status);
-    release = (await res.json()).find((r) => !r.draft) || false;
+    release = (await res.json()).find((r) => !r.draft && !r.prerelease) || false;
   } catch (e) {
     release = false;
   }
