@@ -18,9 +18,13 @@ combines their work into one offline app.
 | North Sámi → Southern Sámi | Southern Sámi translations | [giellalt/dict-sme-sma](https://github.com/giellalt/dict-sme-sma) |
 | Finnish → North Sámi | Searching with Finnish words | [giellalt/dict-fin-sme](https://github.com/giellalt/dict-fin-sme) |
 | Norwegian → North Sámi | Searching with Norwegian words | [giellalt/dict-nob-sme](https://github.com/giellalt/dict-nob-sme) |
+| Skolt Sámi → Finnish, Norwegian … | Skolt Sámi words (experimental) | [giellalt/dict-sms-mul](https://github.com/giellalt/dict-sms-mul) |
+| Finnish → Skolt Sámi | Skolt Sámi words (experimental) | [giellalt/dict-fin-sms](https://github.com/giellalt/dict-fin-sms) (CC BY 3.0) |
+| Norwegian → Skolt Sámi | Skolt Sámi words (experimental) | [giellalt/dict-nob-sms](https://github.com/giellalt/dict-nob-sms) |
 
 All are © GiellaLT / Divvun / Giellatekno and their contributors, licensed under
-[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
+[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/), except
+`dict-fin-sms`, which is under [CC BY 3.0 Unported](https://creativecommons.org/licenses/by/3.0/).
 `dict-sme-fin` is included in this repository as an unmodified copy ([dict-sme-fin/SOURCE.md](dict-sme-fin/SOURCE.md));
 the others are downloaded from GiellaLT by [`hae_sanakirjat.sh`](hae_sanakirjat.sh) and are not part
 of this repository.
@@ -35,6 +39,12 @@ CC BY 4.0 requires saying what was changed. When building the app's database,
 - adds inflection tables and consonant gradation generated with the lang-sme FST (below);
 - applies hand-made corrections from [`korjaukset.tsv`](korjaukset.tsv);
 - replaces Norwegian letters in Finnish translations (æ → ä, ø → ö) and drops empty placeholders such as `_FIN_`.
+
+The Skolt Sámi dictionaries are not merged into the North Sámi data. [`skolt_data.py`](skolt_data.py) keeps, for
+each Finnish and Norwegian word, at most three Skolt Sámi words that the dictionaries give most strongly (same word
+class, main meaning, both sources agreeing). There is no North Sámi–Skolt Sámi dictionary: the app shows Skolt Sámi
+words for a Finnish or Norwegian search word, or for a North Sámi word through its Finnish translation, marked
+"via Finnish". This is an experimental feature.
 
 ## Morphology — GiellaLT lang-sme, GPL-3.0
 
@@ -83,8 +93,9 @@ has given permission (2026-10-30) to keep generated samples in the app.
 
 ## Other links
 
-The "Giellatekno" button opens the word's full paradigm in Giellatekno's
-[online paradigm generator](https://gtweb.uit.no/) (link only).
+The "Neahttadigisánit" button opens the word in Giellatekno's online dictionary
+[Neahttadigisánit](https://sanit.oahpa.no/) (link only): translations, analyses, word history and a search in texts
+(Korp).
 
 ## Software
 

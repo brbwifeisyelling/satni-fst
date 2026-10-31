@@ -41,6 +41,18 @@ dict-sme-smn, dict-sme-smj, dict-sme-sma, dict-fin-sme and dict-nob-sme
   consonant gradation and hand-made corrections (korjaukset.tsv in the
   source code); Norwegian letters in Finnish translations were fixed.
 
+Skolt Sámi (experimental): GiellaLT dict-sms-mul, dict-fin-sms and
+dict-nob-sms
+  © GiellaLT / Divvun / Giellatekno, UiT The Arctic University of Norway,
+  and contributors.
+  Licence: CC BY 4.0 (CC-BY-4.0.txt); dict-fin-sms: Creative Commons
+  Attribution 3.0 Unported (CC-BY-3.0.txt,
+  https://creativecommons.org/licenses/by/3.0/)
+  Source: https://github.com/giellalt
+  Changes: for each Finnish and Norwegian word, at most three Skolt Sámi
+  words are kept (same word class, main meaning, both sources agreeing).
+  For a North Sámi word they are found through its Finnish translation.
+
 North Sámi morphology: GiellaLT lang-sme
   Authors: Linda Wiechetek, Katri Hiovain-Asikainen, Inga Lill Sigga
   Mikkelsen, Sjur N. Moshagen, Flammie A Pirinen, Trond Trosterud,

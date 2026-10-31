@@ -7,9 +7,15 @@ const TEXTS = {
     open: "Avaa sanakirja selaimessa",
     download: "Lataa sovellus",
     openNote: "Selainversio lataa sanakirjan (40 Mt) ensimmäisellä kerralla ja toimii sen jälkeen myös ilman verkkoa.",
-    newH: "Uutta versioissa 0.8 ja 0.8.1",
+    newH: "Uutta versiossa 0.9",
+    v090: "Versio 0.9",
+    w1h: "Haku liitepartikkelien kanssa", w1: "Sanan voi hakea liitepartikkelin kanssa, saameksi tai suomeksi: boađátgo ja tuletko löytävät sanan boahtit. Sanakortti selittää liitteen (boađátgo = boađát + -go) ja näyttää sen myös suomeksi (≈ tuletko).",
+    w2h: "Tarkoititko?", w2: "Jos saamen erikoiskirjaimet jäävät pois, sovellus ehdottaa oikeaa sanaa: boadatgo → boađátgo, cahci → čáhci.",
+    w3h: "Kokeiltavaksi: koltansaame", w3: "Valikon kokeellisista ominaisuuksista voi kytkeä päälle koltansaamen sanat sanakorttiin (talo → tääll, põrtt). Koltansaamen osaaja ei ole vielä tarkistanut aineistoa.",
+    w4h: "Muuta uutta", w4: "Neahttadigisánit-sanakirja yhdellä napautuksella, valikon kielet kytkiminä, ja hakuehdotuksesta avautuu juuri valittu sana (vuostá = juusto tai vastaan).",
+    wcap: "boađátgo ≈ tuletko",
     v081: "Versio 0.8.1", u1h: "Kuvahaku ei enää näytä jumittuvan",
-    u1: "Kuvan päällä pyörii latauskehä, kun tekstiä tunnistetaan ja sanoja haetaan – myös kun suuntaa vaihdetaan kuvan ollessa auki. Tietoa-ikkunan lopussa on nyt Buy me a coffee -linkki.", olderH: "Aiemmat versiot 0.7.3–0.7.6.1", r2: "Napauta muotoa: kuuntele tai kopioi",
+    u1: "Kuvan päällä pyörii latauskehä, kun tekstiä tunnistetaan ja sanoja haetaan – myös kun suuntaa vaihdetaan kuvan ollessa auki. Tietoa-ikkunan lopussa on nyt Buy me a coffee -linkki.", olderH: "Aiemmat versiot 0.7.3–0.8.1", r2: "Napauta muotoa: kuuntele tai kopioi",
     v080: "Versio 0.8", r1h: "Uudistettu sanakortti",
     r1: "Napauta mitä tahansa taivutusmuotoa: kuplasta voit kuunnella tai kopioida sen. Astevaihtelu näkyy selkeinä soluina (vahva → heikko aste, konsonantit, asteet), ja Giellateknon ja sátni.orgin napit ovat kohdassa Sanasta muualla. ChatGPT-nappi on poistettu. Kuvahaun merkinnät ovat saamelaislipun väreissä.",
     v076: "Versio 0.7.6.1", o1h: "Kokeiltavaksi: hae sanaa valokuvasta",
@@ -59,9 +65,15 @@ const TEXTS = {
     open: "Åpne ordboka i nettleseren",
     download: "Last ned appen",
     openNote: "Nettversjonen laster ned ordboka (40 MB) første gang og virker deretter også uten nett.",
-    newH: "Nytt i versjon 0.8 og 0.8.1",
+    newH: "Nytt i versjon 0.9",
+    v090: "Versjon 0.9",
+    w1h: "Søk med klitikon", w1: "Du kan søke på et ord med klitikon: boađátgo finner boahtit, og ordkortet forklarer klitikonet (boađátgo = boađát + -go, spørrepartikkel).",
+    w2h: "Mente du?", w2: "Hvis de samiske bokstavene mangler, foreslår appen riktig ord: boadatgo → boađátgo, cahci → čáhci.",
+    w3h: "Til utprøving: skoltesamisk", w3: "Under eksperimentelle funksjoner i menyen kan du slå på skoltesamiske ord på ordkortet (hus → põrtt). Materialet er ennå ikke kontrollert av noen som kan skoltesamisk.",
+    w4h: "Annet nytt", w4: "Ordboka Neahttadigisánit med ett trykk, språkene i menyen som brytere, og forslaget du velger i søkefeltet åpner akkurat det ordet (vuostá = ost eller mot).",
+    wcap: "boađátgo = boađát + -go",
     v081: "Versjon 0.8.1", u1h: "Bildesøket ser ikke lenger ut til å henge",
-    u1: "En lastering snurrer over bildet mens teksten gjenkjennes og ordene søkes opp – også når du bytter retning med bildet åpent. Nederst i Om-vinduet er det nå en Buy me a coffee-lenke.", olderH: "Tidligere versjoner 0.7.3–0.7.6.1", r2: "Trykk på en form: lytt eller kopier",
+    u1: "En lastering snurrer over bildet mens teksten gjenkjennes og ordene søkes opp – også når du bytter retning med bildet åpent. Nederst i Om-vinduet er det nå en Buy me a coffee-lenke.", olderH: "Tidligere versjoner 0.7.3–0.8.1", r2: "Trykk på en form: lytt eller kopier",
     v080: "Versjon 0.8", r1h: "Fornyet ordkort",
     r1: "Trykk på en hvilken som helst bøyningsform: i boblen kan du lytte til eller kopiere den. Stadievekslingen vises i oversiktlige felt (sterkt → svakt stadium, konsonanter, stadier), og knappene til Giellatekno og sátni.org ligger under Ordet andre steder. ChatGPT-knappen er fjernet. Markeringene i bildesøket har fargene fra det samiske flagget.",
     v076: "Versjon 0.7.6.1", o1h: "Til utprøving: søk etter ord i et bilde",
@@ -111,9 +123,15 @@ const TEXTS = {
     open: "Open the dictionary in your browser",
     download: "Download the app",
     openNote: "The web version downloads the dictionary (40 MB) the first time and then works offline too.",
-    newH: "New in versions 0.8 and 0.8.1",
+    newH: "New in version 0.9",
+    v090: "Version 0.9",
+    w1h: "Search with clitics", w1: "Search for a word with a clitic, in Sámi or Finnish: boađátgo and tuletko find boahtit. The word card explains the clitic (boađátgo = boađát + -go) and shows it in Finnish too (≈ tuletko).",
+    w2h: "Did you mean?", w2: "If the Sámi letters are missing, the app suggests the right word: boadatgo → boađátgo, cahci → čáhci.",
+    w3h: "To try out: Skolt Sámi", w3: "Under Experimental features in the menu you can switch on Skolt Sámi words on the word card (talo → tääll, põrtt). The data has not yet been checked by a Skolt Sámi speaker.",
+    w4h: "Also new", w4: "The Neahttadigisánit dictionary one tap away, the menu's languages as switches, and the suggestion you pick in the search box opens exactly that word (vuostá = cheese or against).",
+    wcap: "boađátgo ≈ tuletko (Finnish)",
     v081: "Version 0.8.1", u1h: "The photo search no longer looks frozen",
-    u1: "A loading ring spins over the photo while the text is recognised and the words are looked up – also when you switch the direction with a photo open. The About window now ends with a Buy me a coffee link.", olderH: "Earlier versions 0.7.3–0.7.6.1", r2: "Tap a form: listen or copy",
+    u1: "A loading ring spins over the photo while the text is recognised and the words are looked up – also when you switch the direction with a photo open. The About window now ends with a Buy me a coffee link.", olderH: "Earlier versions 0.7.3–0.8.1", r2: "Tap a form: listen or copy",
     v080: "Version 0.8", r1h: "A redesigned word card",
     r1: "Tap any inflected form: a bubble lets you listen to it or copy it. Consonant gradation is shown in clear cells (strong → weak grade, consonants, grades), and the Giellatekno and sátni.org buttons sit under Word elsewhere. The ChatGPT button has been removed. Photo search marks come in the colours of the Sámi flag.",
     v076: "Version 0.7.6.1", o1h: "To try out: look up words from a photo",
@@ -191,12 +209,12 @@ function showRelease() {
   info.textContent = t.release(release.tag_name, date);
 }
 
-// Uusin julkaisu, myös esijulkaisu (GitHubin "latest" ohittaa esijulkaisut)
+// Uusin vakaa julkaisu: esijulkaisut (testiversiot, esim. v0.8.2-dev) ja luonnokset ohitetaan
 async function loadRelease() {
   try {
     const res = await fetch("https://api.github.com/repos/sombyduodji/satni-fst/releases?per_page=10");
     if (!res.ok) throw new Error(res.status);
-    release = (await res.json()).find((r) => !r.draft) || false;
+    release = (await res.json()).find((r) => !r.draft && !r.prerelease) || false;
   } catch (e) {
     release = false;
   }
