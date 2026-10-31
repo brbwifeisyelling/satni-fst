@@ -2,7 +2,7 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
-## Next version — not released yet
+## 0.8.3-dev — pre-release for testing (2026-10-31)
 
 - **Search finds words with clitics:** *boađátgo*, *viesusge*, *mungo*, *dathan* and *sonnai* now find *boahtit*,
   *viessu*, *mun*, *dat* and *son*, also with two clitics (*buorregohan*) or a hyphen (*dalle-ge*). The word card
