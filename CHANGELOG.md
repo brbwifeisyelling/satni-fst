@@ -1,6 +1,6 @@
 # Changelog
 
-All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/brbwifeisyelling/satni-fst/releases).
+All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
 ## 0.8 — 2026-10-31
 
