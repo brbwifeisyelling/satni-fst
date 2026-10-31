@@ -2,6 +2,14 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
+## 0.8.1 — 2026-10-31
+
+- **Loading ring in the photo search** (Android, experimental): a spinning ring over the photo while the text is
+  recognised and while dictionary words are looked up, also when switching the direction (Sámi ⇄ Finnish or
+  Norwegian) with a photo open. Looking up words in the other direction can take a few seconds on a phone, and the
+  app no longer looks frozen meanwhile.
+- **Buy me a coffee** link at the end of the About window, for those who want to support Sátni FST.
+
 ## 0.8 — 2026-10-31
 
 - **Listen and copy any form:** tap a form in the inflection table or the *All forms* tab to open a small bubble

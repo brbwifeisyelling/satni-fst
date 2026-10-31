@@ -91,6 +91,8 @@ Qt 6.9.3 and Qt for Python (PySide6, Shiboken6) 6.9.3, incl. Qt WebEngine
   and https://download.qt.io/official_releases/QtForPython/pyside6/
   Qt WebEngine contains Chromium and its third-party components, each
   under its own licence: https://doc.qt.io/qt-6/qtwebengine-licensing.html
+  Qt includes ICU (International Components for Unicode), © Unicode, Inc.,
+  under the Unicode License: https://www.unicode.org/license.txt
 
 Python 3.12
   © Python Software Foundation.
