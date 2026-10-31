@@ -12,7 +12,7 @@ Sátni FST combines the open dictionaries and morphology of [GiellaLT](https://g
 [Divvun](https://divvun.no/) and [Giellatekno](https://giellatekno.uit.no/) into one app.
 **All language data comes from them — see [CREDITS.md](CREDITS.md).**
 
-**Home page and web version:** <https://brbwifeisyelling.github.io/satni-fst/> — try the dictionary in your browser, nothing to install.
+**Home page and web version:** <https://sombyduodji.github.io/satni-fst/> — try the dictionary in your browser, nothing to install.
 
 ## Features
 
@@ -125,7 +125,7 @@ Changes in each version: [CHANGELOG.md](CHANGELOG.md).
 
 ## Contact
 
-Found a problem? Email <satni@somby.fi> or [open an issue on GitHub](https://github.com/brbwifeisyelling/satni-fst/issues).
+Found a problem? Email <satni@somby.fi> or [open an issue on GitHub](https://github.com/sombyduodji/satni-fst/issues).
 Feedback and suggestions are welcome by email.
 
 > **Suomeksi:** Ongelmista voi ilmoittaa sähköpostitse <satni@somby.fi> tai GitHubissa. Palaute ja ehdotukset ovat tervetulleita sähköpostitse.

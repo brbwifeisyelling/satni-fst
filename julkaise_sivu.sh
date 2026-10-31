@@ -1,5 +1,5 @@
 #!/bin/sh
-# Julkaisee kotisivun GitHub Pagesiin (https://brbwifeisyelling.github.io/satni-fst/):
+# Julkaisee kotisivun GitHub Pagesiin (https://sombyduodji.github.io/satni-fst/):
 #   /      kotisivu (site/, kuvat docs/screenshots/)
 #   /app/  selainversio (web/ ja sen sanakirja web/data/satni-web.db.gz, luo: export_web_data.py)
 # Sivu kootaan kansioon ~/.cache/satni-fst-build/pages ja työnnetään haaraan gh-pages yhtenä committina
@@ -48,4 +48,4 @@ GIT_AUTHOR_NAME="Juha Somby" GIT_AUTHOR_EMAIL=satni@somby.fi GIT_COMMITTER_NAME=
     git commit -q -m "Sátni FST -kotisivu" || exit 1
 GIT_SSH_COMMAND="$SSH" git push -q --force "$URL" gh-pages:gh-pages || exit 1
 rm -rf "$OUT/.git"
-echo "Julkaistu: https://brbwifeisyelling.github.io/satni-fst/"
+echo "Julkaistu: https://sombyduodji.github.io/satni-fst/"

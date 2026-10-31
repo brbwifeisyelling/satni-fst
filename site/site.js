@@ -185,7 +185,7 @@ function showRelease() {
 // Uusin julkaisu, myös esijulkaisu (GitHubin "latest" ohittaa esijulkaisut)
 async function loadRelease() {
   try {
-    const res = await fetch("https://api.github.com/repos/brbwifeisyelling/satni-fst/releases?per_page=10");
+    const res = await fetch("https://api.github.com/repos/sombyduodji/satni-fst/releases?per_page=10");
     if (!res.ok) throw new Error(res.status);
     release = (await res.json()).find((r) => !r.draft) || false;
   } catch (e) {

@@ -115,7 +115,7 @@ const UI_TEXTS = {
          ML Kit voi lähettää Googlelle nimettömiä käyttötilastoja, kun tekstintunnistusta käytetään. Sátni FST on vapaa ohjelma (GPL-3.0).
          Lähteet ja tehdyt muutokset: CREDITS.md lähdekoodin mukana.</p>
       <p>Jos huomaat ongelman, ota yhteyttä sähköpostitse <a href="mailto:satni@somby.fi">satni@somby.fi</a>
-         tai tee ilmoitus GitHubissa: <a href="https://github.com/brbwifeisyelling/satni-fst/issues" target="_blank" rel="noopener">github.com/brbwifeisyelling/satni-fst/issues</a>.
+         tai tee ilmoitus GitHubissa: <a href="https://github.com/sombyduodji/satni-fst/issues" target="_blank" rel="noopener">github.com/sombyduodji/satni-fst/issues</a>.
          Palaute ja ehdotukset ovat tervetulleita sähköpostitse.</p>
       <p>Tekijä: Juha Somby</p>`,
     close: "Sulje",
@@ -226,7 +226,7 @@ const UI_TEXTS = {
          ML Kit kan sende anonym bruksstatistikk til Google når tekstgjenkjenningen brukes. Sátni FST er fri programvare (GPL-3.0).
          Kilder og endringer: CREDITS.md i kildekoden.</p>
       <p>Hvis du finner et problem, ta kontakt på e-post <a href="mailto:satni@somby.fi">satni@somby.fi</a>
-         eller meld det på GitHub: <a href="https://github.com/brbwifeisyelling/satni-fst/issues" target="_blank" rel="noopener">github.com/brbwifeisyelling/satni-fst/issues</a>.
+         eller meld det på GitHub: <a href="https://github.com/sombyduodji/satni-fst/issues" target="_blank" rel="noopener">github.com/sombyduodji/satni-fst/issues</a>.
          Tilbakemeldinger og forslag tas gjerne imot på e-post.</p>
       <p>Laget av: Juha Somby</p>`,
     close: "Lukk",
