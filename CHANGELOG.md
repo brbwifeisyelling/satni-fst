@@ -2,6 +2,17 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
+## Next version — not released yet
+
+- **Search in Finnish with a clitic:** *tuletko*, *talossakin*, *tuletkaan* and *teetkö* find *boahtit*, *viessu* and
+  *bargat*, and the card shows the Sámi form with the matching Sámi clitic: *tuletko = tulla ≈ boađátgo*,
+  *tuletkin ≈ boađátge / boađátnai*. Checked both ways with 1 000 words: the same word is found as without the
+  clitic, and the Sámi form gives back exactly the original Finnish word, where both languages have the same form;
+  the Finnish and Sámi words were checked with the GiellaLT analysers (lang-fin, lang-sme).
+- **Negative verbs:** the question and *-han* clitics go on the negative verb in Finnish: *boađatgo ≈ (eikö)
+  tuleskele*, *(eihän) tule*; *-kaan* stays on the main verb (*(ei) tulekaan*).
+- Vowel harmony of the Finnish clitic follows the word's case ending when it has one (*maanteistähän*).
+
 ## 0.8.4-dev — pre-release for testing (2026-10-31)
 
 - **Clitics in Finnish too:** the Finnish form line gets the matching Finnish clitic: *boađátgo ≈ tuletko*,

@@ -340,8 +340,22 @@ function queryDatabase(query) {
       }
     }
   }
+  // Suomen liitepartikkeli (tuletko, talossakin, tuletkaan, talohan): irrotetaan ja vartalo haetaan suomen sanana
+  // (perusmuoto tai taivutettu käännös, rank 1.5–4.9). Norjassa liitteitä ei ole.
+  if (searchLang === "fin") {
+    for (const clitic of FIN_QUERY_CLITICS) {
+      if (!q.endsWith(clitic) || q.length - clitic.length < 2) continue;
+      const stem = q.slice(0, -clitic.length);
+      const hits = queryDatabase(stem).filter((r) => r.rank > 1.2 && r.rank < 5);
+      if (hits.length) return [...hits.map((r) => ({ ...r, finClitic: clitic, finStem: stem })), ...results];
+    }
+  }
   return results;
 }
+
+// Suomen liitepartikkelit haussa (pisimmät ensin) ja niiden pohjoissaamen vastineet (FIN_CLITICS toisin päin)
+const FIN_QUERY_CLITICS = ["kään", "kaan", "kin", "hän", "han", "kö", "ko"];
+const SME_OF_FIN_CLITIC = { ko: ["go"], kö: ["go"], kin: ["ge", "nai"], kaan: ["ge"], kään: ["ge"], han: ["han"], hän: ["han"] };
 
 // Pohjoissaamen liitepartikkelit (lang-sme: +Qst, +Foc/...), pisimmät ensin. Merkitys näytetään viidelle, joiden
 // merkitys on tarkistettu (sanakirjat ja oppikirja): go, ge, nai, son, han (i18n.js: cliticMeaning).
@@ -520,7 +534,9 @@ function selectResult(i, pushHistory = true) {
   // Liitepartikkeli haussa (boađátgo): vartalo (boađát) ja partikkelit järjestyksessä (renderInfo)
   state.clitic = r.clitics ? { stem: r.cliticStem, clitics: r.clitics } : null;
   // Suomen- tai norjankielinen hakusana, jos sana löytyi sen käännöksenä (rank 1.5–4.9, ks. queryDatabase)
-  state.transWord = r.via ? r.via.base : r.rank > 1.2 && r.rank < 5 ? state.query : null;
+  state.transWord = r.via ? r.via.base : r.rank > 1.2 && r.rank < 5 ? r.finStem || state.query : null;
+  // Suomen liitepartikkeli haussa (tuletko): vartalo ja liite (renderInfo)
+  state.finClitic = r.finClitic ? { stem: r.finStem, clitic: r.finClitic } : null;
   state.word = data.word;
   state.paradigm = data.paradigm;
   state.grades = data.grades;
@@ -611,6 +627,10 @@ function renderInfo(w) {
     });
     info.push(t("cliticInfo", state.query, state.clitic.stem, parts.join(" + ")));
   }
+  if (state.finClitic) {
+    const sme = SME_OF_FIN_CLITIC[state.finClitic.clitic].map((c) => "-" + c).join(", ");
+    info.push(t("finCliticInfo", state.query, state.finClitic.stem, state.finClitic.clitic, sme));
+  }
   const q = fold(state.clitic ? state.clitic.stem : state.query);
   const matches = [];
   for (const [tag, forms] of state.paradigm) {
@@ -637,7 +657,13 @@ function renderInfo(w) {
   if (!html && state.via) {
     const tag = settings.lang === "fin" ? samiTagOfFinCell(state.via.cell, w.pos.toUpperCase()) : null;
     const sme = tag && (state.paradigm.get(tag) || [])[0];
-    html = t("viaForm", esc(state.query), esc(state.via.base), sme ? esc(sme) : "", sme ? tag : "");
+    // tuletko = tulla ≈ boađátgo: saamen muotoon sama liite saamen vastineena (-kin: -ge / -nai)
+    // Saamen 3. persoonan ja mii-imperatiiviin (boahtos, boahtit) liitettä ei voi lisätä (lang-sme ei hyväksy): muoto ilman
+    // (myös monikon 2. persoonan muoto -hket: čuggejehket)
+    const noClitic = /^Imprt\+(Sg3|Du1|Du3|Pl1|Pl3)$/.test(tag || "") || (tag === "Imprt+Pl2" && /hket$/.test(sme || ""));
+    const smeForm = sme && state.finClitic && !noClitic
+      ? SME_OF_FIN_CLITIC[state.finClitic.clitic].map((c) => sme + c).join(" / ") : sme;
+    html = t("viaForm", esc(state.query), esc(state.via.base), smeForm ? esc(smeForm) : "", sme ? tag : "");
   }
   $("form-translation").hidden = !html;
   $("form-translation").innerHTML = html;
@@ -755,16 +781,36 @@ function finBackVowels(word) {
   const m = word.toLowerCase().match(/[aouäöy](?=[^aouäöy]*$)/);
   return !!m && "aou".includes(m[0]);
 }
+// Taivutuspäätteen vokaali kertoo soinnun (maanteistä -> maanteistähän, talossa -> talossako): päätteessä (sanan
+// viimeiset 4 kirjainta) oleva a/o/u tai ä/ö/y ratkaisee. null, jos päätteessä ei ole (postimerkeille -> perusmuodon mukaan).
+function finEndingBack(word) {
+  const m = word.toLowerCase().slice(-4).match(/[aouäöy](?=[^aouäöy]*$)/);
+  return m ? "aou".includes(m[0]) : null;
+}
 // Liite fraasin viimeiseen sanaan: tulet -> tuletko, (ei) tule -> (ei) tulekaan, talon kanssa -> talon kanssako.
 // back: perusmuodon sointu (postimerkki -> postimerkillekö); -ge antaa kaksi muotoa (tuletkin / tuletkaan).
+// Kieltoverbin kanssa (ei/älä + pääverbi) suomessa kysymys- ja -han-liite tulevat kieltoverbiin: eikö tuleskele,
+// eihän tule (ei *tuleskeleko). -kaan jää pääverbiin (ei tulekaan), ja -kin ei käy kieltolauseeseen lainkaan.
+const FIN_NEG = /^\((ei|älä)\) (.+)$/;
+const FIN_NEG_CLITIC = { go: "kö", son: "hän", han: "hän" };
+
 function finWithClitics(phrase, clitics, back) {
   // "talossa / talosta" (paikallissija) on kaksi vaihtoehtoa: liite kumpaankin
   let variants = phrase.split(" / ");
+  const neg = variants.length === 1 && phrase.match(FIN_NEG);
+  if (neg) {
+    let [, aux, verb] = neg;
+    for (const c of clitics) {
+      if (FIN_NEG_CLITIC[c]) aux += FIN_NEG_CLITIC[c];
+      else verb += (finEndingBack(verb) ?? back ?? finBackVowels(verb)) ? "kaan" : "kään";  // -ge, -nai: ei tulekaan
+    }
+    return `(${aux}) ${verb}`;
+  }
   for (const c of clitics) {
     variants = variants.flatMap((p) => FIN_CLITICS[c].map(([b, f]) => {
       const words = p.split(" ");
       const last = words.pop();
-      const isBack = last === "kanssa" ? true : back ?? finBackVowels(last);
+      const isBack = last === "kanssa" ? true : finEndingBack(last) ?? back ?? finBackVowels(last);
       return [...words, last + (isBack ? b : f)].join(" ");
     }));
   }

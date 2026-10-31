@@ -76,6 +76,7 @@ const UI_TEXTS = {
     moreMeanings: (n) => `+${n} merkitystä`, otherLangs: "muut kielet",
     searchedForm: (q, tags) => `Haettu muoto ${q}: ${tags}`,
     cliticInfo: (q, stem, parts) => `${q} = ${stem} + ${parts}`,
+    finCliticInfo: (q, stem, c, sme) => `${q} = ${stem} + -${c} (saameksi ${sme})`,
     // Liitepartikkelien merkitykset: GiellaLT dict-sme-fin / dict-sme-nob ja oppikirja (tarkistettu 2026-10-31)
     cliticMeaning: { go: "kysymys: -ko, -kö", ge: "-kin, kieltolauseessa -kaan, -kään", nai: "-kin",
                      son: "kysymyksessä -han, -hän", han: "-han, -hän" },
@@ -209,6 +210,7 @@ const UI_TEXTS = {
     moreMeanings: (n) => `+${n} betydninger`, otherLangs: "andre språk",
     searchedForm: (q, tags) => `Søkt form ${q}: ${tags}`,
     cliticInfo: (q, stem, parts) => `${q} = ${stem} + ${parts}`,
+    finCliticInfo: (q, stem, c, sme) => `${q} = ${stem} + -${c} (på samisk ${sme})`,
     cliticMeaning: { go: "spørrepartikkel", ge: "også, i nektende setning: heller, engang", nai: "også",
                      son: "i spørsmål: mon tro", han: "vel, jo" },
     formIn: (q, forms, lang) => `<b>${q}</b> ≈ ${forms} <span class="muted small">(${lang === "fin" ? "på finsk" : "på norsk"}, omtrent)</span>`,
