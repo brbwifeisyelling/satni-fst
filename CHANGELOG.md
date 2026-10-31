@@ -2,7 +2,7 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/brbwifeisyelling/satni-fst/releases).
 
-## 0.8 — not released yet
+## 0.8 — 2026-10-31
 
 - **Listen and copy any form:** tap a form in the inflection table or the *All forms* tab to open a small bubble
   with 🔈 and a copy button. Copying works on Android, Windows, Linux and the web version.
