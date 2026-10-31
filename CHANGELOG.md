@@ -2,7 +2,7 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
-## Next version — not released yet
+## 0.8.4-dev — pre-release for testing (2026-10-31)
 
 - **Clitics in Finnish too:** the Finnish form line gets the matching Finnish clitic: *boađátgo ≈ tuletko*,
   *viesusge ≈ talossakin / talossakaan*, *viesushan ≈ talossahan*. Vowel harmony follows the last part of a compound
