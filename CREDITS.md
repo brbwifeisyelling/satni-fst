@@ -49,7 +49,7 @@ lang-sme contributors. The compiled models are in [`src/fst/`](src/fst/SOURCE.md
 The inflected forms of the Finnish translations (*talo – talossa – taloon*, *tehdä – teen – tekisin*)
 are generated with the Finnish analyser and generator from [giellalt/lang-fin](https://github.com/giellalt/lang-fin)
 (GiellaLT / Giellatekno, UiT The Arctic University of Norway; based on the Omorfi lexicon), licensed under the
-[GNU General Public License v3.0 or later](LICENSE). The compiled models come from GiellaLT's nightly
+[GNU General Public License v3.0](LICENSE). The compiled models come from GiellaLT's nightly
 package `giella-fin` and are downloaded by [`hae_sanakirjat.sh`](hae_sanakirjat.sh); they are not part of
 this repository. [`fin_forms.py`](fin_forms.py) keeps only the forms of words used as translations and drops
 archaic and dialectal variants (*vaattehien*, *taloin*, *kirkko-laissa*).
@@ -74,7 +74,7 @@ The gradation groups and series shown in the app (`gradation.py`) follow the
 
 Pronunciation uses the speech synthesis of Divvun and Giellatekno (UiT The Arctic University of
 Norway), voices **Biret, Máhtte and Sunná**, through the service `api-giellalt.uit.no`, in the same
-way as [sátni.org](https://satni.org). It is a network service: no voices are included in the app.
+way as [sátni.org](https://satni.org). The synthesis runs as a network service; the voices themselves are not included in the app.
 Divvun has confirmed (2026-10-29) that the app may use the API this way.
 The voice menu's sample sentence (*Bures boahtin Sápmái*, one per voice) is included in the app as small
 audio files ([`web/voices/`](web/voices/), made with [`hae_aaninaytteet.sh`](hae_aaninaytteet.sh) from the
