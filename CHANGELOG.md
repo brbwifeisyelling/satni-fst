@@ -2,6 +2,14 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
+## Next version — not released yet
+
+- **Search finds words with clitics:** *boađátgo*, *viesusge*, *mungo*, *dathan* and *sonnai* now find *boahtit*,
+  *viessu*, *mun*, *dat* and *son*, also with two clitics (*buorregohan*) or a hyphen (*dalle-ge*). The word card
+  explains the clitic: *boađátgo = boađát + -go (kysymys: -ko, -kö)*. Meanings are shown for -go, -ge, -nai, -son
+  and -han; the other clitics the North Sámi analyser knows (-gen, -ges, -gis, -hal, -ba, -bai, -bat, -be) are
+  recognised without a meaning.
+
 ## 0.8.2-dev — pre-release for testing (2026-10-31)
 
 - **Experimental: Skolt Sámi.** Switch it on under *Experimental features* in the ☰ menu, and the word card shows

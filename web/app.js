@@ -317,11 +317,37 @@ function queryDatabase(query) {
   // Käännösosumien keskinäinen järjestys tulee sanakirjasta (nr), joten frekvenssiä ei käytetä niille.
   const translated = (r) => (r[col] ? 1 : 0);
   const samiFreq = (r) => ([1, 1.2, 5, 5.5].includes(r.rank) ? r.freq || 0 : 0);
-  return [...found.values()]
+  const results = [...found.values()]
     .sort((a, b) => a.rank - b.rank || samiFreq(b) - samiFreq(a) || translated(b) - translated(a)
       || (b.pos === "V") - (a.pos === "V") || a.sme_lemma.localeCompare(b.sme_lemma, "se"))
     .slice(0, 30);
+  if (results.some((r) => r.rank < PREFIX_RANK)) return results;
+  // Ei osumaa: ehkä sanan perässä on liitepartikkeli (boađátgo = boađát + -go, viesusge, dathan, myös dalle-ge ja
+  // kaksi peräkkäin: dahkagohan). Partikkeli irrotetaan ja vartalo haetaan saamen sanana (perusmuoto tai taivutusmuoto).
+  for (const clitic of CLITICS) {
+    for (const end of [clitic, "-" + clitic]) {
+      if (!q.endsWith(end) || q.length - end.length < 2) continue;
+      const stem = q.slice(0, -end.length);
+      // Nopea esitarkistus: onko vartalo saamen perusmuoto tai taivutusmuoto (tai siinä on toinen partikkeli)
+      const exists = all(`SELECT 1 FROM dictionary WHERE lemma_fold = ? UNION ALL
+                          SELECT 1 FROM paradigms WHERE surface IN (?, ?, ?, ?) LIMIT 1`,
+                         [stem, stem, capitalize(stem), nordic(stem), capitalize(nordic(stem))]).length;
+      if (!exists && !CLITICS.some((c) => stem.endsWith(c))) continue;
+      const hits = queryDatabase(stem).filter((r) => r.clitics || SAMI_HIT_RANKS.includes(r.rank));
+      if (hits.length) {
+        return [...hits.map((r) => ({ ...r, clitics: [...(r.clitics || []), clitic], cliticStem: r.cliticStem || stem })),
+          ...results];
+      }
+    }
+  }
+  return results;
 }
+
+// Pohjoissaamen liitepartikkelit (lang-sme: +Qst, +Foc/...), pisimmät ensin. Merkitys näytetään viidelle, joiden
+// merkitys on tarkistettu (sanakirjat ja oppikirja): go, ge, nai, son, han (i18n.js: cliticMeaning).
+const CLITICS = ["gen", "ges", "gis", "nai", "son", "han", "hal", "bai", "bat", "go", "ge", "ba", "be"];
+// Saamen sanan osumat: perusmuoto (1), yleisen sanan muoto (1.2), taivutusmuoto (5), perusmuoto ilman käännöstä (5.5)
+const SAMI_HIT_RANKS = [1, 1.2, 5, 5.5, 6];
 
 // Taivutettu suomen- tai norjankielinen sana -> [{base, cell, pos}] (juon -> juoda, Prs+Sg1, V). forms-sarake on
 // muotoa "Prs+Sg1=juon;Prs+Sg2=juot;..." ja vaihtoehdot /-merkillä (husene/husa), joten haku rajataan erottimin.
@@ -491,6 +517,8 @@ function selectResult(i, pushHistory = true) {
 
   const data = loadWord(r.id);
   state.via = r.via || null;  // haettu taivutettu käännös (juon = juoda), ks. queryDatabase
+  // Liitepartikkeli haussa (boađátgo): vartalo (boađát) ja partikkelit järjestyksessä (renderInfo)
+  state.clitic = r.clitics ? { stem: r.cliticStem, clitics: r.clitics } : null;
   // Suomen- tai norjankielinen hakusana, jos sana löytyi sen käännöksenä (rank 1.5–4.9, ks. queryDatabase)
   state.transWord = r.via ? r.via.base : r.rank > 1.2 && r.rank < 5 ? state.query : null;
   state.word = data.word;
@@ -575,7 +603,15 @@ function skoltFor(w) {
 
 function renderInfo(w) {
   const info = [];
-  const q = fold(state.query);
+  // Liitepartikkeli: muodon tunnistus vartalosta (boađátgo -> boađát) ja selitys omalle rivilleen
+  if (state.clitic) {
+    const parts = state.clitic.clitics.map((c) => {
+      const m = t("cliticMeaning")[c];
+      return `-${c}${m ? ` (${m})` : ""}`;
+    });
+    info.push(t("cliticInfo", state.query, state.clitic.stem, parts.join(" + ")));
+  }
+  const q = fold(state.clitic ? state.clitic.stem : state.query);
   const matches = [];
   for (const [tag, forms] of state.paradigm) {
     for (const f of forms) {
@@ -587,7 +623,7 @@ function renderInfo(w) {
   }
   let formTrans = "";
   if (matches.length && q !== fold(w.sme_lemma)) {
-    info.push(t("searchedForm", state.query, [...new Set(matches)].join(", ")));
+    info.push(t("searchedForm", state.clitic ? state.clitic.stem : state.query, [...new Set(matches)].join(", ")));
     if (FORM_PHRASES[settings.lang]) formTrans = translationOfForm(w, matches.map((m) => m.split(" ")[0]));
   }
   // Haetun muodon käännös omalle rivilleen käännöksen alle (viesus ≈ talossa / talosta, i huset / fra huset).
