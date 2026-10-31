@@ -10,8 +10,10 @@ Selaimessa tietokanta luetaan sql.js:llä (SQLite WebAssemblynä). Perusmuodoill
 """
 import gzip
 import os
+import re
 import shutil
 import sqlite3
+import subprocess
 
 import skolt_data
 
@@ -31,6 +33,44 @@ TRANSLATION_COLUMNS = {"fin": "finnish_translation", "nob": "nob_translation", "
 
 def fold(text):
     return text.lower().translate(SEARCH_FOLD) if isinstance(text, str) else text
+
+
+def _last_vowel_back(word):
+    m = re.search(r"[aouäöy](?=[^aouäöy]*$)", word.lower())
+    return bool(m) and m.group(0) in "aou"
+
+
+def fin_harmony(words):
+    """Suomen sanan vokaalisointu liitepartikkelia varten (-ko/-kö, -kaan/-kään, -han/-hän): 1 = takavokaalinen.
+
+    Yhdyssanassa sointu määräytyy jälkiosasta (posti+merkki -> postimerkkikö), jonka GiellaLT lang-fin -analysaattori
+    erottaa (Cmp#). Jälkiosa, jossa on vain e/i, on etuvokaalinen. Ilman analysaattoria (giella-fin puuttuu) käytetään
+    sanan viimeistä a/o/u- tai ä/ö/y-vokaalia (oikein ~98 %:ssa, väärin juuri näissä yhdyssanoissa).
+    """
+    words = sorted(words)
+    out = {w: _last_vowel_back(w) for w in words}
+    analyser = os.path.join(SCRIPT_DIR, "giella-fin", "analyser-gt-desc.hfstol")
+    if not os.path.exists(analyser) or not shutil.which("hfst-lookup"):
+        print("Suomen vokaalisointu: giella-fin tai hfst-lookup puuttuu, käytetään viimeistä vokaalia")
+        return {w: int(b) for w, b in out.items()}
+    res = subprocess.run(["hfst-lookup", "-q", analyser], input="\n".join(words) + "\n",
+                         capture_output=True, text=True, check=True).stdout
+    analyses = {}
+    for line in res.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2 and not parts[1].endswith("+?") and "Cmp#" in parts[1]:
+            # eniten osia sisältävä analyysi: lapin+kurjen+herne
+            if parts[1].count("Cmp#") > analyses.get(parts[0], "").count("Cmp#"):
+                analyses[parts[0]] = parts[1]
+    for w, a in analyses.items():
+        last = a.split("Cmp#")[-1].split("+")[0].lower()
+        has_back, has_front = re.search(r"[aou]", last), re.search(r"[äöy]", last)
+        if has_back and not has_front:
+            out[w] = True
+        elif has_front and not has_back or not has_back:
+            out[w] = False
+    print(f"Suomen vokaalisointu: {len(words)} sanaa, yhdyssanoja {len(analyses)}")
+    return {w: int(b) for w, b in out.items()}
 
 
 def main():
@@ -62,7 +102,8 @@ def main():
         -- Käännösten taivutus: norja (Norsk ordbank, nob_forms.py) ja suomi (GiellaLT lang-fin, fin_forms.py).
         -- WITHOUT ROWID: avain toimii hakemistona, eikä erillistä indeksiä (sanojen kopiota) tarvita
         CREATE TABLE nob_forms (word TEXT, pos TEXT, forms TEXT, PRIMARY KEY (word, pos)) WITHOUT ROWID;
-        CREATE TABLE fin_forms (word TEXT, pos TEXT, forms TEXT, PRIMARY KEY (word, pos)) WITHOUT ROWID;
+        -- back: vokaalisointu liitepartikkelia varten (1 = tuletko, talossako; 0 = menetkö, postimerkillekö), ks. fin_harmony
+        CREATE TABLE fin_forms (word TEXT, pos TEXT, forms TEXT, back INTEGER, PRIMARY KEY (word, pos)) WITHOUT ROWID;
         -- Koltansaame (kokeellinen, skolt_data.py): suomen/norjan sanan vahvimmat koltan vastineet ("a, b, c")
         CREATE TABLE sms (lang TEXT, fold TEXT, pos TEXT, words TEXT, PRIMARY KEY (lang, fold, pos)) WITHOUT ROWID;
     """)
@@ -97,10 +138,13 @@ def main():
     dst.executemany("INSERT INTO examples VALUES (?,?,?,?,?,?)", src.execute(
         "SELECT word_id, lang, meaning_nr, sme, translation, source FROM examples ORDER BY word_id, rowid"))
 
-    for table in ("nob_forms", "fin_forms"):
-        if src.execute("SELECT 1 FROM sqlite_master WHERE name = ?", (table,)).fetchone():
-            dst.executemany(f"INSERT INTO {table} VALUES (?,?,?)",
-                            src.execute(f"SELECT word, pos, forms FROM {table} ORDER BY word, pos"))
+    if src.execute("SELECT 1 FROM sqlite_master WHERE name = 'nob_forms'").fetchone():
+        dst.executemany("INSERT INTO nob_forms VALUES (?,?,?)",
+                        src.execute("SELECT word, pos, forms FROM nob_forms ORDER BY word, pos"))
+    if src.execute("SELECT 1 FROM sqlite_master WHERE name = 'fin_forms'").fetchone():
+        rows = src.execute("SELECT word, pos, forms FROM fin_forms ORDER BY word, pos").fetchall()
+        back = fin_harmony({r[0] for r in rows})
+        dst.executemany("INSERT INTO fin_forms VALUES (?,?,?,?)", ((w, p, f, back.get(w)) for w, p, f in rows))
 
     sms_rows = {(lang, fold(word), pos): words for lang, word, pos, words in skolt_data.rows(SCRIPT_DIR)}
     dst.executemany("INSERT INTO sms VALUES (?,?,?,?)", ((*k, v) for k, v in sms_rows.items()))

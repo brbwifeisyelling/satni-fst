@@ -622,13 +622,18 @@ function renderInfo(w) {
     }
   }
   let formTrans = "";
+  // Liitepartikkeli: suomeksi sama liite suomen muotoon (boađátgo ≈ tuletko); norjassa liitettä ei ole, joten
+  // rivillä on vartalo (boađát ≈ du kommer). Partikkeleille, joilla ei ole suomen vastinetta, sama kuin norjassa.
+  const finClitics = state.clitic && settings.lang === "fin" && state.clitic.clitics.every((c) => FIN_CLITICS[c])
+    ? state.clitic.clitics : null;
+  const formLabel = state.clitic && !finClitics ? state.clitic.stem : state.query;
   if (matches.length && q !== fold(w.sme_lemma)) {
     info.push(t("searchedForm", state.clitic ? state.clitic.stem : state.query, [...new Set(matches)].join(", ")));
-    if (FORM_PHRASES[settings.lang]) formTrans = translationOfForm(w, matches.map((m) => m.split(" ")[0]));
+    if (FORM_PHRASES[settings.lang]) formTrans = translationOfForm(w, matches.map((m) => m.split(" ")[0]), finClitics);
   }
   // Haetun muodon käännös omalle rivilleen käännöksen alle (viesus ≈ talossa / talosta, i huset / fra huset).
   // Toiseen suuntaan: taivutettu käännös (juon = juoda ≈ jugan), jos haku ei ollut saamen muoto.
-  let html = formTrans ? t("formIn", esc(state.query), esc(formTrans), settings.lang) : "";
+  let html = formTrans ? t("formIn", esc(formLabel), esc(formTrans), settings.lang) : "";
   if (!html && state.via) {
     const tag = settings.lang === "fin" ? samiTagOfFinCell(state.via.cell, w.pos.toUpperCase()) : null;
     const sme = tag && (state.paradigm.get(tag) || [])[0];
@@ -651,8 +656,12 @@ const FIN_PERSON = { Sg1: "Sg1", Sg2: "Sg2", Sg3: "Sg3", Du1: "Pl1", Du2: "Pl2",
 // "Sg+Indef=hus;Sg+Def=huset;..." -> {"Sg+Indef": "hus", ...}; vaihtoehdoista (husene/husa) ensimmäinen
 function translationForms(lang, word, pos) {
   try {
-    const row = all(`SELECT forms FROM ${lang}_forms WHERE word = ? AND pos = ?`, [word, pos])[0];
-    return row && Object.fromEntries(row.forms.split(";").map((c) => c.split("=")).map(([k, v]) => [k, v.split("/")[0]]));
+    const row = all(`SELECT * FROM ${lang}_forms WHERE word = ? AND pos = ?`, [word, pos])[0];
+    if (!row) return null;
+    const forms = Object.fromEntries(row.forms.split(";").map((c) => c.split("=")).map(([k, v]) => [k, v.split("/")[0]]));
+    // Suomen vokaalisointu liitepartikkelia varten (1/0; puuttuu vanhasta tietokannasta)
+    forms.__back = row.back === undefined || row.back === null ? null : !!row.back;
+    return forms;
   } catch (e) {
     return null;  // vanha tietokanta ilman taulua
   }
@@ -736,14 +745,41 @@ function finPhrase(tag, pos, f) {
 const FORM_PHRASES = { fin: finPhrase, nob: nobPhrase };
 
 // Haetun muodon tagit -> "jeg lager, jeg gjør" (yksi ilmaus käännöstä kohden, tagien vaihtoehdot /-merkillä)
-function translationOfForm(w, tags) {
+// Pohjoissaamen liitepartikkeli suomeksi (GiellaLT lang-fin: +Qst, +Foc/kin, +Foc/kaan, +Foc/han):
+// takavokaalinen ja etuvokaalinen muoto. -ge on myönteisessä lauseessa -kin, kielteisessä -kaan, joten molemmat.
+const FIN_CLITICS = { go: [["ko", "kö"]], nai: [["kin", "kin"]], ge: [["kin", "kin"], ["kaan", "kään"]],
+                      son: [["han", "hän"]], han: [["han", "hän"]] };
+// Vokaalisointu sanan viimeisestä a/o/u- tai ä/ö/y-vokaalista: vain varalla, jos tietokannassa ei ole fin_forms.back-
+// merkintää (yhdyssanan jälkiosan mukaan, export_web_data.py: fin_harmony)
+function finBackVowels(word) {
+  const m = word.toLowerCase().match(/[aouäöy](?=[^aouäöy]*$)/);
+  return !!m && "aou".includes(m[0]);
+}
+// Liite fraasin viimeiseen sanaan: tulet -> tuletko, (ei) tule -> (ei) tulekaan, talon kanssa -> talon kanssako.
+// back: perusmuodon sointu (postimerkki -> postimerkillekö); -ge antaa kaksi muotoa (tuletkin / tuletkaan).
+function finWithClitics(phrase, clitics, back) {
+  // "talossa / talosta" (paikallissija) on kaksi vaihtoehtoa: liite kumpaankin
+  let variants = phrase.split(" / ");
+  for (const c of clitics) {
+    variants = variants.flatMap((p) => FIN_CLITICS[c].map(([b, f]) => {
+      const words = p.split(" ");
+      const last = words.pop();
+      const isBack = last === "kanssa" ? true : back ?? finBackVowels(last);
+      return [...words, last + (isBack ? b : f)].join(" ");
+    }));
+  }
+  return variants.join(" / ");
+}
+
+function translationOfForm(w, tags, finClitics = null) {
   const pos = ["N", "V", "A"].find((p) => p === w.pos.toUpperCase());
   if (!pos) return "";
   const out = [];
   for (const word of state.transWords || []) {
     const forms = translationForms(settings.lang, word.replace(/\(.*?\)/g, "").trim(), pos);
     if (!forms) continue;
-    const phrases = [...new Set(tags.map((tag) => FORM_PHRASES[settings.lang](tag, pos, forms)).filter(Boolean))];
+    let phrases = [...new Set(tags.map((tag) => FORM_PHRASES[settings.lang](tag, pos, forms)).filter(Boolean))];
+    if (finClitics) phrases = phrases.map((p) => finWithClitics(p, finClitics, forms.__back));
     if (phrases.length) out.push(phrases.join(" / "));
   }
   return [...new Set(out)].join(", ");
@@ -929,7 +965,20 @@ const memoryCache = new Map();
 const IS_DESKTOP = location.protocol === "satni:";
 // Android-sovellus (android/) näyttää tiedostot APK:sta tällä osoitteella
 const IS_ANDROID = location.hostname === "appassets.androidplatform.net";
+// Selain soittaa äänen vain heti napautuksen jälkeen. Ääni haetaan ensin palvelimelta, ja jos haku kestää, selain
+// ei enää laske soittoa napautukseksi ("not allowed by the user agent", erityisesti Safari). Siksi yhteinen soitin
+// avataan jo napautuksessa lyhyellä hiljaisuudella, ja haettu ääni soitetaan samalla soittimella.
+const ttsAudio = typeof Audio === "function" ? new Audio() : null;
+const SILENCE = "data:audio/wav;base64,UklGRnQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+let ttsUnlocked = false;
+function unlockTtsAudio() {
+  if (!ttsAudio || ttsUnlocked) return;
+  ttsAudio.src = SILENCE;
+  ttsAudio.play().then(() => { ttsUnlocked = true; }).catch(() => {});
+}
+
 async function speak(text, button, voiceName = settings.voice) {
+  unlockTtsAudio();  // ennen ensimmäistä awaitia: vielä napautuksen sisällä
   const voice = VOICES[voiceName] || "biret";
   const key = `tts-cache/${voice}/${encodeURIComponent(text)}`;
   if (button) { button.disabled = true; button.classList.add("loading"); }  // pyörivä kehä (styles.css)
@@ -958,8 +1007,17 @@ async function speak(text, button, voiceName = settings.voice) {
       if (cache) cache.put(key, new Response(blob, { headers: { "Content-Type": "audio/wav" } })).catch(() => {});
     }
     memoryCache.set(key, blob);
-    const audio = new Audio(URL.createObjectURL(blob));
-    await audio.play();
+    const audio = ttsAudio || new Audio();
+    if (audio.src.startsWith("blob:")) URL.revokeObjectURL(audio.src);
+    audio.src = URL.createObjectURL(blob);
+    try {
+      await audio.play();
+    } catch (e) {
+      // Selain esti soiton (napautuksesta ehti kulua liian kauan): ääni on jo muistissa, joten seuraava napautus soittaa
+      // sen heti. Ei virheilmoitusta, vaan ohje.
+      if (e.name === "NotAllowedError") { toast(t("ttsTapAgain")); return; }
+      throw e;
+    }
   } catch (e) {
     toast(t("ttsFailed", e.message));
   } finally {

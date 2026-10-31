@@ -90,6 +90,7 @@ const UI_TEXTS = {
     usedIn: (place, code) => `käytössä ${place} (${code})`,
     geo: { N: "Norjassa", S: "Suomessa", R: "Ruotsissa" },
     ttsFailed: (msg) => `Ääntämistä ei saatu: ${msg}.`,
+    ttsTapAgain: "Ääni on valmis – napauta uudelleen kuunnellaksesi.",
     ttsOffline: "puhepalveluun ei saatu yhteyttä. Ensimmäinen kuuntelu vaatii verkkoyhteyden",
     ttsStatus: (status) => `puhepalvelu vastasi ${status}`,
     // Taivutustaulukko
@@ -221,6 +222,7 @@ const UI_TEXTS = {
     usedIn: (place, code) => `brukt ${place} (${code})`,
     geo: { N: "i Norge", S: "i Finland", R: "i Sverige" },
     ttsFailed: (msg) => `Kunne ikke hente uttalen: ${msg}.`,
+    ttsTapAgain: "Lyden er klar – trykk igjen for å lytte.",
     ttsOffline: "fikk ikke kontakt med taletjenesten. Første avspilling krever nettilkobling",
     ttsStatus: (status) => `taletjenesten svarte ${status}`,
     indicative: "Indikativ", present: "presens", preterite: "preteritum", conditional: "Kondisjonalis",

@@ -2,6 +2,18 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
+## Next version — not released yet
+
+- **Clitics in Finnish too:** the Finnish form line gets the matching Finnish clitic: *boađátgo ≈ tuletko*,
+  *viesusge ≈ talossakin / talossakaan*, *viesushan ≈ talossahan*. Vowel harmony follows the last part of a compound
+  (*lainausmerkissäkö*), worked out with GiellaLT lang-fin when the database is built (98.9 % agreement with lang-fin
+  in a test of 3 000 Finnish forms). In Norwegian, which has no clitics, the line shows the form without the clitic
+  (*boađát ≈ du kommer*).
+- **Pronunciation no longer fails with "not allowed by the user agent":** browsers, Safari above all, only allow
+  sound right after a tap, and fetching the voice could take longer than that. The sound player is now started
+  during the tap itself; if a browser still blocks it, the app says the sound is ready and plays it at once on the
+  next tap.
+
 ## 0.8.3-dev — pre-release for testing (2026-10-31)
 
 - **Search finds words with clitics:** *boađátgo*, *viesusge*, *mungo*, *dathan* and *sonnai* now find *boahtit*,
