@@ -293,6 +293,17 @@ dialog {
   max-width: 540px; padding: 24px 28px;
 }
 dialog::backdrop { background: rgba(0, 0, 0, .4); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+/* Lisenssit: tiedoston valinta ja teksti vierivänä laatikkona */
+.licenses-dlg { max-width: min(760px, calc(100vw - 32px)); width: 100%; }
+.licenses-dlg h2 { margin-top: 0; }
+#lic-select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface-alt); color: var(--text); font: inherit; }
+.lic-text {
+  height: min(60vh, 520px); overflow: auto; margin: 12px 0; padding: 12px 14px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface-alt); white-space: pre-wrap; overflow-wrap: anywhere;
+  font-family: ui-monospace, "DejaVu Sans Mono", monospace; font-size: 12.5px; line-height: 1.5;
+}
 /* Tekstintunnistus (Android-sovellus): kuva koko näytön kokoisena, sanakirjan sanat alleviivattuina samassa
    kohdassa ja asennossa kuin kuvassa; napautetun sanan päällä kupla (sana, käännös, linkki sanakirjaan) */
 .ocr-btn { font-size: 18px; padding: 6px 10px; line-height: 1.2; }

@@ -88,6 +88,10 @@ The "Giellatekno" button opens the word's full paradigm in Giellatekno's
 
 ## Software
 
+The apps include all copyright and licence notices and the full licence texts in
+[`web/licenses/`](web/licenses/NOTICES.txt) (About → Licences). The desktop builds add Python's licence and, in the
+Linux app, the Debian copyright files of the bundled system libraries.
+
 | Component | Where | Licence |
 |---|---|---|
 | [sql.js](https://github.com/sql-js/sql.js) 1.10.3 (SQLite compiled to WebAssembly) | `web/vendor/` | MIT ([LICENSE-sql.js.txt](web/vendor/LICENSE-sql.js.txt)); SQLite itself is public domain |

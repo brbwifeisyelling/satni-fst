@@ -113,12 +113,13 @@ const UI_TEXTS = {
          (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Android-sovelluksen kokeellinen
          tekstintunnistus: Google ML Kit (Googlen käyttöehdot). Kuva käsitellään puhelimessa eikä lähde laitteelta;
          ML Kit voi lähettää Googlelle nimettömiä käyttötilastoja, kun tekstintunnistusta käytetään. Sátni FST on vapaa ohjelma (GPL-3.0).
-         Lähteet ja tehdyt muutokset: CREDITS.md lähdekoodin mukana.</p>
+         Astevaihtelun ryhmät: Oahpa (Giellatekno). Kaikki lähteet, lisenssit ja tehdyt muutokset: Lisenssit-painike alla.
+         Lähdekoodi: <a href="https://github.com/sombyduodji/satni-fst" target="_blank" rel="noopener">github.com/sombyduodji/satni-fst</a>.</p>
       <p>Jos huomaat ongelman, ota yhteyttä sähköpostitse <a href="mailto:satni@somby.fi">satni@somby.fi</a>
          tai tee ilmoitus GitHubissa: <a href="https://github.com/sombyduodji/satni-fst/issues" target="_blank" rel="noopener">github.com/sombyduodji/satni-fst/issues</a>.
          Palaute ja ehdotukset ovat tervetulleita sähköpostitse.</p>
       <p>Tekijä: Juha Somby</p>`,
-    close: "Sulje",
+    close: "Sulje", licenses: "Lisenssit", licensesTitle: "Lisenssit ja tekijänoikeudet",
   },
 
   nb: {
@@ -224,12 +225,13 @@ const UI_TEXTS = {
          (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Eksperimentell tekstgjenkjenning i
          Android-appen: Google ML Kit (Googles vilkår). Bildet behandles på telefonen og forlater ikke enheten;
          ML Kit kan sende anonym bruksstatistikk til Google når tekstgjenkjenningen brukes. Sátni FST er fri programvare (GPL-3.0).
-         Kilder og endringer: CREDITS.md i kildekoden.</p>
+         Stadievekslingsgrupper: Oahpa (Giellatekno). Alle kilder, lisenser og endringer: Lisenser-knappen nedenfor.
+         Kildekode: <a href="https://github.com/sombyduodji/satni-fst" target="_blank" rel="noopener">github.com/sombyduodji/satni-fst</a>.</p>
       <p>Hvis du finner et problem, ta kontakt på e-post <a href="mailto:satni@somby.fi">satni@somby.fi</a>
          eller meld det på GitHub: <a href="https://github.com/sombyduodji/satni-fst/issues" target="_blank" rel="noopener">github.com/sombyduodji/satni-fst/issues</a>.
          Tilbakemeldinger og forslag tas gjerne imot på e-post.</p>
       <p>Laget av: Juha Somby</p>`,
-    close: "Lukk",
+    close: "Lukk", licenses: "Lisenser", licensesTitle: "Lisenser og opphavsrett",
   },
 };
 

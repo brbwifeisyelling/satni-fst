@@ -15,6 +15,9 @@ All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/somb
   removed.
 - **Photo word marks in the Sámi flag colours:** red, yellow, blue or green. Yellow marks get a darker edge so they
   stand out on light paper.
+- **Licences in the app:** the About window has a *Licences* button that shows all copyright and licence notices
+  and the full licence texts, including those of the libraries bundled in the desktop apps. The About window now
+  also credits Oahpa and links to the source code.
 
 ## 0.7.6.1 — 2026-10-30
 

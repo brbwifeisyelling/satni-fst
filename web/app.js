@@ -1277,6 +1277,51 @@ function bindOcrGestures() {
 }
 
 // Kuvasta haku on kokeellinen: 📷 näkyy vain, kun kokeelliset ominaisuudet on kytketty päälle valikosta
+// --- Lisenssit ---
+// Kaikissa versioissa samat tiedostot (web/licenses/); työpöytäversion build lisää Pythonin ja Debian-kirjastojen
+// lisenssit kansioon licenses/desktop/ ja niiden luettelon tiedostoon files.txt
+const LICENSE_FILES = ["NOTICES.txt", "GPL-3.0.txt", "LGPL-3.0.txt", "CC-BY-4.0.txt", "MPL-2.0.txt", "Apache-2.0.txt",
+  "../vendor/LICENSE-sql.js.txt"];
+async function showLicenses() {
+  let files = LICENSE_FILES;
+  try {
+    const r = await fetch("licenses/desktop/files.txt");
+    if (r.ok) files = files.concat((await r.text()).split("\n").map((f) => f.trim()).filter(Boolean).map((f) => "desktop/" + f));
+  } catch (e) { /* ei työpöytäversio */ }
+  $("lic-select").innerHTML = files.map((f) =>
+    `<option value="${esc(f)}">${esc(f.replace("../vendor/LICENSE-", "").replace(/^desktop\/(debian\/)?/, ""))}</option>`).join("");
+  $("licenses-dlg").showModal();
+  showLicenseFile(files[0]);
+}
+// Lisenssitekstit on rivitetty ~76 merkkiin; puhelimessa rivit katkeaisivat rumasti. Kovat rivinvaihdot
+// yhdistetään kappaleiksi: täysi rivi + samalla sisennyksellä jatkuva rivi, joka ei ole otsikko, luettelon
+// kohta tai "Licence:"-tyyppinen avainrivi.
+function reflowLicense(text) {
+  const out = [];
+  let lastRaw = "";
+  const indent = (l) => l.length - l.trimStart().length;
+  for (const line of text.replace(/\r/g, "").split("\n")) {
+    const join = out.length && lastRaw.trim() && line.trim() && lastRaw.trimEnd().length >= 60
+      && indent(line) <= indent(lastRaw) && !/^\s*(=+|-+)\s*$/.test(line)
+      && !/^\s*([-*•]\s|\(?[0-9a-z]{1,3}[.)]\s|©|[A-Z][A-Za-z ]{0,20}:\s)/.test(line);
+    if (join) out[out.length - 1] += " " + line.trim();
+    else out.push(line);
+    lastRaw = line;
+  }
+  return out.join("\n");
+}
+async function showLicenseFile(file) {
+  const pre = $("lic-text");
+  try {
+    const r = await fetch("licenses/" + file);
+    if (!r.ok) throw new Error(r.status);
+    pre.textContent = reflowLicense(await r.text());
+  } catch (e) {
+    pre.textContent = "licenses/" + file + ": " + e.message;
+  }
+  pre.scrollTop = 0;
+}
+
 function bindOcr() {
   if (!window.SatniOcr) return;
   const toggle = $("experimental-toggle");
@@ -1485,6 +1530,8 @@ function bindEvents() {
   $("fav-btn").onclick = toggleFavourite;
   bindFormPop();
   $("about-btn").onclick = () => $("about").showModal();
+  $("licenses-btn").onclick = showLicenses;
+  $("lic-select").onchange = (e) => showLicenseFile(e.target.value);
   $("welcome-lang").addEventListener("click", (e) => {
     const b = e.target.closest("[data-lang]");
     if (b) setUiLanguage(b.dataset.lang);

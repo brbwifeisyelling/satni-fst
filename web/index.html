@@ -162,6 +162,17 @@
     <h2>Sátni FST</h2>
     <p class="muted small" id="about-version"></p>
     <div data-i18n-html="aboutBody"></div>
+    <form method="dialog" class="dialog-actions">
+      <button type="button" class="chip-btn" id="licenses-btn" data-i18n="licenses">Lisenssit</button>
+      <button class="chip-btn" data-i18n="close">Sulje</button>
+    </form>
+  </dialog>
+
+  <!-- Lisenssit ja tekijänoikeudet: web/licenses/ (työpöytäversiossa lisäksi licenses/desktop/, app.js: showLicenses) -->
+  <dialog id="licenses-dlg" class="licenses-dlg">
+    <h2 data-i18n="licensesTitle">Lisenssit ja tekijänoikeudet</h2>
+    <select id="lic-select" data-i18n-aria="licensesTitle"></select>
+    <pre id="lic-text" class="lic-text"></pre>
     <form method="dialog"><button class="chip-btn" data-i18n="close">Sulje</button></form>
   </dialog>
 
