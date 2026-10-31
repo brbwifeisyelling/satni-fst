@@ -1070,8 +1070,11 @@ function ocrResult(r) {
   if (!r) { $("ocr-status").textContent = ocr ? ocr.status : t("ocrIntro"); return; }  // kuvan otto peruttiin
   if (r.error) { $("ocr-status").textContent = t(r.error === "noApp" ? "ocrNoApp" : "ocrError"); return; }
   for (const w of r.words) w.clean = w.t.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
-  ocr = { r, view: null };
+  ocr = { r, view: null, words: [], status: t("ocrFinding") };
   ocrReturnHash = null;
+  // Kuva näkyviin heti; merkinnät tulevat sanojen haun jälkeen
+  $("ocr-photo").innerHTML = `<img src="${r.image}" alt="">`;
+  layoutOcr(true);
   findOcrWords();
 }
 

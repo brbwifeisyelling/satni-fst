@@ -9,6 +9,8 @@ All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/somb
   Norwegian) with a photo open. Looking up words in the other direction can take a few seconds on a phone, and the
   app no longer looks frozen meanwhile.
 - **Buy me a coffee** link at the end of the About window, for those who want to support Sátni FST.
+- The photo appears right away while its words are looked up, and the direction button changes as soon as it is
+  tapped.
 
 ## 0.8 — 2026-10-31
 
