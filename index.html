@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sátni FST – pohjoissaamen sanakirja ja taivutin</title>
+<meta name="description" content="Pohjoissaamen sanakirja ja taivutin, joka toimii ilman verkkoyhteyttä. Nordsamisk ordbok og bøyingsverktøy. Offline North Sámi dictionary with full inflection.">
+<link rel="icon" href="satni-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="site.css?v=f3d523f84a">
+<script>
+  // Kieli selaimen mukaan tai aiemman valinnan mukaan: fi, nb tai en (ks. site.js)
+  try {
+    var saved = localStorage.getItem("satni-site-lang");
+    var nav = (navigator.language || "fi").toLowerCase();
+    document.documentElement.lang = saved || (/^(nb|nn|no)/.test(nav) ? "nb" : /^fi/.test(nav) ? "fi" : /^se/.test(nav) ? "fi" : "en");
+  } catch (e) {}
+</script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="./">
+    <img src="satni-icon.svg" alt="" width="40" height="40">
+    <span><strong>Sátni FST</strong><small data-t="tagline"></small></span>
+  </a>
+  <nav class="langs" aria-label="Kieli / Språk / Language">
+    <button data-lang="fi">Suomi</button><button data-lang="nb">Norsk</button><button data-lang="en">English</button>
+  </nav>
+</header>
+<div class="stripe"><span></span><span></span><span></span><span></span></div>
+
+<main>
+  <section class="hero">
+    <div class="hero-text">
+      <h1 data-t="title"></h1>
+      <p class="lead" data-t="lead"></p>
+      <div class="actions">
+        <a class="button primary" href="app/" data-t="open"></a>
+        <a class="button" href="#download" data-t="download"></a>
+      </div>
+      <p class="muted small" data-t="openNote"></p>
+    </div>
+    <picture class="hero-shot">
+      <source srcset="screenshots/desktop-dark-fi.png" media="(prefers-color-scheme: dark)">
+      <img src="screenshots/desktop-light-fi.png" alt="" width="1400" height="860">
+    </picture>
+  </section>
+
+  <section class="whatsnew">
+    <h2 data-t="newH"></h2>
+    <!-- Uusin versio näkyy aina; aiemmat versiot avautuvat nuolesta -->
+    <div class="new-grid">
+      <div class="new-text">
+        <p class="ver" data-t="v090"></p>
+        <h3 data-t="w1h"></h3><p data-t="w1"></p>
+        <h3 data-t="w2h"></h3><p data-t="w2"></p>
+        <h3 data-t="w3h"></h3><p data-t="w3"></p>
+        <h3 data-t="w4h"></h3><p data-t="w4"></p>
+      </div>
+      <div class="phone-row steps">
+        <figure><img src="screenshots/card-09.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="wcap"></figcaption></figure>
+      </div>
+    </div>
+    <details class="older">
+      <summary data-t="olderH"></summary>
+      <div class="new-grid">
+        <div class="new-text">
+          <p class="ver" data-t="v081"></p>
+          <h3 data-t="u1h"></h3><p data-t="u1"></p>
+          <p class="ver" data-t="v080"></p>
+          <h3 data-t="r1h"></h3><p data-t="r1"></p>
+          <p class="ver" data-t="v076"></p>
+          <h3 data-t="o1h"></h3><p data-t="o1"></p>
+          <p class="ver" data-t="v075"></p>
+          <h3 data-t="k1h"></h3><p data-t="k1"></p>
+          <p class="ver" data-t="v074"></p>
+          <h3 data-t="m1h"></h3><p data-t="m1"></p>
+          <h3 data-t="m2h"></h3><p data-t="m2"></p>
+          <h3 data-t="m3h"></h3><p data-t="m3"></p>
+          <p class="ver" data-t="v073"></p>
+          <h3 data-t="n1h"></h3><p data-t="n1"></p>
+          <h3 data-t="n2h"></h3><p data-t="n2"></p>
+          <h3 data-t="n3h"></h3><p data-t="n3"></p>
+        </div>
+        <div class="phone-row steps">
+          <figure><img src="screenshots/photo-1.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="q1"></figcaption></figure>
+          <figure><img src="screenshots/photo-2.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="q2"></figcaption></figure>
+          <figure><img src="screenshots/photo-3.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="q3"></figcaption></figure>
+        </div>
+      </div>
+      <!-- 0.7.3: jaa sana sovellukseen -->
+      <div class="phone-row steps share-steps">
+        <figure><img src="screenshots/share-1.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="s1"></figcaption></figure>
+        <figure><img src="screenshots/share-2.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="s2"></figcaption></figure>
+        <figure><img src="screenshots/share-3.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="s3"></figcaption></figure>
+      </div>
+    </details>
+  </section>
+
+  <section class="features">
+    <div><h3 data-t="f1h"></h3><p data-t="f1"></p></div>
+    <div><h3 data-t="f2h"></h3><p data-t="f2"></p></div>
+    <div><h3 data-t="f3h"></h3><p data-t="f3"></p></div>
+    <div><h3 data-t="f4h"></h3><p data-t="f4"></p></div>
+    <div><h3 data-t="f5h"></h3><p data-t="f5"></p></div>
+    <div><h3 data-t="f6h"></h3><p data-t="f6"></p></div>
+  </section>
+
+  <section class="phones">
+    <h2 data-t="phonesH"></h2>
+    <div class="phone-row">
+      <figure><img src="screenshots/phone-light-fi.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="p1"></figcaption></figure>
+      <figure><img src="screenshots/phone-light-fi-table.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="p2"></figcaption></figure>
+      <figure><img src="screenshots/phone-dark-nb.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="p3"></figcaption></figure>
+      <figure><img src="screenshots/phone-dark-fi-meanings.png" alt="" loading="lazy" width="540" height="1200"><figcaption data-t="p4"></figcaption></figure>
+    </div>
+  </section>
+
+  <section id="download" class="download">
+    <h2 data-t="downloadH"></h2>
+    <p class="muted" id="release-info" data-t="releaseLoading"></p>
+    <div class="cards">
+      <a class="card" data-file="satni-fst-windows.zip" href="https://github.com/sombyduodji/satni-fst/releases">
+        <strong>Windows</strong><span class="muted small" data-t="win"></span><span class="size"></span>
+      </a>
+      <a class="card" data-file="Satni_FST-x86_64.AppImage" href="https://github.com/sombyduodji/satni-fst/releases">
+        <strong>Linux</strong><span class="muted small" data-t="linux"></span><span class="size"></span>
+      </a>
+      <a class="card" data-file="satni-fst.apk" href="https://github.com/sombyduodji/satni-fst/releases">
+        <strong>Android</strong><span class="muted small" data-t="android"></span><span class="size"></span>
+      </a>
+      <a class="card" href="app/">
+        <strong data-t="webH"></strong><span class="muted small" data-t="web"></span>
+      </a>
+    </div>
+    <p class="small muted"><span data-t="allReleases"></span>
+      <a href="https://github.com/sombyduodji/satni-fst/releases">github.com/sombyduodji/satni-fst/releases</a></p>
+  </section>
+
+  <section class="story">
+    <h2 data-t="madeH"></h2>
+    <p data-t="made"></p>
+  </section>
+
+  <section class="credits">
+    <h2 data-t="creditsH"></h2>
+    <p data-t="credits"></p>
+    <ul>
+      <li><a href="https://giellalt.github.io/">GiellaLT</a> – <span data-t="c1"></span></li>
+      <li><a href="https://divvun.no/">Divvun</a> &amp; <a href="https://giellatekno.uit.no/">Giellatekno</a> – <span data-t="c2"></span></li>
+      <li><a href="https://oahpa.no/sme/gramm/tabell_stadieveksling.html">Oahpa</a> – <span data-t="c3"></span></li>
+      <li><a href="https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-5/">Språkbanken / Nasjonalbiblioteket</a> – <span data-t="c4"></span></li>
+    </ul>
+    <p class="small muted"><span data-t="license"></span>
+      <a href="https://github.com/sombyduodji/satni-fst/blob/main/CREDITS.md">CREDITS.md</a></p>
+  </section>
+
+  <!-- Tue kehitystä: Buy Me a Coffee -->
+  <section class="support">
+    <p data-t="supportText"></p>
+    <a class="coffee-btn" href="https://buymeacoffee.com/sombyduodji" target="_blank" rel="noopener">
+      <img src="coffee.svg" alt="" width="32" height="32"><span>Buy me a coffee</span></a>
+  </section>
+</main>
+
+<footer>
+  <span>Sátni FST · <a href="https://github.com/sombyduodji/satni-fst">GitHub</a> · <span data-t="feedback"></span>
+    <a href="mailto:satni@somby.fi">satni@somby.fi</a> ·
+    <a href="https://buymeacoffee.com/sombyduodji" target="_blank" rel="noopener">☕ Buy me a coffee</a></span>
+</footer>
+<script src="site.js?v=0c580b39c1"></script>
+</body>
+</html>

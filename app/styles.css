@@ -1,0 +1,566 @@
+/* Värit samat kuin työpöytäversion ui_theme.py:ssä */
+:root {
+  --bg: #f4f6fa; --surface: #ffffff; --surface-alt: #f6f8fb; --border: #e2e8f0;
+  --text: #0f172a; --muted: #64748b; --subtle: #94a3b8;
+  --accent: #2563eb; --accent-hover: #1d4ed8; --accent-text: #ffffff;
+  --chip: #e8edf4; --chip-hover: #dbe3ee; --chip-text: #1e293b;
+  --section: #eef2f8; --select: #dbeafe;
+  --gd: #15803d; --gd-bg: #dcfce7; --hd: #c2410c; --hd-bg: #ffedd5;
+  --gt: #9f1239; --gt-bg: #fff1f2; --gt-hover: #ffe4e6;
+  --speak: #1d4ed8; --speak-bg: #eff6ff; --speak-hover: #dbeafe;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141b; --surface: #171e27; --surface-alt: #1b232e; --border: #2a3441;
+    --text: #e5e9f0; --muted: #94a3b8; --subtle: #64748b;
+    --accent: #3b82f6; --accent-hover: #60a5fa;
+    --chip: #232c38; --chip-hover: #2d3846; --chip-text: #e2e8f0;
+    --section: #1f2834; --select: #1e3a5f;
+    --gd: #4ade80; --gd-bg: #123220; --hd: #fb923c; --hd-bg: #3a2210;
+    --gt: #fda4af; --gt-bg: #35141d; --gt-hover: #4a1c28;
+    --speak: #93c5fd; --speak-bg: #162447; --speak-hover: #1e3160;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141b; --surface: #171e27; --surface-alt: #1b232e; --border: #2a3441;
+  --text: #e5e9f0; --muted: #94a3b8; --subtle: #64748b;
+  --accent: #3b82f6; --accent-hover: #60a5fa;
+  --chip: #232c38; --chip-hover: #2d3846; --chip-text: #e2e8f0;
+  --section: #1f2834; --select: #1e3a5f;
+  --gd: #4ade80; --gd-bg: #123220; --hd: #fb923c; --hd-bg: #3a2210;
+  --gt: #fda4af; --gt-bg: #35141d; --gt-hover: #4a1c28;
+  --speak: #93c5fd; --speak-bg: #162447; --speak-hover: #1e3160;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+/* Sivu ei saa olla näyttöä leveämpi eikä venyä reunojen yli (puhelin: tausta paljastui). Vain html:lle:
+   body:n overflow tekisi siitä oman vierityslaatikon, ja puhelimessa sivu ei enää vierinyt lainkaan. */
+html { background: var(--bg); overflow-x: hidden; overscroll-behavior: none; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 15px/1.45 "Noto Sans", "Segoe UI", system-ui, -apple-system, "DejaVu Sans", sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--accent); }
+[hidden] { display: none !important; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+b.gd, .gd { color: var(--gd); }
+b.hd, .hd { color: var(--hd); }
+
+/* Yläpalkki */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--surface); padding: 10px 20px; padding-top: max(10px, env(safe-area-inset-top));
+}
+/* Android-sovelluksessa tilarivin tila on jo sovelluksen reunuksessa (muuten tyhjä alue kahteen kertaan) */
+.android-app .topbar { padding-top: 10px; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; overflow: hidden; }
+.brand > div { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.brand-icon { width: 36px; height: 36px; border-radius: 8px; }
+.brand-name { font-weight: 700; font-size: 20px; }
+.brand-sub { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.stripe { display: flex; height: 4px; }
+.stripe span { flex: 1; }
+.stripe span:nth-child(1) { background: #e11d48; } .stripe span:nth-child(2) { background: #facc15; }
+.stripe span:nth-child(3) { background: #2563eb; } .stripe span:nth-child(4) { background: #16a34a; }
+
+select {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px;
+}
+.chip-btn, .icon-btn {
+  background: var(--chip); color: var(--chip-text); border: 0; border-radius: 8px;
+  padding: 7px 12px; font-weight: 600; cursor: pointer;
+}
+.chip-btn:hover, .icon-btn:hover { background: var(--chip-hover); }
+.icon-btn { display: none; font-size: 18px; line-height: 1; }
+
+/* Käyttöliittymän kieli: valitsin valikossa ja aloitussivulla */
+.lang-switch svg {
+  width: 24px; height: 16px; border-radius: 2px; box-shadow: 0 0 0 1px var(--border); flex: none;
+}
+.lang-switch {
+  float: right; display: inline-flex; gap: 2px; padding: 3px; background: var(--chip); border-radius: 99px;
+}
+.lang-switch button {
+  display: flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--chip-text);
+  padding: 6px 12px; border-radius: 99px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.lang-switch button.active { background: var(--surface); box-shadow: 0 1px 3px rgb(0 0 0 / .15); }
+.primary-btn {
+  background: var(--accent); color: var(--accent-text); border: 0; border-radius: 8px;
+  padding: 10px 20px; font-weight: 700; cursor: pointer;
+}
+.primary-btn:hover { background: var(--accent-hover); }
+.primary-btn:disabled { opacity: .5; cursor: default; }
+.link-btn { background: none; border: 0; color: var(--muted); font-size: 13px; cursor: pointer; padding: 4px 0; }
+.link-btn:hover { color: var(--accent); }
+
+/* Haku */
+.searchbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 14px 20px 8px;
+}
+.search-box { position: relative; flex: 1 1 320px; max-width: 520px; }
+#search {
+  width: 100%; padding: 10px 14px; font-size: 17px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface); outline: none;
+}
+#search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+.check, .voice { display: flex; gap: 6px; align-items: center; font-size: 14px; white-space: nowrap; }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+.suggestions {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20; margin: 0; padding: 4px;
+  list-style: none; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .15); max-height: 340px; overflow-y: auto;
+}
+.suggestions li { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+.suggestions li .pos { color: var(--subtle); font-size: 12px; }
+.suggestions li .trans { color: var(--muted); font-size: 13px; margin-left: auto; text-align: right; }
+.suggestions li.active, .suggestions li:hover { background: var(--select); }
+
+/* Asettelu: sivupalkki + sisältö */
+.layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 16px; padding: 4px 20px 24px; }
+.sidebar {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px; align-self: start; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto;
+}
+.sidebar h3 { margin: 4px 0 6px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.sidebar section + section { margin-top: 14px; }
+.word-list { list-style: none; margin: 0; padding: 0; }
+.word-list li a {
+  display: block; padding: 5px 8px; border-radius: 6px; text-decoration: none; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.word-list li a:hover { background: var(--chip); }
+/* Muut kielet ja kokeelliset ominaisuudet: kytkinrivit */
+.extra-langs, .toggle-list { display: flex; flex-direction: column; gap: 2px; }
+.extra-langs .switch-row, .toggle-list .switch-row { padding: 6px 8px; border-radius: 8px; font-size: 14px; font-weight: 500; }
+.extra-langs .switch-row:hover, .toggle-list .switch-row:hover { background: var(--chip); }
+.toggle-list .switch-row { align-items: flex-start; }
+.toggle-list .switch { margin-top: 2px; }
+.extra-translations { font-size: 15px; margin: -4px 0 10px; }
+.word-list .empty { color: var(--subtle); font-size: 13px; padding: 4px 8px; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 22px;
+}
+main > * + * { margin-top: 12px; }
+
+/* Lataus ja aloitus */
+.loading h2 { margin-top: 0; }
+.progress { height: 8px; background: var(--chip); border-radius: 99px; overflow: hidden; margin-top: 12px; }
+#progress-bar { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.welcome h1 { margin: 4px 0; font-size: 26px; }
+.lead { color: var(--muted); margin-top: 0; font-size: 16px; }
+.tips { display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px; margin: 18px 0 22px; }
+.tips dt { color: var(--accent); font-weight: 700; }
+.tips dd { margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button {
+  background: var(--chip); color: var(--chip-text); border: 0; border-radius: 8px; padding: 6px 12px;
+  font-weight: 600; cursor: pointer;
+}
+.chips button:hover { background: var(--chip-hover); }
+.chips button.selected { background: var(--accent); color: var(--accent-text); }
+.chips button.random { background: var(--speak-bg); color: var(--speak); }
+.results button { font-size: 13px; }
+/* Tarkoititko: sama sana saamen erikoiskirjaimin */
+.did-you-mean { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 14px; color: var(--muted); }
+.did-you-mean[hidden] { display: none; }
+.did-you-mean button {
+  border: 1px dashed var(--accent); background: none; color: var(--text); border-radius: 999px; padding: 4px 12px;
+  font: inherit; cursor: pointer;
+}
+.did-you-mean button b { color: var(--accent); }
+.did-you-mean button:hover { background: var(--chip); }
+.results button .trans { font-weight: 400; opacity: .85; }
+.results button.more-results { background: none; color: var(--accent); border: 1px dashed var(--border); }
+
+/* Sanakortti */
+.word-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.word-title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.word-title h1 { margin: 0; font-size: 32px; line-height: 1.15; }
+.badge { background: var(--chip); color: var(--chip-text); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 600; }
+.star-btn { background: none; border: 0; font-size: 24px; color: var(--subtle); cursor: pointer; padding: 0 4px; }
+.star-btn.on { color: #eab308; }
+.speak-btn {
+  position: relative; flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px;
+  padding: 0; border: 0; border-radius: 50%; cursor: pointer; background: var(--speak-bg); color: var(--speak);
+  transition: transform .1s, filter .1s;
+}
+.speak-btn svg { width: 21px; height: 21px; }
+.speak-btn:hover { background: var(--speak-hover); }
+.speak-btn:active { transform: scale(.88); filter: brightness(.9); }
+.speak-btn:disabled { cursor: progress; }
+/* Sanasta muualla: pyöreät pillerit, joiden alussa lähteen värinen merkki */
+.word-links { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.link-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.link-pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px 4px 4px; border-radius: 999px;
+  background: var(--chip); color: var(--chip-text); font-weight: 600; font-size: 14px; text-decoration: none;
+  transition: transform .1s, background .1s;
+}
+.link-pill:hover { background: var(--chip-hover); }
+.link-pill:active { transform: scale(.95); }
+.lp-mark {
+  flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  font-size: 12px; font-weight: 800; background: var(--accent); color: var(--accent-text);
+}
+.link-pill.gt .lp-mark { background: var(--gt); color: var(--gt-bg); }
+.lp-arrow { color: var(--subtle); font-size: 12px; margin-left: -2px; }
+/* Leveällä näytöllä oma solu sanan oikealla puolella; kapealla rivi kortin alaosassa */
+@media (min-width: 821px) {
+  .word { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; align-items: start; }
+  .word > * { grid-column: 1; }
+  .word > .word-links {
+    grid-column: 2; grid-row: 1 / span 20; margin: 0; padding: 12px 14px 14px;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--surface-alt);
+  }
+  .word-links .link-pills { flex-direction: column; align-items: stretch; }
+}
+.translation { font-size: 19px; margin: 6px 0 10px; }
+.form-translation { font-size: 16px; margin: -4px 0 10px; }
+.form-translation b { font-weight: 600; }
+.more { font-size: 14px; margin-left: 6px; text-decoration: none; }
+/* Astevaihtelu: pieni otsikko ja omat solut (esimerkkimuodot, konsonantit, asteet, Oahpan ryhmä) */
+.gradation { margin-top: 14px; }
+.gradation:empty { display: none; }
+.grad-head, .links-head {
+  margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+}
+.grad-cells { display: flex; flex-wrap: wrap; gap: 8px; }
+.grad-cell {
+  display: flex; flex-direction: column; gap: 2px; padding: 7px 12px 8px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-alt);
+}
+.gc-cap { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.gc-val { font-size: 16px; font-weight: 700; white-space: nowrap; }
+.gc-val small { font-size: 11px; font-weight: 600; opacity: .8; }
+.gc-val .other { color: var(--muted); }
+.grad-cell.group .gc-val { font-size: 14px; font-weight: 600; }
+.gc-val .nw { white-space: nowrap; }
+.gradation .arrow { color: var(--subtle); font-weight: 400; margin: 0 2px; }
+/* Puhelimessa tasainen 2 × 2 -ruudukko */
+@media (max-width: 480px) {
+  .grad-cells { display: grid; grid-template-columns: 1fr 1fr; }
+  .grad-cell.group .gc-val { white-space: normal; }
+}
+#word-info:empty { display: none; }
+#word-info { margin: 8px 0 0; }
+
+/* Välilehdet */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+.tabs button {
+  background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; font-weight: 700;
+  color: var(--muted); cursor: pointer;
+}
+.tabs button:hover { color: var(--text); }
+.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+main > .tabs { margin-top: 18px; }
+main > .tabs + .panel { margin-top: 0; border-top-left-radius: 0; border-top-right-radius: 0; border-top: 0; }
+
+/* Taivutustaulukot */
+.legend { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+.legend b { margin-right: 4px; }
+.table-wrap { overflow-x: auto; }
+table.paradigm { border-collapse: collapse; width: 100%; font-size: 15px; }
+table.paradigm th { text-align: left; color: var(--muted); font-size: 13px; font-weight: 700; padding: 6px 12px; }
+table.paradigm td { padding: 6px 12px; white-space: nowrap; }
+table.paradigm td.label { color: var(--muted); font-weight: 700; width: 1%; }
+table.paradigm tbody tr:nth-child(even) td { background: var(--surface-alt); }
+table.paradigm tr.section td {
+  background: var(--section) !important; color: var(--accent); font-weight: 700; padding-top: 10px;
+}
+.form { cursor: pointer; border-radius: 4px; }
+.form:hover { background: var(--select); }
+.form.picked { background: var(--select); outline: 2px solid var(--accent); }
+.pron { color: var(--muted); }
+.sep { color: var(--subtle); }
+.hint { color: var(--subtle); font-size: 13px; margin: 12px 0 0; }
+
+/* Merkitykset */
+.meaning { margin: 0 0 18px; }
+.lang-head { margin: 22px 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.meaning .head { font-weight: 700; font-size: 16px; }
+.meaning .nr { color: var(--accent); margin-right: 6px; }
+.meaning .expl { font-style: italic; font-weight: 400; }
+.meaning .restr { font-style: italic; color: var(--muted); font-weight: 400; font-size: 14px; }
+.meaning .tag { background: var(--chip); color: var(--muted); border-radius: 5px; padding: 1px 6px; font-size: 12px; font-weight: 400; margin-left: 6px; }
+.example { margin: 6px 0 0 24px; }
+.example .sme { display: block; }
+.example .fin { display: block; color: var(--muted); }
+.example .missing { display: block; color: var(--subtle); font-style: italic; font-size: 13px; }
+.raw { font-family: ui-monospace, "DejaVu Sans Mono", monospace; font-size: 13px; }
+.raw .tag { color: var(--muted); display: inline-block; min-width: 200px; }
+
+dialog {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 12px;
+  max-width: 540px; padding: 24px 28px;
+}
+dialog::backdrop { background: rgba(0, 0, 0, .4); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+/* Tietoa-ikkunan lopussa: Buy me a coffee (pyöreä kahvikuppilogo + teksti), sama ulkoasu kuin kotisivulla */
+.about-coffee { color: var(--muted); font-size: 14px; }
+.coffee-btn {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; padding: 4px 14px 4px 4px; border-radius: 999px;
+  background: #fbf1e1; color: #3b2a20; border: 1px solid #ead9bf; font-weight: 700; font-size: 14px;
+  text-decoration: none; white-space: nowrap;
+}
+.coffee-btn img { width: 26px; height: 26px; border-radius: 50%; }
+.coffee-btn:hover { filter: brightness(.97); }
+/* Lisenssit: tiedoston valinta ja teksti vierivänä laatikkona */
+.licenses-dlg { max-width: min(760px, calc(100vw - 32px)); width: 100%; }
+.licenses-dlg h2 { margin-top: 0; }
+#lic-select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface-alt); color: var(--text); font: inherit; }
+.lic-text {
+  height: min(60vh, 520px); overflow: auto; margin: 12px 0; padding: 12px 14px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface-alt); white-space: pre-wrap; overflow-wrap: anywhere;
+  font-family: ui-monospace, "DejaVu Sans Mono", monospace; font-size: 12.5px; line-height: 1.5;
+}
+/* Tekstintunnistus (Android-sovellus): kuva koko näytön kokoisena, sanakirjan sanat alleviivattuina samassa
+   kohdassa ja asennossa kuin kuvassa; napautetun sanan päällä kupla (sana, käännös, linkki sanakirjaan) */
+.ocr-btn { font-size: 18px; padding: 6px 10px; line-height: 1.2; }
+.ocr-view {
+  position: fixed; inset: 0; z-index: 45; background: var(--bg); padding: 12px;
+  display: flex; flex-direction: column;
+}
+.ocr-view[hidden] { display: none; }
+.ocr-head { display: flex; flex-wrap: wrap; gap: 8px; }
+.ocr-head #ocr-close { margin-left: auto; }
+#ocr-status { margin: 8px 2px; }
+.ocr-stage {
+  position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  border-radius: 8px; background: #111;
+}
+.ocr-photo { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.ocr-photo img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; }
+/* Sanojen merkintä: läpikuultava pyöreäkulmainen kehys tai alleviivaus, väri asetuksista (--mark) */
+.ocr-photo { --mark: #2563eb; }
+.ocr-word { position: absolute; }
+.style-frame .ocr-word {
+  border-radius: 6px; background: color-mix(in srgb, var(--mark) 10%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--mark) 45%, transparent);
+}
+.style-frame .ocr-word.picked {
+  background: color-mix(in srgb, var(--mark) 24%, transparent); border-color: var(--mark);
+}
+.style-underline .ocr-word {
+  border-radius: 2px; box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--mark) 80%, transparent);
+}
+.style-underline .ocr-word.picked {
+  background: color-mix(in srgb, var(--mark) 18%, transparent); box-shadow: inset 0 -3px 0 var(--mark);
+}
+/* Keltainen hukkuu vaalealle paperille: täyteläisempi täyttö ja tummennettu reuna */
+.mark-light.style-frame .ocr-word {
+  background: color-mix(in srgb, var(--mark) 22%, transparent);
+  border: 2px solid color-mix(in srgb, var(--mark) 80%, #000);
+}
+.mark-light.style-frame .ocr-word.picked {
+  background: color-mix(in srgb, var(--mark) 50%, transparent); border-color: color-mix(in srgb, var(--mark) 55%, #000);
+}
+.mark-light.style-underline .ocr-word { box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--mark) 80%, #000); }
+.mark-light.style-underline .ocr-word.picked {
+  background: color-mix(in srgb, var(--mark) 40%, transparent); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--mark) 55%, #000);
+}
+/* Suunta ja merkintätapa: pilleri ja paletti kuvan yläpuolella */
+.ocr-bar { position: relative; display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.ocr-dir, .ocr-style-btn {
+  display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); border-radius: 99px; padding: 6px 14px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.ocr-dir svg { width: 18px; height: 18px; color: var(--accent); }
+.ocr-style-btn { padding: 6px; width: 36px; height: 36px; justify-content: center; margin-left: auto; }
+.ocr-style-btn span { width: 18px; height: 18px; border-radius: 50%; background: var(--mark-preview, #2563eb); }
+.ocr-style {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; display: flex; flex-direction: column; gap: 12px;
+  padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+}
+.ocr-style[hidden] { display: none; }
+.ocr-seg { float: none; }
+.ocr-seg button { padding: 5px 12px; font-size: 14px; }
+.ocr-swatches { display: flex; gap: 10px; justify-content: center; }
+.ocr-swatches button {
+  width: 28px; height: 28px; border-radius: 50%; border: 0; cursor: pointer; background: var(--c);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px transparent;
+}
+.ocr-swatches button.active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--c); }
+.ocr-bubble {
+  position: absolute; z-index: 2; display: flex; align-items: center; gap: 12px;
+  max-width: calc(100% - 16px); padding: 8px 8px 8px 14px; border: 0; border-radius: 14px;
+  background: var(--surface); color: var(--text); box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  font: inherit; text-align: left; cursor: pointer; transform: translate(-50%, calc(-100% - 10px));
+}
+.ocr-bubble[hidden] { display: none; }
+.ocr-bubble.below { transform: translate(-50%, 10px); }
+.ocr-bubble::after {
+  content: ""; position: absolute; left: var(--arrow, 50%); top: 100%; transform: translateX(-50%);
+  border: 8px solid transparent; border-top-color: var(--surface);
+}
+.ocr-bubble.below::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--surface); }
+.ocr-bubble .b-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ocr-bubble .b-word { font-weight: 700; font-size: 17px; }
+.ocr-bubble .b-lemma { color: var(--muted); font-weight: 400; font-size: 14px; }
+.ocr-bubble .b-trans { color: var(--muted); font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ocr-bubble .b-open, .ocr-bubble .b-speak, .ocr-bubble .b-copy {
+  flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--accent-text);
+}
+.ocr-bubble .b-speak { background: var(--speak-bg); color: var(--speak); margin-right: -4px; }
+.ocr-bubble .b-copy { background: var(--chip); color: var(--chip-text); }
+.ocr-bubble button { border: 0; padding: 0; font: inherit; cursor: pointer; }
+/* Sanakortin muodon kupla: sama ulkoasu kuin kuvan sanakuplalla, sivun päällä */
+.form-pop {
+  position: absolute; z-index: 30; padding: 6px 6px 6px 14px; gap: 10px;
+  border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+}
+.form-pop::before {
+  content: ""; position: absolute; left: var(--arrow, 50%); top: 100%; transform: translateX(-50%);
+  border: 9px solid transparent; border-top-color: var(--border);
+}
+.form-pop.below::before { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--border); }
+.form-pop .b-word { font-size: 16px; }
+
+/* Ei Androidin omaa napautuskorostusta (se korosti koko kuplan); painettu painike korostetaan itse */
+.ocr-stage, .ocr-stage * { -webkit-tap-highlight-color: transparent; }
+.ocr-bubble .b-speak, .ocr-bubble .b-open, .ocr-bubble .b-copy { transition: transform .1s, filter .1s; }
+.ocr-bubble .pressed { filter: brightness(.8); transform: scale(.86); }
+
+/* Äänen haku: pyörivä kehä kaiutinkuvakkeen ympärillä (sanakortin Kuuntele ja kuvan sanakupla) */
+@keyframes speak-spin { to { transform: rotate(360deg); } }
+.ocr-bubble .b-speak { position: relative; }
+.speak-btn.loading::after, .ocr-bubble .b-speak.loading::after {
+  content: ""; position: absolute; inset: -5px; border-radius: 50%;
+  border: 2.5px solid transparent; border-top-color: currentColor; border-left-color: currentColor;
+  animation: speak-spin .8s linear infinite;
+}
+
+.ocr-bubble svg { width: 18px; height: 18px; }
+
+/* Tekstin tunnistus ja sanojen haku: pyörivä kehä kuvan keskellä (sama kehä kuin kuuntelussa) */
+.ocr-busy {
+  position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; pointer-events: none;
+  background: rgba(0, 0, 0, .18);
+}
+.ocr-busy[hidden] { display: none; }
+.ocr-spinner {
+  width: 56px; height: 56px; border-radius: 50%; background: var(--surface); box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  position: relative;
+}
+.ocr-spinner::after {
+  content: ""; position: absolute; inset: 12px; border-radius: 50%; will-change: transform;
+  border: 3.5px solid transparent; border-top-color: var(--accent); border-left-color: var(--accent);
+  animation: speak-spin .8s linear infinite;
+}
+
+/* Kokeelliset ominaisuudet: kytkin valikon lopussa */
+.experimental { border-top: 1px solid var(--border); padding-top: 14px; }
+.experimental > .small { margin: 0 0 6px; }
+.chip-btn.primary { background: var(--accent); color: var(--accent-text); }
+.chip-btn.primary:hover { background: var(--accent-hover); }
+/* Kokeellisen ominaisuuden käyttöönotto */
+.exp-dlg { max-width: min(460px, calc(100vw - 32px)); }
+.exp-dlg h2 { margin-top: 0; }
+.exp-dlg p { margin: 0 0 10px; line-height: 1.5; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 600; }
+.switch-text { display: flex; flex-direction: column; gap: 2px; }
+.switch-text .small { font-weight: 400; }
+.switch {
+  appearance: none; -webkit-appearance: none; flex: none; position: relative; margin: 0; cursor: pointer;
+  width: 46px; height: 28px; border-radius: 99px; background: var(--border); transition: background .2s;
+}
+.switch::before {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .2s;
+}
+.switch:checked { background: var(--accent); }
+.switch:checked::before { transform: translateX(18px); }
+.switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50;
+  background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25); max-width: calc(100% - 32px);
+}
+
+/* Kapea näyttö (puhelin) */
+@media (max-width: 820px) {
+  /* minmax(0, 1fr): leveä taulukko ei saa venyttää koko sivua näyttöä leveämmäksi */
+  .layout { grid-template-columns: minmax(0, 1fr); padding: 4px 12px 24px; }
+  .sidebar { display: none; position: static; max-height: none; }
+  body.sidebar-open .sidebar { display: block; }
+  .icon-btn { display: inline-block; }
+  .brand-sub { display: none; }
+  .brand-name { white-space: nowrap; font-size: 18px; }
+  .brand-icon { width: 30px; height: 30px; }
+  .topbar-actions { gap: 6px; }
+  .search-box { flex: 1 1 0; min-width: 0; }
+  .primary-btn { padding: 10px 16px; }
+  .tabs { overflow-x: auto; }
+  .tabs button { white-space: nowrap; padding: 10px 10px; font-size: 14px; }
+  .topbar, .searchbar { padding-left: 12px; padding-right: 12px; }
+  .card { padding: 14px 16px; }
+  .lang-switch { float: none; margin-bottom: 10px; }
+  .word-title h1 { font-size: 27px; }
+  .tips { grid-template-columns: 1fr; gap: 0; }
+  .tips dd { margin-bottom: 8px; }
+  table.paradigm { font-size: 14px; }
+  table.paradigm td, table.paradigm th { padding: 5px 8px; }
+}
+/* Puhelin pystyssä: nimi mahtuu ilman kuvaketta */
+@media (max-width: 480px) {
+  .brand-icon { display: none; }
+}
+
+/* Sivupaneeli on vasemmalta liukuva valikko (☰), jossa myös asetukset.
+   Sama kaikilla alustoilla: sisältö saa koko leveyden. */
+body.drawer-layout .layout { grid-template-columns: minmax(0, 1fr); }
+body.drawer-layout .sidebar {
+  /* align-self: stretch, koska ruudukon sisällä kiinteäkin elementti noudattaa align-selfiä (start =
+     sisällön korkuinen): ilman tätä valikon alaosa jää matalalla näytöllä näkymättömiin eikä vieritä */
+  display: block; position: fixed; top: 8px; bottom: 0; left: 0; z-index: 40; max-height: none; align-self: stretch;
+  width: min(85vw, 320px); overflow-y: auto; padding: 18px 16px 24px; border-radius: 0 12px 12px 0;
+  background: var(--surface); box-shadow: 4px 0 24px rgba(0, 0, 0, .3);
+  transform: translateX(-105%); transition: transform .2s ease-out;
+}
+body.drawer-layout.sidebar-open .sidebar { transform: none; }
+.drawer-scrim { display: none; }
+body.drawer-layout.sidebar-open .drawer-scrim {
+  display: block; position: fixed; inset: 0; z-index: 39; background: rgba(0, 0, 0, .45);
+}
+body.drawer-layout .icon-btn { display: inline-block; }
+.settings-section .check { display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+/* ☰ vasempaan yläkulmaan; kieli, teema ja ääni ovat valikossa */
+body.drawer-layout .topbar { justify-content: flex-start; }
+body.drawer-layout .topbar .brand { flex: 1; }
+body.drawer-layout .topbar > #sidebar-toggle { margin-right: 4px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px; }
+.setting-row .lang-switch { float: none; }
+.setting-row.stack { flex-direction: column; align-items: flex-start; }
+.voice-head { padding-bottom: 0; }
+.voice-list { display: flex; flex-direction: column; padding: 0 8px 4px 16px; }
+.voice-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 0; }
+.voice-row label { display: flex; align-items: center; gap: 10px; flex: 1; padding: 6px 0; cursor: pointer; }
+.sample-btn {
+  border: 0; border-radius: 99px; background: var(--speak-bg); color: var(--speak); font-size: 18px;
+  width: 40px; height: 40px; cursor: pointer;
+}
+.sample-btn:disabled { opacity: .5; }
+.first-run { text-align: center; }
+.first-run p { color: var(--muted); }
+.first-run-lang { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.first-run-lang button {
+  display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 24px; font: inherit;
+  font-size: 18px; font-weight: 600; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface-alt); color: var(--text); cursor: pointer;
+}
+.first-run-lang svg { width: 32px; height: 22px; border-radius: 3px; }

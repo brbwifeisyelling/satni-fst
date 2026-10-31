@@ -1,0 +1,17 @@
+{
+  "name": "Sátni FST – pohjoissaamen sanakirja",
+  "short_name": "Sátni FST",
+  "description": "Pohjoissaamen–suomen sanakirja ja taivutusgeneraattori",
+  "lang": "fi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6fa",
+  "theme_color": "#2563eb",
+  "share_target": { "action": "./", "method": "GET", "params": { "text": "text" } },
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
