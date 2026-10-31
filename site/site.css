@@ -114,3 +114,14 @@ footer { text-align: center; padding: 28px 16px 40px; color: var(--muted); font-
   .brand small { display: none; }
 }
 .share-steps { margin-top: 28px; }
+/* Aiemmat versiot: kokoon taitettu, avautuu nuolesta */
+.older { margin-top: 28px; }
+.older summary {
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; cursor: pointer;
+  list-style: none; background: var(--chip); color: var(--text); font-weight: 600; user-select: none;
+}
+.older summary::-webkit-details-marker { display: none; }
+.older summary::before { content: "▸"; color: var(--accent); transition: transform .2s; }
+.older summary:hover { background: var(--chip-hover); }
+.older[open] summary::before { transform: rotate(90deg); }
+.older[open] > .new-grid { margin-top: 24px; }
