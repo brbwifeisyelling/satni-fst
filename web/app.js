@@ -405,12 +405,12 @@ function suggestWords(prefix) {
   const q = fold(prefix.trim());
   if (q.length < 2) return [];
   const rows = all(
-    `SELECT sme_lemma, pos, ${TRANS_COLS} FROM dictionary
+    `SELECT id, sme_lemma, pos, ${TRANS_COLS} FROM dictionary
      WHERE lemma_fold >= ? AND lemma_fold < ? ORDER BY length(sme_lemma), sme_lemma LIMIT 8`, [q, q + "￿"]
   );
   if (rows.length < 8) {
     rows.push(...all(
-      `SELECT DISTINCT d.sme_lemma, d.pos, ${TRANS_COLS.split(", ").map((c) => "d." + c).join(", ")}
+      `SELECT DISTINCT d.id, d.sme_lemma, d.pos, ${TRANS_COLS.split(", ").map((c) => "d." + c).join(", ")}
        FROM trans_search t JOIN dictionary d ON d.id = t.word_id
        WHERE t.lang = ? AND (t.fold LIKE ? OR t.fold LIKE ?) ORDER BY length(d.sme_lemma) LIMIT 8`,
       [settings.lang, `${q}%`, `%, ${q}%`]
@@ -488,14 +488,15 @@ function search(query, index = 0, pushHistory = true) {
   selectResult(Math.min(index, state.results.length - 1), pushHistory);
 }
 
-// "Tarkoititko": saamen kirjainparit (a/á, c/č, d/đ, n/ŋ, s/š, t/ŧ, z/ž) vaihdettuna. Suomalaisella näppäimistöllä
+// "Tarkoititko": saamen erikoiskirjaimet lisättyinä (a -> á, c -> č, d -> đ, n -> ŋ, s -> š, t -> ŧ, z -> ž). Suomalaisella näppäimistöllä
 // erikoiskirjaimet jäävät helposti pois, ja a/á voi muuttaa sanan kokonaan (boađatgo = boađadit, boađátgo = boahtit).
 // Ehdotus näytetään, jos haku ei löytänyt mitään, tai jos vaihtoehto on korpuksessa selvästi yleisempi sana (10 x).
 // Suomen- tai norjankieliselle haulle (käännösosuma) ei ehdoteta mitään.
-const LETTER_PAIRS = { a: "á", á: "a", c: "č", č: "c", d: "đ", đ: "d", n: "ŋ", ŋ: "n", s: "š", š: "s", t: "ŧ", ŧ: "t",
-                       z: "ž", ž: "z" };
+// Vain lisäys (a -> á), ei poistoa: erikoiskirjain jää pois, kun sitä ei saa näppäimistöltä, mutta harvoin kirjoitetaan
+// vahingossa. Poistava ehdotus hämäisi: oikein kirjoitettu áddet (ymmärtää) -> addet (antaa).
+const LETTER_PAIRS = { a: "á", c: "č", d: "đ", n: "ŋ", s: "š", t: "ŧ", z: "ž" };
 function letterVariants(word) {
-  const spots = [...word].map((c, i) => (LETTER_PAIRS[c] ? i : -1)).filter((i) => i >= 0).slice(-8);
+  const spots = [...word].map((c, i) => (LETTER_PAIRS[c] ? i : -1)).filter((i) => i >= 0).slice(-10);
   const out = [];
   for (let mask = 1; mask < 1 << spots.length; mask++) {
     const chars = [...word];
@@ -504,6 +505,7 @@ function letterVariants(word) {
   }
   return out;
 }
+let SUGGEST_FACTOR = 10;  // vaihtoehdon oltava näin monta kertaa yleisempi kuin löydetty sana
 function didYouMean(query, results) {
   const q = fold(query);
   if (results.some((r) => r.rank > 1.2 && r.rank < 5 && !r.clitics)) return [];
@@ -514,20 +516,23 @@ function didYouMean(query, results) {
     for (const v of [q.slice(0, -c.length), ...letterVariants(q.slice(0, -c.length))]) if (!cands.has(v)) cands.set(v, c);
   }
   if (!cands.size) return [];
+  // myös isolla alkukirjaimella (erisnimet: danmarkun -> Dánmárkun)
+  for (const [v, c] of [...cands]) if (!cands.has(capitalize(v))) cands.set(capitalize(v), c);
   const words = [...cands.keys()];
   const marks = words.map(() => "?").join(",");
   const col = LANGUAGES[settings.lang].col;
   const rows = all(`SELECT p.surface AS v, d.id, d.sme_lemma, d.pos, d.freq, d.${col} AS tr FROM paradigms p
                     JOIN dictionary d ON d.id = p.word_id WHERE p.surface IN (${marks})
-                    UNION SELECT d.lemma_fold, d.id, d.sme_lemma, d.pos, d.freq, d.${col} FROM dictionary d
+                    UNION SELECT d.sme_lemma, d.id, d.sme_lemma, d.pos, d.freq, d.${col} FROM dictionary d
                     WHERE d.lemma_fold IN (${marks})`, [...words, ...words]);
   const current = Math.max(0, ...sami.map((r) => r.freq || 0));
   const shown = new Set(sami.map((r) => r.id));
   const best = new Map();  // ehdotettu sana -> yleisin perusmuoto
   for (const r of rows) {
     if (shown.has(r.id) || !r.tr) continue;
-    if (sami.length && (r.freq || 0) < Math.max(1000, current * 10)) continue;
-    const word = r.v + (cands.get(r.v) || "");
+    if (sami.length && (r.freq || 0) < Math.max(1000, current * SUGGEST_FACTOR)) continue;
+    const word = r.v + (cands.get(r.v) ?? cands.get(fold(r.v)) ?? "");
+    if (fold(word) === q) continue;  // sama kirjoitusasu kuin haussa (toinen sana): ei ehdotusta
     if (!best.has(word) || (r.freq || 0) > (best.get(word).freq || 0)) best.set(word, r);
   }
   return [...best.entries()].sort((a, b) => (b[1].freq || 0) - (a[1].freq || 0)).slice(0, 2)
@@ -1177,6 +1182,11 @@ function updateSuggestions() {
   list.hidden = false;
 }
 function hideSuggestions() { $("suggestions").hidden = true; activeSuggestion = -1; }
+// Ehdotuksesta avataan juuri valittu sana: samannäköisistä (vuostá = vastaan / juusto) muuten avautuisi ensimmäinen
+function pickSuggestion(s) {
+  const index = queryDatabase(s.sme_lemma).findIndex((r) => r.id === s.id);
+  search(s.sme_lemma, Math.max(index, 0));
+}
 function moveSuggestion(delta) {
   const items = $("suggestions").children;
   if ($("suggestions").hidden || !items.length) return false;
@@ -1766,14 +1776,14 @@ function bindEvents() {
     else if (e.key === "Enter") {
       e.preventDefault();
       const s = activeSuggestion >= 0 ? suggestions[activeSuggestion] : null;
-      search(s ? s.sme_lemma : input.value);
+      if (s) pickSuggestion(s); else search(input.value);
       input.blur();
     }
   });
   input.addEventListener("blur", () => setTimeout(hideSuggestions, 150));
   $("suggestions").addEventListener("mousedown", (e) => {
     const li = e.target.closest("li");
-    if (li) { e.preventDefault(); search(suggestions[li.dataset.i].sme_lemma); input.blur(); }
+    if (li) { e.preventDefault(); pickSuggestion(suggestions[li.dataset.i]); input.blur(); }
   });
   $("search-btn").onclick = () => search(input.value);
 

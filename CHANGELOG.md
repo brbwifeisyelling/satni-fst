@@ -12,9 +12,12 @@ All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/somb
 - **Negative verbs:** the question and *-han* clitics go on the negative verb in Finnish: *boađatgo ≈ (eikö)
   tuleskele*, *(eihän) tule*; *-kaan* stays on the main verb (*(ei) tulekaan*).
 - Vowel harmony of the Finnish clitic follows the word's case ending when it has one (*maanteistähän*).
-- **"Did you mean":** when a search finds nothing, or only a much rarer word, the app suggests the same word with
-  Sámi letters (a/á, c/č, d/đ, n/ŋ, s/š, t/ŧ, z/ž): *boadatgo* → *boađátgo* (boahtit), *cahci* → *čáhci*,
-  *boađatgo* (boađadit) → *boađátgo* (boahtit).
+- **"Did you mean":** when a search finds nothing, or only a much rarer word, the app suggests the same word with the
+  Sámi letters added (a → á, c → č, d → đ, n → ŋ, s → š, t → ŧ, z → ž): *boadatgo* → *boađátgo* (boahtit),
+  *cahci* → *čáhci*, *Danmarkun* → *Dánmárkun*. Tested with 2 000 typed words without Sámi letters: the right word is
+  found for 96–97 %; correctly typed words got a suggestion in 1 case of 1 000, Finnish words never.
+- **Search box suggestions open the word you picked:** words written the same way (*vuostá* = juusto / vastaan,
+  *son* = hän as a pronoun or a particle) opened the first one; now the chosen one opens.
 - **Neahttadigisánit instead of the Giellatekno paradigm page:** the button opens the word in Giellatekno's
   dictionary (sanit.oahpa.no) with translations, word history and a search in texts (Korp). The old paradigm page
   repeated the app's own inflection table, and its server did not always answer.
