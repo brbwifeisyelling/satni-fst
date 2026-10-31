@@ -1365,7 +1365,8 @@ function bindOcr() {
   $("ocr-dir").onclick = () => {
     settings.ocrFrom = settings.ocrFrom === "ui" ? "sme" : "ui";
     saveSettings();
-    if (ocr) findOcrWords(); else applyOcrLook();
+    applyOcrLook();  // suuntapainike vaihtuu heti, ennen sanojen hakua
+    if (ocr) findOcrWords();
   };
   $("ocr-style-btn").onclick = (e) => { e.stopPropagation(); $("ocr-style").hidden = !$("ocr-style").hidden; };
   $("ocr-style-seg").onclick = (e) => {
