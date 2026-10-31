@@ -8,9 +8,13 @@ All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/brbw
   with 🔈 and a copy button. Copying works on Android, Windows, Linux and the web version.
 - **New listen button:** a round 🔈 button next to the word replaces the *Listen* button; a spinning ring shows
   while the sound is fetched.
-- **Links to other sites as pills:** Giellatekno and sátni.org are now round buttons under *Word elsewhere* at
-  the bottom of the word card. The ChatGPT button was removed.
-- **Photo word marks in the Sámi flag colours:** red, yellow, blue or green.
+- **Tidier word card:** consonant gradation is shown in labelled cells (strong → weak form, consonants, grades,
+  Oahpa group) that no longer break in the middle of a line; on phones they form a 2 × 2 grid.
+- **Links to other sites as pills:** Giellatekno and sátni.org are now round buttons under *Word elsewhere*, in their
+  own box to the right of the word on wide screens and at the bottom of the card on phones. The ChatGPT button was
+  removed.
+- **Photo word marks in the Sámi flag colours:** red, yellow, blue or green. Yellow marks get a darker edge so they
+  stand out on light paper.
 
 ## 0.7.6.1 — 2026-10-30
 

@@ -686,7 +686,7 @@ function renderGradation() {
   const w = state.word;
   const el = $("gradation");
   if (UNINFLECTED_POS.includes(w.pos.toUpperCase()) || !state.paradigm.size) { el.innerHTML = ""; return; }
-  if (!w.gradation) { el.innerHTML = `<span class="label">${esc(t("gradation"))}</span><span class="muted"><i>${esc(t("noGradation"))}</i></span>`; return; }
+  if (!w.gradation) { el.innerHTML = `<div class="grad-head">${esc(t("gradation"))}</div><span class="muted"><i>${esc(t("noGradation"))}</i></span>`; return; }
 
   // Esimerkkimuodot: haettu muoto tai perusmuoto ja tavallisin vastakkaisen asteen muoto
   const preferred = ["Inf", "Sg+Nom", "Nom", "Ind+Prs+Sg1", "Sg+Acc", "Acc", "Sg+Gen", "Pl+Nom"];
@@ -703,21 +703,26 @@ function renderGradation() {
       if (g && !examples[g]) examples[g] = f;
     }
   }
-  // "hkk (III) · hk (II) · g (I)" -> laatikot; vahva vihreä, heikko oranssi
+  // "hkk (III) · hk (II) · g (I)" -> asteet; vahva vihreä, heikko oranssi, muut harmaina
   let strongDone = false;
-  const row = (w.gradation_row || "").split(" · ").map((part) => {
+  const grades = (w.gradation_row || "").split(" · ").filter(Boolean).map((part) => {
     const [value, q2] = part.replace(/\)$/, "").split(" (");
     let cls = "other";
     if (value === w.gd_cluster && !strongDone) { cls = "gd"; strongDone = true; }
     else if (value === w.hd_cluster) cls = "hd";
-    return `<span class="pill ${cls}">${esc(value)} ${esc(q2)}</span>`;
-  }).join("");
-  el.innerHTML = `
-    <span class="label">${esc(t("gradation"))}</span>
-    <span class="pill gd">GD ${esc(examples.GD || "-")}</span><span class="arrow">→</span>
-    <span class="pill hd">HD ${esc(examples.HD || "-")}</span>
-    <span class="clusters"><span class="gd">${esc(w.gd_cluster)}</span> <span class="arrow">→</span> <span class="hd">${esc(w.hd_cluster)}</span></span>
-    <span class="oahpa">oahpa: ${esc(w.gradation_group)}</span> ${row}`;
+    return `<span class="${cls}">${esc(value)} <small>${esc(q2 || "")}</small></span>`;
+  }).join('<span class="sep"> · </span>');
+  // Omat solut: esimerkkimuodot, konsonantit, asteet ja Oahpan ryhmä; solu rivittyy kokonaisena
+  const cell = (cap, val, cls = "") => `<div class="grad-cell ${cls}"><span class="gc-cap">${esc(cap)}</span><span class="gc-val">${val}</span></div>`;
+  const arrow = '<span class="arrow">→</span>';
+  el.innerHTML = `<div class="grad-head">${esc(t("gradation"))}</div><div class="grad-cells">`
+    + cell(t("gradForms"), `<span class="gd">${esc(examples.GD || "-")}</span> ${arrow} <span class="hd">${esc(examples.HD || "-")}</span>`, "forms")
+    + cell(t("gradClusters"), `<span class="gd">${esc(w.gd_cluster)}</span> ${arrow} <span class="hd">${esc(w.hd_cluster)}</span>`)
+    + (grades ? cell(t("gradGrades"), grades) : "")
+    + (w.gradation_group ? cell(t("gradGroup"),
+      // rivitys vain välilyönneistä, ei tavuviivasta (h-čoahkit)
+      w.gradation_group.split(" ").map((p) => `<span class="nw">${esc(p)}</span>`).join(" "), "group") : "")
+    + "</div>";
 }
 
 // --- Taivutustaulukko ---
@@ -1117,6 +1122,7 @@ function applyOcrLook() {
   photo.classList.toggle("style-frame", settings.ocrStyle === "frame");
   photo.classList.toggle("style-underline", settings.ocrStyle !== "frame");
   photo.style.setProperty("--mark", settings.ocrColor);
+  photo.classList.toggle("mark-light", settings.ocrColor === "#facc15");  // keltainen: vahvempi merkintä
   for (const b of $("ocr-style-seg").children) b.classList.toggle("active", b.dataset.style === settings.ocrStyle);
   for (const b of $("ocr-swatches").children) b.classList.toggle("active", b.dataset.color === settings.ocrColor);
 }

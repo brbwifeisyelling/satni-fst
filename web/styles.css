@@ -189,9 +189,6 @@ main > * + * { margin-top: 12px; }
 .speak-btn:disabled { cursor: progress; }
 /* Sanasta muualla: pyöreät pillerit, joiden alussa lähteen värinen merkki */
 .word-links { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
-.links-head {
-  margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
-}
 .link-pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .link-pill {
   display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px 4px 4px; border-radius: 999px;
@@ -206,19 +203,43 @@ main > * + * { margin-top: 12px; }
 }
 .link-pill.gt .lp-mark { background: var(--gt); color: var(--gt-bg); }
 .lp-arrow { color: var(--subtle); font-size: 12px; margin-left: -2px; }
+/* Leveällä näytöllä oma solu sanan oikealla puolella; kapealla rivi kortin alaosassa */
+@media (min-width: 821px) {
+  .word { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; align-items: start; }
+  .word > * { grid-column: 1; }
+  .word > .word-links {
+    grid-column: 2; grid-row: 1 / span 20; margin: 0; padding: 12px 14px 14px;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--surface-alt);
+  }
+  .word-links .link-pills { flex-direction: column; align-items: stretch; }
+}
 .translation { font-size: 19px; margin: 6px 0 10px; }
 .form-translation { font-size: 16px; margin: -4px 0 10px; }
 .form-translation b { font-weight: 600; }
 .more { font-size: 14px; margin-left: 6px; text-decoration: none; }
-.gradation { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 14px; }
-.gradation .label { color: var(--muted); font-weight: 700; font-size: 13px; margin-right: 4px; }
-.gradation .pill { border-radius: 6px; padding: 2px 8px; font-weight: 700; }
-.pill.gd { background: var(--gd-bg); color: var(--gd); }
-.pill.hd { background: var(--hd-bg); color: var(--hd); }
-.pill.other { background: var(--chip); color: var(--muted); font-weight: 500; }
-.gradation .clusters { font-size: 18px; font-weight: 700; margin: 0 10px; }
-.gradation .arrow { color: var(--subtle); }
-.gradation .oahpa { color: var(--muted); font-size: 13px; }
+/* Astevaihtelu: pieni otsikko ja omat solut (esimerkkimuodot, konsonantit, asteet, Oahpan ryhmä) */
+.gradation { margin-top: 14px; }
+.gradation:empty { display: none; }
+.grad-head, .links-head {
+  margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+}
+.grad-cells { display: flex; flex-wrap: wrap; gap: 8px; }
+.grad-cell {
+  display: flex; flex-direction: column; gap: 2px; padding: 7px 12px 8px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-alt);
+}
+.gc-cap { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.gc-val { font-size: 16px; font-weight: 700; white-space: nowrap; }
+.gc-val small { font-size: 11px; font-weight: 600; opacity: .8; }
+.gc-val .other { color: var(--muted); }
+.grad-cell.group .gc-val { font-size: 14px; font-weight: 600; }
+.gc-val .nw { white-space: nowrap; }
+.gradation .arrow { color: var(--subtle); font-weight: 400; margin: 0 2px; }
+/* Puhelimessa tasainen 2 × 2 -ruudukko */
+@media (max-width: 480px) {
+  .grad-cells { display: grid; grid-template-columns: 1fr 1fr; }
+  .grad-cell.group .gc-val { white-space: normal; }
+}
 #word-info:empty { display: none; }
 #word-info { margin: 8px 0 0; }
 
@@ -305,6 +326,18 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 }
 .style-underline .ocr-word.picked {
   background: color-mix(in srgb, var(--mark) 18%, transparent); box-shadow: inset 0 -3px 0 var(--mark);
+}
+/* Keltainen hukkuu vaalealle paperille: täyteläisempi täyttö ja tummennettu reuna */
+.mark-light.style-frame .ocr-word {
+  background: color-mix(in srgb, var(--mark) 22%, transparent);
+  border: 2px solid color-mix(in srgb, var(--mark) 80%, #000);
+}
+.mark-light.style-frame .ocr-word.picked {
+  background: color-mix(in srgb, var(--mark) 50%, transparent); border-color: color-mix(in srgb, var(--mark) 55%, #000);
+}
+.mark-light.style-underline .ocr-word { box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--mark) 80%, #000); }
+.mark-light.style-underline .ocr-word.picked {
+  background: color-mix(in srgb, var(--mark) 40%, transparent); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--mark) 55%, #000);
 }
 /* Suunta ja merkintätapa: pilleri ja paletti kuvan yläpuolella */
 .ocr-bar { position: relative; display: flex; align-items: center; gap: 8px; margin-top: 10px; }
