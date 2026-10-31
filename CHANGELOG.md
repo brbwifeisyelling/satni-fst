@@ -8,6 +8,9 @@ All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/brbw
   with 🔈 and a copy button. Copying works on Android, Windows, Linux and the web version.
 - **New listen button:** a round 🔈 button next to the word replaces the *Listen* button; a spinning ring shows
   while the sound is fetched.
+- **Links to other sites as pills:** Giellatekno and sátni.org are now round buttons under *Word elsewhere* at
+  the bottom of the word card. The ChatGPT button was removed.
+- **Photo word marks in the Sámi flag colours:** red, yellow, blue or green.
 
 ## 0.7.6.1 — 2026-10-30
 

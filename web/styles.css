@@ -178,11 +178,6 @@ main > * + * { margin-top: 12px; }
 .badge { background: var(--chip); color: var(--chip-text); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 600; }
 .star-btn { background: none; border: 0; font-size: 24px; color: var(--subtle); cursor: pointer; padding: 0 4px; }
 .star-btn.on { color: #eab308; }
-.word-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.gt-btn {
-  display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; padding: 7px 12px;
-  font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none;
-}
 .speak-btn {
   position: relative; flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px;
   padding: 0; border: 0; border-radius: 50%; cursor: pointer; background: var(--speak-bg); color: var(--speak);
@@ -192,14 +187,25 @@ main > * + * { margin-top: 12px; }
 .speak-btn:hover { background: var(--speak-hover); }
 .speak-btn:active { transform: scale(.88); filter: brightness(.9); }
 .speak-btn:disabled { cursor: progress; }
-.gt-btn { background: var(--gt-bg); color: var(--gt); }
-.gt-btn:hover { background: var(--gt-hover); }
-.ext-btn {
-  display: inline-flex; align-items: center; border-radius: 8px; padding: 7px 12px;
-  font-weight: 700; font-size: 14px; text-decoration: none; background: var(--chip); color: var(--chip-text);
+/* Sanasta muualla: pyöreät pillerit, joiden alussa lähteen värinen merkki */
+.word-links { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.links-head {
+  margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
 }
-.ext-btn:hover { background: var(--chip-hover); }
-.gt-mark { background: var(--gt); color: var(--gt-bg); border-radius: 5px; padding: 0 5px; font-size: 12px; }
+.link-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.link-pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px 4px 4px; border-radius: 999px;
+  background: var(--chip); color: var(--chip-text); font-weight: 600; font-size: 14px; text-decoration: none;
+  transition: transform .1s, background .1s;
+}
+.link-pill:hover { background: var(--chip-hover); }
+.link-pill:active { transform: scale(.95); }
+.lp-mark {
+  flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  font-size: 12px; font-weight: 800; background: var(--accent); color: var(--accent-text);
+}
+.link-pill.gt .lp-mark { background: var(--gt); color: var(--gt-bg); }
+.lp-arrow { color: var(--subtle); font-size: 12px; margin-left: -2px; }
 .translation { font-size: 19px; margin: 6px 0 10px; }
 .form-translation { font-size: 16px; margin: -4px 0 10px; }
 .form-translation b { font-weight: 600; }

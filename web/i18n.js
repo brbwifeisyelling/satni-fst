@@ -95,8 +95,8 @@ const UI_TEXTS = {
       Indef: "Indefiniittipronomini", Interr: "Interrogatiivipronomini", Refl: "Refleksiivipronomini",
       Rel: "Relatiivipronomini", Ord: "Järjestysluku", Coll: "Kollektiivi",
     },
-    askAiTitle: "Kysy ChatGPT:ltä (avautuu selaimessa; tekoälyn vastaukset voivat olla virheellisiä)",
-    askAi: (word, pos, known) => `Pohjoissaamen sana "${word}" (${[pos, ...known].join("; ")}): merkitys ja käännös suomeksi.`,
+    elsewhere: "Sanasta muualla",
+    gtTitle: "Taivutus Giellateknon generaattorissa", satniTitle: "Sana sátni.org-sanakirjoissa",
     langName: { fin: "suomi", nob: "norja", eng: "englanti", smn: "inarinsaame", smj: "luulajansaame", sma: "eteläsaame" },
     langIn: { fin: "Suomeksi", nob: "Norjaksi", eng: "Englanniksi", smn: "Inarinsaameksi", smj: "Luulajansaameksi", sma: "Eteläsaameksi" },
     // Tietoa-ikkuna. Ääntämisen kuvaus on sovittu Divvunin kanssa (2026-10-29), älä muuta sisältöä.
@@ -205,8 +205,8 @@ const UI_TEXTS = {
       Indef: "Ubestemt pronomen", Interr: "Spørrepronomen", Refl: "Refleksivt pronomen",
       Rel: "Relativt pronomen", Ord: "Ordenstall", Coll: "Kollektiv",
     },
-    askAiTitle: "Spør ChatGPT (åpnes i nettleseren; svar fra KI kan inneholde feil)",
-    askAi: (word, pos, known) => `Nordsamisk ord "${word}" (${[pos, ...known].join("; ")}): betydning og oversettelse til norsk.`,
+    elsewhere: "Ordet andre steder",
+    gtTitle: "Bøying i Giellateknos generator", satniTitle: "Ordet i ordbøkene på sátni.org",
     langName: { fin: "finsk", nob: "norsk", eng: "engelsk", smn: "enaresamisk", smj: "lulesamisk", sma: "sørsamisk" },
     langIn: { fin: "På finsk", nob: "På norsk", eng: "På engelsk", smn: "På enaresamisk", smj: "På lulesamisk", sma: "På sørsamisk" },
     // Oversettelse av den finske teksten som er avtalt med Divvun (2026-10-29)

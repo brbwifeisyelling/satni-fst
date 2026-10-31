@@ -9,10 +9,8 @@ const TTS_URL = "https://api-giellalt.uit.no/tts/se/";
 const VOICES = { "Biret": "biret", "Máhtte": "mahtte", "Sunná": "sunna" };
 // Giellateknon taivutusgeneraattori (vain linkki)
 const GIELLATEKNO_URL = "https://gtweb.uit.no/cgi-bin/smi/smi.cgi?text={word}&pos={pos}&lang=sme&mode=full&action=paradigm";
-// Haku muista lähteistä: sátni.org (Divvunin ja Giellateknon sanakirjat ja Giellagáldun termit) sekä ChatGPT
-// valmiilla kysymyksellä (i18n.js: askAi), jossa mukana sanakirjan tiedot taustaksi
+// Haku muista lähteistä: sátni.org (Divvunin ja Giellateknon sanakirjat ja Giellagáldun termit)
 const SATNI_URL = "https://satni.org/{word}";
-const AI_URL = "https://chatgpt.com/?q={prompt}";
 const GIELLATEKNO_POS = { N: "N", V: "V", A: "A", ADV: "Adv", NUM: "Num", PRON: "Pron" };
 
 // Käännöskielet (GiellaLT:n dict-sme-*-sanakirjat) ja niiden sarakkeet tietokannassa; main = pääkieli
@@ -434,9 +432,7 @@ function search(query, index = 0, pushHistory = true) {
     $("pos-badge").hidden = true;
     $("fav-btn").hidden = true;
     $("speak-btn").hidden = true;
-    $("gt-link").hidden = true;
-    $("satni-link").hidden = true;
-    $("ai-link").hidden = true;
+    $("word-links").hidden = true;
     $("translation").textContent = t("noHitsHint");
     $("more-meanings").textContent = "";
     $("gradation").innerHTML = "";
@@ -505,17 +501,10 @@ function selectResult(i, pushHistory = true) {
   $("pos-badge").textContent = wordClassLabel(w.pos, w.subtype);
   $("fav-btn").hidden = false;
   $("speak-btn").hidden = false;
-  $("gt-link").hidden = false;
+  $("word-links").hidden = false;
   $("gt-link").href = GIELLATEKNO_URL.replace("{word}", encodeURIComponent(w.sme_lemma))
     .replace("{pos}", GIELLATEKNO_POS[w.pos.toUpperCase()] || "Any");
-  $("satni-link").hidden = false;
   $("satni-link").href = SATNI_URL.replace("{word}", encodeURIComponent(w.sme_lemma));
-  // Kysymykseen sanakirjan käännökset pääkielillä (esim. vain norjaksi: politiijameašttir = politimester)
-  const known = Object.keys(LANGUAGES).filter((l) => LANGUAGES[l].main && w[LANGUAGES[l].col])
-    .map((l) => `${langName(l)}: ${splitList(w[LANGUAGES[l].col]).slice(0, 3).join(", ")}`);
-  $("ai-link").hidden = false;
-  $("ai-link").href = AI_URL.replace("{prompt}",
-    encodeURIComponent(t("askAi", w.sme_lemma, wordClassLabel(w.pos, w.subtype).toLowerCase(), known)));
   updateFavButton();
 
   // Merkitykset vain käyttöliittymän kielellä ja Muut kielet -asetuksessa valituilla kielillä; muita kieliä
@@ -1114,7 +1103,8 @@ function layoutOcr(reset) {
 }
 
 // Suuntapainike (Saame → Suomi), merkintätapa ja väri asetuksista
-const OCR_COLORS = ["#2563eb", "#16a34a", "#ea580c", "#db2777", "#7c3aed", "#ca8a04"];
+// Merkinnän värit: saamelaislipun värit, samat kuin otsikon raidassa (styles.css: .stripe)
+const OCR_COLORS = ["#e11d48", "#facc15", "#2563eb", "#16a34a"];
 const SWAP_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
   stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/></svg>`;
 function applyOcrLook() {
@@ -1514,6 +1504,8 @@ async function main() {
     settings.extraLangs.push(settings.lang);
   }
   settings.lang = UI_LANGUAGES[settings.uiLang].translationLang;
+  // Vanhemmissa versioissa valittavana oli muitakin värejä; ne vaihtuvat siniseen
+  if (!OCR_COLORS.includes(settings.ocrColor)) settings.ocrColor = "#2563eb";
   applyTheme();
   const ex = $("examples");
   for (const w of EXAMPLE_WORDS) {
