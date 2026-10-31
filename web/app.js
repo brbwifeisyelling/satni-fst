@@ -7,11 +7,12 @@ const DATA_URL = "data/satni-web.db.gz";
 // Divvunin ja Giellateknon puhesynteesi (UiT), käyttö sovittu Divvunin kanssa 2026-10-29
 const TTS_URL = "https://api-giellalt.uit.no/tts/se/";
 const VOICES = { "Biret": "biret", "Máhtte": "mahtte", "Sunná": "sunna" };
-// Giellateknon taivutusgeneraattori (vain linkki)
-const GIELLATEKNO_URL = "https://gtweb.uit.no/cgi-bin/smi/smi.cgi?text={word}&pos={pos}&lang=sme&mode=full&action=paradigm";
+// Giellateknon Neahttadigisánit-sanakirja (sanit.oahpa.no): käännökset, analyysit, sanahistoria ja haku teksteistä
+// (Korp). Käyttöliittymän kielen sanakirja: saame -> suomi tai saame -> norja. (Aiempi taivutusgeneraattori gtweb.uit.no
+// toisti sovelluksen oman taulukon, eikä palvelin aina vastannut.)
+const SANIT_URL = "https://sanit.oahpa.no/sme/{lang}/?lookup={word}";
 // Haku muista lähteistä: sátni.org (Divvunin ja Giellateknon sanakirjat ja Giellagáldun termit)
 const SATNI_URL = "https://satni.org/{word}";
-const GIELLATEKNO_POS = { N: "N", V: "V", A: "A", ADV: "Adv", NUM: "Num", PRON: "Pron" };
 
 // Käännöskielet (GiellaLT:n dict-sme-*-sanakirjat) ja niiden sarakkeet tietokannassa; main = pääkieli
 // (suomi ja norja, joista on myös käänteinen sanakirja), muut näytetään valikossa omana ryhmänään.
@@ -458,6 +459,7 @@ function search(query, index = 0, pushHistory = true) {
   $("search").value = query;
   state.query = query;
   state.results = queryDatabase(query);
+  renderDidYouMean(query, state.results);
   state.showPrefix = false;
   state.index = index;
 
@@ -475,6 +477,8 @@ function search(query, index = 0, pushHistory = true) {
     $("speak-btn").hidden = true;
     $("word-links").hidden = true;
     $("translation").textContent = t("noHitsHint");
+    $("form-translation").hidden = true;  // edellisen sanan rivit pois
+    $("extra-translations").hidden = true;
     $("more-meanings").textContent = "";
     $("gradation").innerHTML = "";
     $("word-info").textContent = "";
@@ -482,6 +486,59 @@ function search(query, index = 0, pushHistory = true) {
   }
   renderResults();
   selectResult(Math.min(index, state.results.length - 1), pushHistory);
+}
+
+// "Tarkoititko": saamen kirjainparit (a/á, c/č, d/đ, n/ŋ, s/š, t/ŧ, z/ž) vaihdettuna. Suomalaisella näppäimistöllä
+// erikoiskirjaimet jäävät helposti pois, ja a/á voi muuttaa sanan kokonaan (boađatgo = boađadit, boađátgo = boahtit).
+// Ehdotus näytetään, jos haku ei löytänyt mitään, tai jos vaihtoehto on korpuksessa selvästi yleisempi sana (10 x).
+// Suomen- tai norjankieliselle haulle (käännösosuma) ei ehdoteta mitään.
+const LETTER_PAIRS = { a: "á", á: "a", c: "č", č: "c", d: "đ", đ: "d", n: "ŋ", ŋ: "n", s: "š", š: "s", t: "ŧ", ŧ: "t",
+                       z: "ž", ž: "z" };
+function letterVariants(word) {
+  const spots = [...word].map((c, i) => (LETTER_PAIRS[c] ? i : -1)).filter((i) => i >= 0).slice(-8);
+  const out = [];
+  for (let mask = 1; mask < 1 << spots.length; mask++) {
+    const chars = [...word];
+    spots.forEach((pos, b) => { if (mask & (1 << b)) chars[pos] = LETTER_PAIRS[chars[pos]]; });
+    out.push(chars.join(""));
+  }
+  return out;
+}
+function didYouMean(query, results) {
+  const q = fold(query);
+  if (results.some((r) => r.rank > 1.2 && r.rank < 5 && !r.clitics)) return [];
+  const sami = results.filter((r) => r.clitics || SAMI_HIT_RANKS.includes(r.rank));
+  // vaihtoehdot koko sanasta ja liitepartikkelin kanssa vartalosta (boadatgo -> boađát + go)
+  const cands = new Map(letterVariants(q).map((v) => [v, ""]));
+  for (const c of CLITICS) if (q.endsWith(c) && q.length - c.length >= 2) {
+    for (const v of [q.slice(0, -c.length), ...letterVariants(q.slice(0, -c.length))]) if (!cands.has(v)) cands.set(v, c);
+  }
+  if (!cands.size) return [];
+  const words = [...cands.keys()];
+  const marks = words.map(() => "?").join(",");
+  const col = LANGUAGES[settings.lang].col;
+  const rows = all(`SELECT p.surface AS v, d.id, d.sme_lemma, d.pos, d.freq, d.${col} AS tr FROM paradigms p
+                    JOIN dictionary d ON d.id = p.word_id WHERE p.surface IN (${marks})
+                    UNION SELECT d.lemma_fold, d.id, d.sme_lemma, d.pos, d.freq, d.${col} FROM dictionary d
+                    WHERE d.lemma_fold IN (${marks})`, [...words, ...words]);
+  const current = Math.max(0, ...sami.map((r) => r.freq || 0));
+  const shown = new Set(sami.map((r) => r.id));
+  const best = new Map();  // ehdotettu sana -> yleisin perusmuoto
+  for (const r of rows) {
+    if (shown.has(r.id) || !r.tr) continue;
+    if (sami.length && (r.freq || 0) < Math.max(1000, current * 10)) continue;
+    const word = r.v + (cands.get(r.v) || "");
+    if (!best.has(word) || (r.freq || 0) > (best.get(word).freq || 0)) best.set(word, r);
+  }
+  return [...best.entries()].sort((a, b) => (b[1].freq || 0) - (a[1].freq || 0)).slice(0, 2)
+    .map(([word, r]) => ({ word, lemma: r.sme_lemma, trans: splitList(r.tr)[0] }));
+}
+function renderDidYouMean(query, results) {
+  const box = $("did-you-mean");
+  const list = didYouMean(query, results);
+  box.hidden = !list.length;
+  box.innerHTML = list.length ? `<span>${esc(t("didYouMean"))}</span>` + list.map((s) =>
+    `<button data-q="${esc(s.word)}"><b>${esc(s.word)}</b> → ${esc(s.lemma)}${s.trans ? ` (${esc(s.trans)})` : ""}</button>`).join("") : "";
 }
 
 // Pelkät "alkaa hakusanalla" -osumat (rank 7, esim. beana -> beanabálvalus) piilotetaan napin taakse,
@@ -549,8 +606,8 @@ function selectResult(i, pushHistory = true) {
   $("fav-btn").hidden = false;
   $("speak-btn").hidden = false;
   $("word-links").hidden = false;
-  $("gt-link").href = GIELLATEKNO_URL.replace("{word}", encodeURIComponent(w.sme_lemma))
-    .replace("{pos}", GIELLATEKNO_POS[w.pos.toUpperCase()] || "Any");
+  $("gt-link").href = SANIT_URL.replace("{lang}", settings.lang === "nob" ? "nob" : "fin")
+    .replace("{word}", encodeURIComponent(w.sme_lemma));
   $("satni-link").href = SATNI_URL.replace("{word}", encodeURIComponent(w.sme_lemma));
   updateFavButton();
 
@@ -1750,6 +1807,7 @@ function bindEvents() {
   bindFormPop();
   $("about-btn").onclick = () => $("about").showModal();
   $("licenses-btn").onclick = showLicenses;
+  $("did-you-mean").onclick = (e) => { const b = e.target.closest("[data-q]"); if (b) search(b.dataset.q); };
   $("lic-select").onchange = (e) => showLicenseFile(e.target.value);
   $("welcome-lang").addEventListener("click", (e) => {
     const b = e.target.closest("[data-lang]");

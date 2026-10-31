@@ -77,6 +77,7 @@ const UI_TEXTS = {
     searchedForm: (q, tags) => `Haettu muoto ${q}: ${tags}`,
     cliticInfo: (q, stem, parts) => `${q} = ${stem} + ${parts}`,
     finCliticInfo: (q, stem, c, sme) => `${q} = ${stem} + -${c} (saameksi ${sme})`,
+    didYouMean: "Tarkoititko:",
     // Liitepartikkelien merkitykset: GiellaLT dict-sme-fin / dict-sme-nob ja oppikirja (tarkistettu 2026-10-31)
     cliticMeaning: { go: "kysymys: -ko, -kö", ge: "-kin, kieltolauseessa -kaan, -kään", nai: "-kin",
                      son: "kysymyksessä -han, -hän", han: "-han, -hän" },
@@ -115,7 +116,7 @@ const UI_TEXTS = {
       Rel: "Relatiivipronomini", Ord: "Järjestysluku", Coll: "Kollektiivi",
     },
     elsewhere: "Sanasta muualla",
-    gtTitle: "Taivutus Giellateknon generaattorissa", satniTitle: "Sana sátni.org-sanakirjoissa",
+    gtTitle: "Sana Giellateknon Neahttadigisánit-sanakirjassa (käännökset, sanahistoria, esimerkit teksteistä)", satniTitle: "Sana sátni.org-sanakirjoissa",
     langName: { fin: "suomi", nob: "norja", eng: "englanti", smn: "inarinsaame", smj: "luulajansaame", sma: "eteläsaame" },
     langIn: { fin: "Suomeksi", nob: "Norjaksi", eng: "Englanniksi", smn: "Inarinsaameksi", sms: "Koltansaameksi", smj: "Luulajansaameksi", sma: "Eteläsaameksi" },
     // Tietoa-ikkuna. Ääntämisen kuvaus on sovittu Divvunin kanssa (2026-10-29), älä muuta sisältöä.
@@ -211,6 +212,7 @@ const UI_TEXTS = {
     searchedForm: (q, tags) => `Søkt form ${q}: ${tags}`,
     cliticInfo: (q, stem, parts) => `${q} = ${stem} + ${parts}`,
     finCliticInfo: (q, stem, c, sme) => `${q} = ${stem} + -${c} (på samisk ${sme})`,
+    didYouMean: "Mente du:",
     cliticMeaning: { go: "spørrepartikkel", ge: "også, i nektende setning: heller, engang", nai: "også",
                      son: "i spørsmål: mon tro", han: "vel, jo" },
     formIn: (q, forms, lang) => `<b>${q}</b> ≈ ${forms} <span class="muted small">(${lang === "fin" ? "på finsk" : "på norsk"}, omtrent)</span>`,
@@ -247,7 +249,7 @@ const UI_TEXTS = {
       Rel: "Relativt pronomen", Ord: "Ordenstall", Coll: "Kollektiv",
     },
     elsewhere: "Ordet andre steder",
-    gtTitle: "Bøying i Giellateknos generator", satniTitle: "Ordet i ordbøkene på sátni.org",
+    gtTitle: "Ordet i Giellateknos ordbok Neahttadigisánit (oversettelser, ordhistorie, eksempler fra tekster)", satniTitle: "Ordet i ordbøkene på sátni.org",
     langName: { fin: "finsk", nob: "norsk", eng: "engelsk", smn: "enaresamisk", smj: "lulesamisk", sma: "sørsamisk" },
     langIn: { fin: "På finsk", nob: "På norsk", eng: "På engelsk", smn: "På enaresamisk", sms: "På skoltesamisk", smj: "På lulesamisk", sma: "På sørsamisk" },
     // Oversettelse av den finske teksten som er avtalt med Divvun (2026-10-29)

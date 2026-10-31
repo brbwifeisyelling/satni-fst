@@ -12,6 +12,13 @@ All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/somb
 - **Negative verbs:** the question and *-han* clitics go on the negative verb in Finnish: *boađatgo ≈ (eikö)
   tuleskele*, *(eihän) tule*; *-kaan* stays on the main verb (*(ei) tulekaan*).
 - Vowel harmony of the Finnish clitic follows the word's case ending when it has one (*maanteistähän*).
+- **"Did you mean":** when a search finds nothing, or only a much rarer word, the app suggests the same word with
+  Sámi letters (a/á, c/č, d/đ, n/ŋ, s/š, t/ŧ, z/ž): *boadatgo* → *boađátgo* (boahtit), *cahci* → *čáhci*,
+  *boađatgo* (boađadit) → *boađátgo* (boahtit).
+- **Neahttadigisánit instead of the Giellatekno paradigm page:** the button opens the word in Giellatekno's
+  dictionary (sanit.oahpa.no) with translations, word history and a search in texts (Korp). The old paradigm page
+  repeated the app's own inflection table, and its server did not always answer.
+- When a search finds nothing, the card no longer shows lines left over from the previous word.
 
 ## 0.8.4-dev — pre-release for testing (2026-10-31)
 

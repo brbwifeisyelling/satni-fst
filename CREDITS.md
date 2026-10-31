@@ -93,8 +93,9 @@ has given permission (2026-10-30) to keep generated samples in the app.
 
 ## Other links
 
-The "Giellatekno" button opens the word's full paradigm in Giellatekno's
-[online paradigm generator](https://gtweb.uit.no/) (link only).
+The "Neahttadigisánit" button opens the word in Giellatekno's online dictionary
+[Neahttadigisánit](https://sanit.oahpa.no/) (link only): translations, analyses, word history and a search in texts
+(Korp).
 
 ## Software
 

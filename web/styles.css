@@ -172,6 +172,15 @@ main > * + * { margin-top: 12px; }
 .chips button.selected { background: var(--accent); color: var(--accent-text); }
 .chips button.random { background: var(--speak-bg); color: var(--speak); }
 .results button { font-size: 13px; }
+/* Tarkoititko: sama sana saamen erikoiskirjaimin */
+.did-you-mean { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 14px; color: var(--muted); }
+.did-you-mean[hidden] { display: none; }
+.did-you-mean button {
+  border: 1px dashed var(--accent); background: none; color: var(--text); border-radius: 999px; padding: 4px 12px;
+  font: inherit; cursor: pointer;
+}
+.did-you-mean button b { color: var(--accent); }
+.did-you-mean button:hover { background: var(--chip); }
 .results button .trans { font-weight: 400; opacity: .85; }
 .results button.more-results { background: none; color: var(--accent); border: 1px dashed var(--border); }
 
