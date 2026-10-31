@@ -2,55 +2,36 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
-## 0.8.5-dev — pre-release for testing (2026-10-31)
+## 0.9 — 2026-10-31
 
-- **Search in Finnish with a clitic:** *tuletko*, *talossakin*, *tuletkaan* and *teetkö* find *boahtit*, *viessu* and
-  *bargat*, and the card shows the Sámi form with the matching Sámi clitic: *tuletko = tulla ≈ boađátgo*,
-  *tuletkin ≈ boađátge / boađátnai*. Checked both ways with 1 000 words: the same word is found as without the
-  clitic, and the Sámi form gives back exactly the original Finnish word, where both languages have the same form;
-  the Finnish and Sámi words were checked with the GiellaLT analysers (lang-fin, lang-sme).
-- **Negative verbs:** the question and *-han* clitics go on the negative verb in Finnish: *boađatgo ≈ (eikö)
-  tuleskele*, *(eihän) tule*; *-kaan* stays on the main verb (*(ei) tulekaan*).
-- Vowel harmony of the Finnish clitic follows the word's case ending when it has one (*maanteistähän*).
-- **"Did you mean":** when a search finds nothing, or only a much rarer word, the app suggests the same word with the
-  Sámi letters added (a → á, c → č, d → đ, n → ŋ, s → š, t → ŧ, z → ž): *boadatgo* → *boađátgo* (boahtit),
-  *cahci* → *čáhci*, *Danmarkun* → *Dánmárkun*. Tested with 2 000 typed words without Sámi letters: the right word is
-  found for 96–97 %; correctly typed words got a suggestion in 1 case of 1 000, Finnish words never.
-- **Search box suggestions open the word you picked:** words written the same way (*vuostá* = juusto / vastaan,
-  *son* = hän as a pronoun or a particle) opened the first one; now the chosen one opens.
-- **Neahttadigisánit instead of the Giellatekno paradigm page:** the button opens the word in Giellatekno's
-  dictionary (sanit.oahpa.no) with translations, word history and a search in texts (Korp). The old paradigm page
-  repeated the app's own inflection table, and its server did not always answer.
-- When a search finds nothing, the card no longer shows lines left over from the previous word.
+Includes the test versions 0.8.2-dev–0.8.5-dev.
 
-## 0.8.4-dev — pre-release for testing (2026-10-31)
-
-- **Clitics in Finnish too:** the Finnish form line gets the matching Finnish clitic: *boađátgo ≈ tuletko*,
-  *viesusge ≈ talossakin / talossakaan*, *viesushan ≈ talossahan*. Vowel harmony follows the last part of a compound
-  (*lainausmerkissäkö*), worked out with GiellaLT lang-fin when the database is built (98.9 % agreement with lang-fin
-  in a test of 3 000 Finnish forms). In Norwegian, which has no clitics, the line shows the form without the clitic
-  (*boađát ≈ du kommer*).
-- **Pronunciation no longer fails with "not allowed by the user agent":** browsers, Safari above all, only allow
-  sound right after a tap, and fetching the voice could take longer than that. The sound player is now started
-  during the tap itself; if a browser still blocks it, the app says the sound is ready and plays it at once on the
-  next tap.
-
-## 0.8.3-dev — pre-release for testing (2026-10-31)
-
-- **Search finds words with clitics:** *boađátgo*, *viesusge*, *mungo*, *dathan* and *sonnai* now find *boahtit*,
+- **Search finds words with clitics.** *boađátgo*, *viesusge*, *mungo*, *dathan* and *sonnai* find *boahtit*,
   *viessu*, *mun*, *dat* and *son*, also with two clitics (*buorregohan*) or a hyphen (*dalle-ge*). The word card
-  explains the clitic: *boađátgo = boađát + -go (kysymys: -ko, -kö)*. Meanings are shown for -go, -ge, -nai, -son
-  and -han; the other clitics the North Sámi analyser knows (-gen, -ges, -gis, -hal, -ba, -bai, -bat, -be) are
-  recognised without a meaning.
-
-## 0.8.2-dev — pre-release for testing (2026-10-31)
-
+  explains the clitic: *boađátgo = boađát + -go (kysymys: -ko, -kö)*. Meanings are shown for -go, -ge, -nai, -son and
+  -han (checked against the dictionaries and a North Sámi textbook); the other clitics the analyser knows (-gen,
+  -ges, -gis, -hal, -ba, -bai, -bat, -be) are recognised without a meaning. Tested with 2 000 words checked by the
+  North Sámi analyser: the right word was found for 1 998.
+- **Clitics in Finnish too.** The Finnish form line gets the matching Finnish clitic (*boađátgo ≈ tuletko*,
+  *viesusge ≈ talossakin / talossakaan*), and searching in Finnish with a clitic works: *tuletko*, *talossakin* and
+  *teetkö* find *boahtit*, *viessu* and *bargat* and show the Sámi form with its clitic (*tuletko = tulla ≈
+  boađátgo*). With negative verbs the Finnish clitic goes where it belongs: *(eikö) tuleskele*, *(ei) tulekaan*.
+  Vowel harmony follows the word's ending or the last part of a compound (*lainausmerkissäkö*). Checked both ways
+  with 1 000 words and with the GiellaLT analysers for Finnish and North Sámi.
+- **"Did you mean":** when a search finds nothing, or only a much rarer word, the app suggests the same word with
+  the Sámi letters added: *boadatgo* → *boađátgo* (boahtit), *cahci* → *čáhci*, *Danmarkun* → *Dánmárkun*. Tested
+  with 2 000 typed words without Sámi letters: the right word was found for 96–97 %.
 - **Experimental: Skolt Sámi.** Switch it on under *Experimental features* in the ☰ menu, and the word card shows
   Skolt Sámi words from GiellaLT's Skolt Sámi dictionaries: for a Finnish or Norwegian search word directly from the
-  dictionary (*talo* → *tääll, põrtt*), and for a North Sámi word through its Finnish translation, marked
-  "via Finnish". Not yet checked by a Skolt Sámi speaker.
+  dictionary (*talo* → *tääll, põrtt*), and for a North Sámi word through its Finnish translation, marked "via
+  Finnish". Not yet checked by a Skolt Sámi speaker.
 - **Menu:** *Other languages* are switches, and each experimental feature has its own switch with a short
-  description. Switching one on explains what it does first.
+  description; switching one on first explains what it does. If you had the photo search on, it stays on.
+- **Neahttadigisánit** instead of the Giellatekno paradigm page: the button opens the word in Giellatekno's
+  dictionary (sanit.oahpa.no) with translations, word history and a search in texts (Korp).
+- **Fixes:** search box suggestions open the word you picked (*vuostá* = juusto / vastaan used to open the first
+  one); pronunciation no longer fails with "not allowed by the user agent" when fetching the voice takes a moment;
+  an empty search no longer shows lines left over from the previous word.
 
 ## 0.8.1 — 2026-10-31
 

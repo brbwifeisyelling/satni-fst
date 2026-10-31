@@ -20,12 +20,16 @@ Sátni FST combines the open dictionaries and morphology of [GiellaLT](https://g
   (all moods for verbs, cases in singular and plural for nominals)
 - Consonant gradation shown in colour (strong grade GD / weak grade HD)
 - Translations in Finnish and Norwegian, and for some words English, Inari, Lule and Southern Sámi
-- Search with a North Sámi word, an inflected form (*dagan* → *dahkat*) or a Finnish/Norwegian word
+- Search with a North Sámi word, an inflected form (*dagan* → *dahkat*) or a Finnish/Norwegian word, also with a
+  clitic (*boađátgo*, *tuletko* → *boahtit*); the word card explains the clitic and shows it in Finnish too
+- "Did you mean" when Sámi letters are missing (*boadatgo* → *boađátgo*, *cahci* → *čáhci*)
 - Pronunciation with Divvun's speech synthesis (voices Biret, Máhtte, Sunná; needs a network connection)
 - Android, experimental: look up words from a photo, from Sámi to Finnish/Norwegian and back — tap a marked word
   for its translation and pronunciation (text recognised on the phone with Google ML Kit; the photo stays on the
   phone, ML Kit may send anonymous usage statistics to Google; switch on under *Experimental features* at the
   bottom of the menu)
+- Experimental: Skolt Sámi words on the word card, from GiellaLT's Skolt Sámi dictionaries (switch on under
+  *Experimental features*)
 - User interface in Finnish or Norwegian, light and dark theme, history and favourites
 
 ## Screenshots
