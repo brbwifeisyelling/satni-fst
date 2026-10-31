@@ -99,6 +99,17 @@ h3 { font-size: 17px; margin: 0 0 6px; }
 .story p { max-width: 760px; font-size: 17px; margin: 0; }
 .credits ul { padding-left: 20px; }
 .credits li { margin: 4px 0; }
+/* Tue kehitystä: Buy Me a Coffee -painike (pyöreä logo + teksti) */
+.support { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px 18px; text-align: center; }
+.support p { margin: 0; color: var(--muted); }
+.coffee-btn {
+  display: inline-flex; align-items: center; gap: 10px; padding: 5px 16px 5px 5px; border-radius: 999px;
+  background: #fbf1e1; color: #3b2a20; font-weight: 700; text-decoration: none; border: 1px solid #ead9bf;
+  transition: transform .1s, filter .1s;
+}
+.coffee-btn img { width: 32px; height: 32px; border-radius: 50%; }
+.coffee-btn:hover { filter: brightness(.97); }
+.coffee-btn:active { transform: scale(.97); }
 footer { text-align: center; padding: 28px 16px 40px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); }
 
 @media (max-width: 860px) {

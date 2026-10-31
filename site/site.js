@@ -48,6 +48,7 @@ const TEXTS = {
     c3: "astevaihtelutaulukko", c4: "norjan taivutus: Norsk ordbank (CC BY 4.0)",
     license: "Sátni FST on vapaata ohjelmistoa (GPL-3.0). Kaikki lähteet ja lisenssit:",
     feedback: "Palaute:",
+    supportText: "Sátni FST on ilmainen ja pysyy ilmaisena. Jos siitä on sinulle hyötyä, voit tarjota tekijälle kahvit.",
   },
   nb: {
     tagline: "Nordsamisk ordbok og bøyingsverktøy",
@@ -97,6 +98,7 @@ const TEXTS = {
     c3: "tabell over stadieveksling", c4: "norsk bøying: Norsk ordbank (CC BY 4.0)",
     license: "Sátni FST er fri programvare (GPL-3.0). Alle kilder og lisenser:",
     feedback: "Tilbakemelding:",
+    supportText: "Sátni FST er gratis og forblir gratis. Har du nytte av den, kan du spandere en kaffe på utvikleren.",
   },
   en: {
     tagline: "North Sámi dictionary and inflection",
@@ -146,6 +148,7 @@ const TEXTS = {
     c3: "consonant gradation table", c4: "Norwegian inflection: Norsk ordbank (CC BY 4.0)",
     license: "Sátni FST is free software (GPL-3.0). All sources and licences:",
     feedback: "Feedback:",
+    supportText: "Sátni FST is free and will stay free. If you find it useful, you can buy the developer a coffee.",
   },
 };
 const TITLES = {

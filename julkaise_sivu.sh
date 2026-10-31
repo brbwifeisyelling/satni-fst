@@ -12,7 +12,7 @@ OUT="$HOME/.cache/satni-fst-build/pages"
 [ -f web/data/satni-web.db.gz ] || { echo "web/data/satni-web.db.gz puuttuu (aja export_web_data.py)"; exit 1; }
 
 rm -rf "$OUT" && mkdir -p "$OUT/screenshots" || exit 1
-cp site/index.html site/site.css site/site.js packaging/icon/satni-icon.svg "$OUT/" || exit 1
+cp site/index.html site/site.css site/site.js site/coffee.svg packaging/icon/satni-icon.svg "$OUT/" || exit 1
 cp docs/screenshots/*.png "$OUT/screenshots/" || exit 1
 cp -r web "$OUT/app" || exit 1
 # Selainversion Tietoa-ikkunaan julkaisun numero (RELEASE_VERSION)

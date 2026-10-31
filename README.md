@@ -132,4 +132,8 @@ Feedback and suggestions are welcome by email.
 > **Suomeksi:** Ongelmista voi ilmoittaa sähköpostitse <satni@somby.fi> tai GitHubissa. Palaute ja ehdotukset ovat tervetulleita sähköpostitse.
 > **På norsk:** Problemer kan meldes på e-post <satni@somby.fi> eller på GitHub. Tilbakemeldinger og forslag tas gjerne imot på e-post.
 
+<a href="https://buymeacoffee.com/sombyduodji"><img src="site/coffee.svg" alt="" width="40" height="40" align="absmiddle"></a>
+Sátni FST is free and will stay free. If you find it useful, you can
+[buy me a coffee](https://buymeacoffee.com/sombyduodji).
+
 Juha Somby
