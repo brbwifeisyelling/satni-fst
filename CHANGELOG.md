@@ -2,6 +2,20 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/brbwifeisyelling/satni-fst/releases).
 
+## 0.8 — 2026-10-31
+
+- **Listen and copy any form:** tap a form in the inflection table or the *All forms* tab to open a small bubble
+  with 🔈 and a copy button. Copying works on Android, Windows, Linux and the web version.
+- **New listen button:** a round 🔈 button next to the word replaces the *Listen* button; a spinning ring shows
+  while the sound is fetched.
+- **Tidier word card:** consonant gradation is shown in labelled cells (strong → weak form, consonants, grades,
+  Oahpa group) that no longer break in the middle of a line; on phones they form a 2 × 2 grid.
+- **Links to other sites as pills:** Giellatekno and sátni.org are now round buttons under *Word elsewhere*, in their
+  own box to the right of the word on wide screens and at the bottom of the card on phones. The ChatGPT button was
+  removed.
+- **Photo word marks in the Sámi flag colours:** red, yellow, blue or green. Yellow marks get a darker edge so they
+  stand out on light paper.
+
 ## 0.7.6.1 — 2026-10-30
 
 - **Experimental, Android: look up words from a photo.** Take a photo of text or pick one, and the words found in

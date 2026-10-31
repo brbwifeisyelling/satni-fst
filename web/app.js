@@ -9,10 +9,8 @@ const TTS_URL = "https://api-giellalt.uit.no/tts/se/";
 const VOICES = { "Biret": "biret", "Máhtte": "mahtte", "Sunná": "sunna" };
 // Giellateknon taivutusgeneraattori (vain linkki)
 const GIELLATEKNO_URL = "https://gtweb.uit.no/cgi-bin/smi/smi.cgi?text={word}&pos={pos}&lang=sme&mode=full&action=paradigm";
-// Haku muista lähteistä: sátni.org (Divvunin ja Giellateknon sanakirjat ja Giellagáldun termit) sekä ChatGPT
-// valmiilla kysymyksellä (i18n.js: askAi), jossa mukana sanakirjan tiedot taustaksi
+// Haku muista lähteistä: sátni.org (Divvunin ja Giellateknon sanakirjat ja Giellagáldun termit)
 const SATNI_URL = "https://satni.org/{word}";
-const AI_URL = "https://chatgpt.com/?q={prompt}";
 const GIELLATEKNO_POS = { N: "N", V: "V", A: "A", ADV: "Adv", NUM: "Num", PRON: "Pron" };
 
 // Käännöskielet (GiellaLT:n dict-sme-*-sanakirjat) ja niiden sarakkeet tietokannassa; main = pääkieli
@@ -405,6 +403,7 @@ function loadWord(id) {
 // --- Näkymät ---
 
 function showOnly(view) {
+  closeFormPop();
   $("welcome").hidden = view !== "welcome";
   $("loading").hidden = view !== "loading";
   for (const id of ["results", "word", "tabs"]) $(id).hidden = view !== "word";
@@ -433,9 +432,7 @@ function search(query, index = 0, pushHistory = true) {
     $("pos-badge").hidden = true;
     $("fav-btn").hidden = true;
     $("speak-btn").hidden = true;
-    $("gt-link").hidden = true;
-    $("satni-link").hidden = true;
-    $("ai-link").hidden = true;
+    $("word-links").hidden = true;
     $("translation").textContent = t("noHitsHint");
     $("more-meanings").textContent = "";
     $("gradation").innerHTML = "";
@@ -479,6 +476,7 @@ function renderResults() {
 }
 
 function selectResult(i, pushHistory = true) {
+  closeFormPop();
   state.index = i;
   const r = state.results[i];
   if (i >= state.results.filter((x) => x.rank < PREFIX_RANK).length && !state.showPrefix) {
@@ -503,17 +501,10 @@ function selectResult(i, pushHistory = true) {
   $("pos-badge").textContent = wordClassLabel(w.pos, w.subtype);
   $("fav-btn").hidden = false;
   $("speak-btn").hidden = false;
-  $("gt-link").hidden = false;
+  $("word-links").hidden = false;
   $("gt-link").href = GIELLATEKNO_URL.replace("{word}", encodeURIComponent(w.sme_lemma))
     .replace("{pos}", GIELLATEKNO_POS[w.pos.toUpperCase()] || "Any");
-  $("satni-link").hidden = false;
   $("satni-link").href = SATNI_URL.replace("{word}", encodeURIComponent(w.sme_lemma));
-  // Kysymykseen sanakirjan käännökset pääkielillä (esim. vain norjaksi: politiijameašttir = politimester)
-  const known = Object.keys(LANGUAGES).filter((l) => LANGUAGES[l].main && w[LANGUAGES[l].col])
-    .map((l) => `${langName(l)}: ${splitList(w[LANGUAGES[l].col]).slice(0, 3).join(", ")}`);
-  $("ai-link").hidden = false;
-  $("ai-link").href = AI_URL.replace("{prompt}",
-    encodeURIComponent(t("askAi", w.sme_lemma, wordClassLabel(w.pos, w.subtype).toLowerCase(), known)));
   updateFavButton();
 
   // Merkitykset vain käyttöliittymän kielellä ja Muut kielet -asetuksessa valituilla kielillä; muita kieliä
@@ -695,7 +686,7 @@ function renderGradation() {
   const w = state.word;
   const el = $("gradation");
   if (UNINFLECTED_POS.includes(w.pos.toUpperCase()) || !state.paradigm.size) { el.innerHTML = ""; return; }
-  if (!w.gradation) { el.innerHTML = `<span class="label">${esc(t("gradation"))}</span><span class="muted"><i>${esc(t("noGradation"))}</i></span>`; return; }
+  if (!w.gradation) { el.innerHTML = `<div class="grad-head">${esc(t("gradation"))}</div><span class="muted"><i>${esc(t("noGradation"))}</i></span>`; return; }
 
   // Esimerkkimuodot: haettu muoto tai perusmuoto ja tavallisin vastakkaisen asteen muoto
   const preferred = ["Inf", "Sg+Nom", "Nom", "Ind+Prs+Sg1", "Sg+Acc", "Acc", "Sg+Gen", "Pl+Nom"];
@@ -712,21 +703,26 @@ function renderGradation() {
       if (g && !examples[g]) examples[g] = f;
     }
   }
-  // "hkk (III) · hk (II) · g (I)" -> laatikot; vahva vihreä, heikko oranssi
+  // "hkk (III) · hk (II) · g (I)" -> asteet; vahva vihreä, heikko oranssi, muut harmaina
   let strongDone = false;
-  const row = (w.gradation_row || "").split(" · ").map((part) => {
+  const grades = (w.gradation_row || "").split(" · ").filter(Boolean).map((part) => {
     const [value, q2] = part.replace(/\)$/, "").split(" (");
     let cls = "other";
     if (value === w.gd_cluster && !strongDone) { cls = "gd"; strongDone = true; }
     else if (value === w.hd_cluster) cls = "hd";
-    return `<span class="pill ${cls}">${esc(value)} ${esc(q2)}</span>`;
-  }).join("");
-  el.innerHTML = `
-    <span class="label">${esc(t("gradation"))}</span>
-    <span class="pill gd">GD ${esc(examples.GD || "-")}</span><span class="arrow">→</span>
-    <span class="pill hd">HD ${esc(examples.HD || "-")}</span>
-    <span class="clusters"><span class="gd">${esc(w.gd_cluster)}</span> <span class="arrow">→</span> <span class="hd">${esc(w.hd_cluster)}</span></span>
-    <span class="oahpa">oahpa: ${esc(w.gradation_group)}</span> ${row}`;
+    return `<span class="${cls}">${esc(value)} <small>${esc(q2 || "")}</small></span>`;
+  }).join('<span class="sep"> · </span>');
+  // Omat solut: esimerkkimuodot, konsonantit, asteet ja Oahpan ryhmä; solu rivittyy kokonaisena
+  const cell = (cap, val, cls = "") => `<div class="grad-cell ${cls}"><span class="gc-cap">${esc(cap)}</span><span class="gc-val">${val}</span></div>`;
+  const arrow = '<span class="arrow">→</span>';
+  el.innerHTML = `<div class="grad-head">${esc(t("gradation"))}</div><div class="grad-cells">`
+    + cell(t("gradForms"), `<span class="gd">${esc(examples.GD || "-")}</span> ${arrow} <span class="hd">${esc(examples.HD || "-")}</span>`, "forms")
+    + cell(t("gradClusters"), `<span class="gd">${esc(w.gd_cluster)}</span> ${arrow} <span class="hd">${esc(w.hd_cluster)}</span>`)
+    + (grades ? cell(t("gradGrades"), grades) : "")
+    + (w.gradation_group ? cell(t("gradGroup"),
+      // rivitys vain välilyönneistä, ei tavuviivasta (h-čoahkit)
+      w.gradation_group.split(" ").map((p) => `<span class="nw">${esc(p)}</span>`).join(" "), "group") : "")
+    + "</div>";
 }
 
 // --- Taivutustaulukko ---
@@ -847,13 +843,14 @@ function renderRaw() {
   for (const [tag, forms] of state.paradigm) {
     html += `<div><span class="tag">${esc(tag)}</span>` + forms.map((f) => {
       const g = settings.showGrade ? state.grades.get(tag + "|" + f) : null;
-      return `<span class="${g === "GD" ? "gd" : g === "HD" ? "hd" : ""}">${esc(f)}</span>${g ? ` <span class="muted">${g}</span>` : ""}`;
+      return `<span class="form ${g === "GD" ? "gd" : g === "HD" ? "hd" : ""}" data-speak="${esc(f)}">${esc(f)}</span>${g ? ` <span class="muted">${g}</span>` : ""}`;
     }).join(", ") + `</div>`;
   }
   $("panel-raw").innerHTML = `<div class="raw">${html || esc(state.word.sme_lemma)}</div>`;
 }
 
 function setTab(tab) {
+  closeFormPop();
   state.tab = tab;
   for (const b of $("tabs").children) b.classList.toggle("active", b.dataset.tab === tab);
   for (const t of ["table", "meanings", "raw"]) $("panel-" + t).hidden = t !== tab;
@@ -869,7 +866,6 @@ async function speak(text, button, voiceName = settings.voice) {
   const voice = VOICES[voiceName] || "biret";
   const key = `tts-cache/${voice}/${encodeURIComponent(text)}`;
   if (button) { button.disabled = true; button.classList.add("loading"); }  // pyörivä kehä (styles.css)
-  if (button === $("speak-btn")) button.lastChild.textContent = t("fetching");
   try {
     let blob = memoryCache.get(key);
     // Selaimen välimuisti vain verkkosivulla: Cache Storage hyväksyy vain http(s)-osoitteet.
@@ -901,7 +897,6 @@ async function speak(text, button, voiceName = settings.voice) {
     toast(t("ttsFailed", e.message));
   } finally {
     if (button) { button.disabled = false; button.classList.remove("loading"); }
-    if (button === $("speak-btn")) button.lastChild.textContent = t("listen");
   }
 }
 
@@ -1113,7 +1108,8 @@ function layoutOcr(reset) {
 }
 
 // Suuntapainike (Saame → Suomi), merkintätapa ja väri asetuksista
-const OCR_COLORS = ["#2563eb", "#16a34a", "#ea580c", "#db2777", "#7c3aed", "#ca8a04"];
+// Merkinnän värit: saamelaislipun värit, samat kuin otsikon raidassa (styles.css: .stripe)
+const OCR_COLORS = ["#e11d48", "#facc15", "#2563eb", "#16a34a"];
 const SWAP_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
   stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 20l4-4-4-4"/><path d="M21 16H7"/></svg>`;
 function applyOcrLook() {
@@ -1126,6 +1122,7 @@ function applyOcrLook() {
   photo.classList.toggle("style-frame", settings.ocrStyle === "frame");
   photo.classList.toggle("style-underline", settings.ocrStyle !== "frame");
   photo.style.setProperty("--mark", settings.ocrColor);
+  photo.classList.toggle("mark-light", settings.ocrColor === "#facc15");  // keltainen: vahvempi merkintä
   for (const b of $("ocr-style-seg").children) b.classList.toggle("active", b.dataset.style === settings.ocrStyle);
   for (const b of $("ocr-swatches").children) b.classList.toggle("active", b.dataset.color === settings.ocrColor);
 }
@@ -1320,6 +1317,100 @@ function bindOcr() {
   bindOcrGestures();
 }
 
+// --- Sanakortin muodon kupla: napautettu muoto (taivutustaulukko, Kaikki muodot), kuuntele ja kopioi ---
+
+const COPY_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+  stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>`;
+const CHECK_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"
+  stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
+let formPopTarget = null;
+
+function openFormPop(form) {
+  closeFormPop();
+  const pop = $("form-pop");
+  formPopTarget = form;
+  form.classList.add("picked");
+  pop.innerHTML = `<span class="b-word">${esc(form.textContent)}</span>`
+    + `<button class="b-speak" aria-label="${esc(t("listenTo", form.dataset.speak))}">${SPEAK_ICON}</button>`
+    + `<button class="b-copy" aria-label="${esc(t("copy"))}">${COPY_ICON}</button>`;
+  pop.hidden = false;
+  placeFormPop();
+}
+
+// Takaisin-ele (MainActivity.goBackOrFinish), Esc ja napautus muualle
+function closeFormPop() {
+  if (!formPopTarget) return false;
+  formPopTarget.classList.remove("picked");
+  formPopTarget = null;
+  $("form-pop").hidden = true;
+  return true;
+}
+
+// Kupla muodon yläpuolelle (tai alle, jos yläpuolella ei ole tilaa), sivun koordinaateissa
+function placeFormPop() {
+  if (!formPopTarget) return;
+  const pop = $("form-pop"), b = formPopTarget.getBoundingClientRect();
+  if (b.bottom < 0 || b.top > innerHeight) { closeFormPop(); return; }
+  const below = b.top < pop.offsetHeight + 16;
+  pop.classList.toggle("below", below);
+  const x = b.left + b.width / 2, half = pop.offsetWidth / 2;
+  const left = Math.min(Math.max(x, half + 8), document.documentElement.clientWidth - half - 8);
+  pop.style.left = `${left + scrollX}px`;
+  pop.style.top = `${(below ? b.bottom : b.top) + scrollY}px`;
+  pop.style.setProperty("--arrow", `${Math.min(Math.max(x - left + half, 16), half * 2 - 16)}px`);
+}
+
+// Leikepöydälle. Työpöytäsovelluksessa Python kopioi (satni_desktop.py: copy), muualla Clipboard API ja
+// vanhempi tapa (execCommand) varalla.
+async function copyText(text) {
+  if (IS_DESKTOP) { await fetch(`copy?text=${encodeURIComponent(text)}`); return; }
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const area = Object.assign(document.createElement("textarea"), { value: text });
+    area.style.cssText = "position:fixed;opacity:0";
+    document.body.append(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+  }
+}
+
+function bindFormPop() {
+  const pop = $("form-pop");
+  for (const id of ["panel-table", "panel-raw"]) {
+    $(id).addEventListener("click", (e) => {
+      const form = e.target.closest(".form");
+      if (form && form !== formPopTarget) openFormPop(form);
+      else closeFormPop();
+    });
+  }
+  // Painettu painike näkyy myös nopealla napautuksella (korostus pysyy hetken)
+  pop.addEventListener("pointerdown", (e) => e.target.closest("button")?.classList.add("pressed"));
+  const release = () => setTimeout(() => pop.querySelector(".pressed")?.classList.remove("pressed"), 180);
+  pop.addEventListener("pointerup", release);
+  pop.addEventListener("pointercancel", release);
+  pop.addEventListener("click", async (e) => {
+    const form = formPopTarget;
+    if (!form) return;
+    const speaker = e.target.closest(".b-speak"), copy = e.target.closest(".b-copy");
+    if (speaker && !speaker.classList.contains("loading")) speak(form.dataset.speak, speaker);
+    if (copy) {
+      await copyText(form.textContent);
+      copy.innerHTML = CHECK_ICON;
+      setTimeout(() => { if (copy.isConnected) copy.innerHTML = COPY_ICON; }, 1200);
+      // Android 13+ näyttää itse kopioidun tekstin
+      if (!(Number(navigator.userAgent.match(/Android (\d+)/)?.[1]) >= 13)) toast(t("copied", form.textContent), 1800);
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (formPopTarget && !e.target.closest("#form-pop, .form")) closeFormPop();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeFormPop(); });
+  addEventListener("scroll", placeFormPop, true);
+  addEventListener("resize", placeFormPop);
+}
+
 // --- Osoite (#/sana/dahkat/1) ---
 
 // Muusta sovelluksesta jaettu teksti (Android: Jaa -> Sátni FST; asennettu selainversio:
@@ -1392,12 +1483,7 @@ function bindEvents() {
   $("more-meanings").onclick = (e) => { e.preventDefault(); setTab("meanings"); };
   $("speak-btn").onclick = () => speak(state.word.sme_lemma, $("speak-btn"));
   $("fav-btn").onclick = toggleFavourite;
-  $("panel-table").addEventListener("click", (e) => {
-    const form = e.target.closest(".form");
-    if (!form) return;
-    form.classList.add("playing");
-    speak(form.dataset.speak).finally(() => form.classList.remove("playing"));
-  });
+  bindFormPop();
   $("about-btn").onclick = () => $("about").showModal();
   $("welcome-lang").addEventListener("click", (e) => {
     const b = e.target.closest("[data-lang]");
@@ -1424,6 +1510,8 @@ async function main() {
     settings.extraLangs.push(settings.lang);
   }
   settings.lang = UI_LANGUAGES[settings.uiLang].translationLang;
+  // Vanhemmissa versioissa valittavana oli muitakin värejä; ne vaihtuvat siniseen
+  if (!OCR_COLORS.includes(settings.ocrColor)) settings.ocrColor = "#2563eb";
   applyTheme();
   const ex = $("examples");
   for (const w of EXAMPLE_WORDS) {

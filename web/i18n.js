@@ -47,10 +47,11 @@ const UI_TEXTS = {
     welcomeTips: `<dt>Hae</dt><dd>saamen sanalla (dahkat), suomen sanalla (tehdä) tai taivutetulla muodolla (dagan).</dd>
       <dt>Taivutus</dt><dd>verbeillä kaikki tapaluokat, nomineilla sijamuodot (ol. ja ml.).</dd>
       <dt>Astevaihtelu</dt><dd>vahva aste <b class="gd">GD</b> vihreänä, heikko aste <b class="hd">HD</b> oranssina.</dd>
-      <dt>Ääntäminen</dt><dd>Kuuntele-nappi tai napautus taulukon muodossa.</dd>
+      <dt>Ääntäminen</dt><dd>🔈 sanan vieressä, tai napauta taulukon muotoa: kuuntele tai kopioi.</dd>
       <dt>Suosikit</dt><dd>★ tallentaa sanan omalle listalle.</dd>`,
     tryThese: "Kokeile:", randomWord: "Satunnainen sana",
     listen: "Kuuntele", fetching: "Haetaan…", listenTo: (text) => `Kuuntele: ${text}`,
+    copy: "Kopioi", copied: (text) => `Kopioitu: ${text}`,
     tabTable: "Taivutus", tabRaw: "Kaikki muodot",
     tabMeanings: (n, examples) => `Merkitykset (${n})` + (examples ? ` ja esimerkit (${examples})` : ""),
     noHits: (q) => `Ei osumia haulle ”${q}”`,
@@ -65,9 +66,10 @@ const UI_TEXTS = {
     formIn: (q, forms, lang) => `<b>${q}</b> ≈ ${forms} <span class="muted small">(${lang === "fin" ? "suomeksi" : "norjaksi"}, likimäärin)</span>`,
     viaForm: (q, base, sme, tag) => `<b>${q}</b> = ${base}` + (sme ? ` ≈ <b>${sme}</b> <span class="muted small">(${tag}, likimäärin)</span>` : ` <span class="muted small">(perusmuoto)</span>`),
     gradation: "Astevaihtelu", noGradation: "ei näkyvää astevaihtelua",
+    gradForms: "Vahva → heikko aste", gradClusters: "Konsonantit", gradGrades: "Asteet", gradGroup: "Oahpa-ryhmä",
     gradeLegend: `Aste: <b class="gd">vihreä = GD</b> vahva aste &nbsp;&nbsp; <b class="hd">oranssi = HD</b> heikko aste`,
     noForms: "FST-generaattori ei tuottanut tälle sanalle taivutusmuotoja.",
-    tapHint: "Napauta muotoa kuullaksesi sen ääntämisen.",
+    tapHint: "Napauta muotoa: kuuntele tai kopioi.",
     noMeanings: "Ei merkitystietoja.", noExampleTranslation: "(ei käännöstä lähteessä)",
     usedIn: (place, code) => `käytössä ${place} (${code})`,
     geo: { N: "Norjassa", S: "Suomessa", R: "Ruotsissa" },
@@ -94,8 +96,8 @@ const UI_TEXTS = {
       Indef: "Indefiniittipronomini", Interr: "Interrogatiivipronomini", Refl: "Refleksiivipronomini",
       Rel: "Relatiivipronomini", Ord: "Järjestysluku", Coll: "Kollektiivi",
     },
-    askAiTitle: "Kysy ChatGPT:ltä (avautuu selaimessa; tekoälyn vastaukset voivat olla virheellisiä)",
-    askAi: (word, pos, known) => `Pohjoissaamen sana "${word}" (${[pos, ...known].join("; ")}): merkitys ja käännös suomeksi.`,
+    elsewhere: "Sanasta muualla",
+    gtTitle: "Taivutus Giellateknon generaattorissa", satniTitle: "Sana sátni.org-sanakirjoissa",
     langName: { fin: "suomi", nob: "norja", eng: "englanti", smn: "inarinsaame", smj: "luulajansaame", sma: "eteläsaame" },
     langIn: { fin: "Suomeksi", nob: "Norjaksi", eng: "Englanniksi", smn: "Inarinsaameksi", smj: "Luulajansaameksi", sma: "Eteläsaameksi" },
     // Tietoa-ikkuna. Ääntämisen kuvaus on sovittu Divvunin kanssa (2026-10-29), älä muuta sisältöä.
@@ -157,10 +159,11 @@ const UI_TEXTS = {
     welcomeTips: `<dt>Søk</dt><dd>med et samisk ord (dahkat), et norsk ord (gjøre) eller en bøyd form (dagan).</dd>
       <dt>Bøying</dt><dd>alle modi for verb, kasus for nomen (ol. og ml.).</dd>
       <dt>Stadieveksling</dt><dd>sterkt stadium <b class="gd">GD</b> i grønt, svakt stadium <b class="hd">HD</b> i oransje.</dd>
-      <dt>Uttale</dt><dd>Lytt-knappen, eller trykk på en form i tabellen.</dd>
+      <dt>Uttale</dt><dd>🔈 ved ordet, eller trykk på en form i tabellen: lytt eller kopier.</dd>
       <dt>Favoritter</dt><dd>★ lagrer ordet i din egen liste.</dd>`,
     tryThese: "Prøv:", randomWord: "Tilfeldig ord",
     listen: "Lytt", fetching: "Henter…", listenTo: (text) => `Lytt: ${text}`,
+    copy: "Kopier", copied: (text) => `Kopiert: ${text}`,
     tabTable: "Bøying", tabRaw: "Alle former",
     tabMeanings: (n, examples) => `Betydninger (${n})` + (examples ? ` og eksempler (${examples})` : ""),
     noHits: (q) => `Ingen treff for «${q}»`,
@@ -175,9 +178,10 @@ const UI_TEXTS = {
     formIn: (q, forms, lang) => `<b>${q}</b> ≈ ${forms} <span class="muted small">(${lang === "fin" ? "på finsk" : "på norsk"}, omtrent)</span>`,
     viaForm: (q, base, sme, tag) => `<b>${q}</b> = ${base}` + (sme ? ` ≈ <b>${sme}</b> <span class="muted small">(${tag}, omtrent)</span>` : ` <span class="muted small">(grunnform)</span>`),
     gradation: "Stadieveksling", noGradation: "ingen synlig stadieveksling",
+    gradForms: "Sterkt → svakt stadium", gradClusters: "Konsonanter", gradGrades: "Stadier", gradGroup: "Oahpa-gruppe",
     gradeLegend: `Stadium: <b class="gd">grønn = GD</b> sterkt stadium &nbsp;&nbsp; <b class="hd">oransje = HD</b> svakt stadium`,
     noForms: "FST-generatoren ga ingen bøyingsformer for dette ordet.",
-    tapHint: "Trykk på en form for å høre uttalen.",
+    tapHint: "Trykk på en form: lytt eller kopier.",
     noMeanings: "Ingen opplysninger om betydning.", noExampleTranslation: "(ingen oversettelse i kilden)",
     usedIn: (place, code) => `brukt ${place} (${code})`,
     geo: { N: "i Norge", S: "i Finland", R: "i Sverige" },
@@ -203,8 +207,8 @@ const UI_TEXTS = {
       Indef: "Ubestemt pronomen", Interr: "Spørrepronomen", Refl: "Refleksivt pronomen",
       Rel: "Relativt pronomen", Ord: "Ordenstall", Coll: "Kollektiv",
     },
-    askAiTitle: "Spør ChatGPT (åpnes i nettleseren; svar fra KI kan inneholde feil)",
-    askAi: (word, pos, known) => `Nordsamisk ord "${word}" (${[pos, ...known].join("; ")}): betydning og oversettelse til norsk.`,
+    elsewhere: "Ordet andre steder",
+    gtTitle: "Bøying i Giellateknos generator", satniTitle: "Ordet i ordbøkene på sátni.org",
     langName: { fin: "finsk", nob: "norsk", eng: "engelsk", smn: "enaresamisk", smj: "lulesamisk", sma: "sørsamisk" },
     langIn: { fin: "På finsk", nob: "På norsk", eng: "På engelsk", smn: "På enaresamisk", smj: "På lulesamisk", sma: "På sørsamisk" },
     // Oversettelse av den finske teksten som er avtalt med Divvun (2026-10-29)

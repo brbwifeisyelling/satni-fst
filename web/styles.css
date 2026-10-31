@@ -178,35 +178,68 @@ main > * + * { margin-top: 12px; }
 .badge { background: var(--chip); color: var(--chip-text); border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 600; }
 .star-btn { background: none; border: 0; font-size: 24px; color: var(--subtle); cursor: pointer; padding: 0 4px; }
 .star-btn.on { color: #eab308; }
-.word-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.speak-btn, .gt-btn {
-  display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; padding: 7px 12px;
-  font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none;
+.speak-btn {
+  position: relative; flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px;
+  padding: 0; border: 0; border-radius: 50%; cursor: pointer; background: var(--speak-bg); color: var(--speak);
+  transition: transform .1s, filter .1s;
 }
-.speak-btn { background: var(--speak-bg); color: var(--speak); }
+.speak-btn svg { width: 21px; height: 21px; }
 .speak-btn:hover { background: var(--speak-hover); }
-.speak-btn:disabled { opacity: .7; cursor: progress; }
-.gt-btn { background: var(--gt-bg); color: var(--gt); }
-.gt-btn:hover { background: var(--gt-hover); }
-.ext-btn {
-  display: inline-flex; align-items: center; border-radius: 8px; padding: 7px 12px;
-  font-weight: 700; font-size: 14px; text-decoration: none; background: var(--chip); color: var(--chip-text);
+.speak-btn:active { transform: scale(.88); filter: brightness(.9); }
+.speak-btn:disabled { cursor: progress; }
+/* Sanasta muualla: pyöreät pillerit, joiden alussa lähteen värinen merkki */
+.word-links { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.link-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.link-pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px 4px 4px; border-radius: 999px;
+  background: var(--chip); color: var(--chip-text); font-weight: 600; font-size: 14px; text-decoration: none;
+  transition: transform .1s, background .1s;
 }
-.ext-btn:hover { background: var(--chip-hover); }
-.gt-mark { background: var(--gt); color: var(--gt-bg); border-radius: 5px; padding: 0 5px; font-size: 12px; }
+.link-pill:hover { background: var(--chip-hover); }
+.link-pill:active { transform: scale(.95); }
+.lp-mark {
+  flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  font-size: 12px; font-weight: 800; background: var(--accent); color: var(--accent-text);
+}
+.link-pill.gt .lp-mark { background: var(--gt); color: var(--gt-bg); }
+.lp-arrow { color: var(--subtle); font-size: 12px; margin-left: -2px; }
+/* Leveällä näytöllä oma solu sanan oikealla puolella; kapealla rivi kortin alaosassa */
+@media (min-width: 821px) {
+  .word { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; align-items: start; }
+  .word > * { grid-column: 1; }
+  .word > .word-links {
+    grid-column: 2; grid-row: 1 / span 20; margin: 0; padding: 12px 14px 14px;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--surface-alt);
+  }
+  .word-links .link-pills { flex-direction: column; align-items: stretch; }
+}
 .translation { font-size: 19px; margin: 6px 0 10px; }
 .form-translation { font-size: 16px; margin: -4px 0 10px; }
 .form-translation b { font-weight: 600; }
 .more { font-size: 14px; margin-left: 6px; text-decoration: none; }
-.gradation { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 14px; }
-.gradation .label { color: var(--muted); font-weight: 700; font-size: 13px; margin-right: 4px; }
-.gradation .pill { border-radius: 6px; padding: 2px 8px; font-weight: 700; }
-.pill.gd { background: var(--gd-bg); color: var(--gd); }
-.pill.hd { background: var(--hd-bg); color: var(--hd); }
-.pill.other { background: var(--chip); color: var(--muted); font-weight: 500; }
-.gradation .clusters { font-size: 18px; font-weight: 700; margin: 0 10px; }
-.gradation .arrow { color: var(--subtle); }
-.gradation .oahpa { color: var(--muted); font-size: 13px; }
+/* Astevaihtelu: pieni otsikko ja omat solut (esimerkkimuodot, konsonantit, asteet, Oahpan ryhmä) */
+.gradation { margin-top: 14px; }
+.gradation:empty { display: none; }
+.grad-head, .links-head {
+  margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+}
+.grad-cells { display: flex; flex-wrap: wrap; gap: 8px; }
+.grad-cell {
+  display: flex; flex-direction: column; gap: 2px; padding: 7px 12px 8px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--surface-alt);
+}
+.gc-cap { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.gc-val { font-size: 16px; font-weight: 700; white-space: nowrap; }
+.gc-val small { font-size: 11px; font-weight: 600; opacity: .8; }
+.gc-val .other { color: var(--muted); }
+.grad-cell.group .gc-val { font-size: 14px; font-weight: 600; }
+.gc-val .nw { white-space: nowrap; }
+.gradation .arrow { color: var(--subtle); font-weight: 400; margin: 0 2px; }
+/* Puhelimessa tasainen 2 × 2 -ruudukko */
+@media (max-width: 480px) {
+  .grad-cells { display: grid; grid-template-columns: 1fr 1fr; }
+  .grad-cell.group .gc-val { white-space: normal; }
+}
 #word-info:empty { display: none; }
 #word-info { margin: 8px 0 0; }
 
@@ -235,7 +268,7 @@ table.paradigm tr.section td {
 }
 .form { cursor: pointer; border-radius: 4px; }
 .form:hover { background: var(--select); }
-.form.playing { outline: 2px solid var(--accent); }
+.form.picked { background: var(--select); outline: 2px solid var(--accent); }
 .pron { color: var(--muted); }
 .sep { color: var(--subtle); }
 .hint { color: var(--subtle); font-size: 13px; margin: 12px 0 0; }
@@ -294,6 +327,18 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 .style-underline .ocr-word.picked {
   background: color-mix(in srgb, var(--mark) 18%, transparent); box-shadow: inset 0 -3px 0 var(--mark);
 }
+/* Keltainen hukkuu vaalealle paperille: täyteläisempi täyttö ja tummennettu reuna */
+.mark-light.style-frame .ocr-word {
+  background: color-mix(in srgb, var(--mark) 22%, transparent);
+  border: 2px solid color-mix(in srgb, var(--mark) 80%, #000);
+}
+.mark-light.style-frame .ocr-word.picked {
+  background: color-mix(in srgb, var(--mark) 50%, transparent); border-color: color-mix(in srgb, var(--mark) 55%, #000);
+}
+.mark-light.style-underline .ocr-word { box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--mark) 80%, #000); }
+.mark-light.style-underline .ocr-word.picked {
+  background: color-mix(in srgb, var(--mark) 40%, transparent); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--mark) 55%, #000);
+}
 /* Suunta ja merkintätapa: pilleri ja paletti kuvan yläpuolella */
 .ocr-bar { position: relative; display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .ocr-dir, .ocr-style-btn {
@@ -334,27 +379,39 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 .ocr-bubble .b-word { font-weight: 700; font-size: 17px; }
 .ocr-bubble .b-lemma { color: var(--muted); font-weight: 400; font-size: 14px; }
 .ocr-bubble .b-trans { color: var(--muted); font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ocr-bubble .b-open, .ocr-bubble .b-speak {
+.ocr-bubble .b-open, .ocr-bubble .b-speak, .ocr-bubble .b-copy {
   flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
   background: var(--accent); color: var(--accent-text);
 }
 .ocr-bubble .b-speak { background: var(--speak-bg); color: var(--speak); margin-right: -4px; }
+.ocr-bubble .b-copy { background: var(--chip); color: var(--chip-text); }
+.ocr-bubble button { border: 0; padding: 0; font: inherit; cursor: pointer; }
+/* Sanakortin muodon kupla: sama ulkoasu kuin kuvan sanakuplalla, sivun päällä */
+.form-pop {
+  position: absolute; z-index: 30; padding: 6px 6px 6px 14px; gap: 10px;
+  border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+}
+.form-pop::before {
+  content: ""; position: absolute; left: var(--arrow, 50%); top: 100%; transform: translateX(-50%);
+  border: 9px solid transparent; border-top-color: var(--border);
+}
+.form-pop.below::before { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--border); }
+.form-pop .b-word { font-size: 16px; }
 
 /* Ei Androidin omaa napautuskorostusta (se korosti koko kuplan); painettu painike korostetaan itse */
 .ocr-stage, .ocr-stage * { -webkit-tap-highlight-color: transparent; }
-.ocr-bubble .b-speak, .ocr-bubble .b-open { transition: transform .1s, filter .1s; }
+.ocr-bubble .b-speak, .ocr-bubble .b-open, .ocr-bubble .b-copy { transition: transform .1s, filter .1s; }
 .ocr-bubble .pressed { filter: brightness(.8); transform: scale(.86); }
 
 /* Äänen haku: pyörivä kehä kaiutinkuvakkeen ympärillä (sanakortin Kuuntele ja kuvan sanakupla) */
 @keyframes speak-spin { to { transform: rotate(360deg); } }
-.speak-btn .speaker, .ocr-bubble .b-speak { position: relative; }
-.speak-btn .speaker { display: inline-grid; place-items: center; width: 1.4em; height: 1.4em; }
-.speak-btn.loading .speaker::after, .ocr-bubble .b-speak.loading::after {
+.ocr-bubble .b-speak { position: relative; }
+.speak-btn.loading::after, .ocr-bubble .b-speak.loading::after {
   content: ""; position: absolute; inset: -5px; border-radius: 50%;
   border: 2.5px solid transparent; border-top-color: currentColor; border-left-color: currentColor;
   animation: speak-spin .8s linear infinite;
 }
-.speak-btn.loading .speaker::after { inset: -3px; border-width: 2px; }
+
 .ocr-bubble svg { width: 18px; height: 18px; }
 
 /* Kokeelliset ominaisuudet: kytkin valikon lopussa */

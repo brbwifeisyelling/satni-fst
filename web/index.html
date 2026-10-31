@@ -120,13 +120,9 @@
           <div class="word-title">
             <h1 id="lemma"></h1>
             <span id="pos-badge" class="badge"></span>
+            <!-- Kuuntele: pyöreä kaiutinpainike, äänen haun ajan pyörivä kehä (styles.css) -->
+            <button id="speak-btn" class="speak-btn" data-i18n-title="listen" data-i18n-aria="listen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>
             <button id="fav-btn" class="star-btn">☆</button>
-          </div>
-          <div class="word-actions">
-            <button id="speak-btn" class="speak-btn"><span class="speaker">🔈</span> <span data-i18n="listen">Kuuntele</span></button>
-            <a id="gt-link" class="gt-btn" target="_blank" rel="noopener"><span class="gt-mark">gt</span> Giellatekno ↗</a>
-            <a id="satni-link" class="ext-btn" target="_blank" rel="noopener">sátni.org ↗</a>
-            <a id="ai-link" class="ext-btn" target="_blank" rel="noopener" data-i18n-title="askAiTitle">ChatGPT ↗</a>
           </div>
         </div>
         <p class="translation"><span id="translation"></span> <a href="#" id="more-meanings" class="more"></a></p>
@@ -134,6 +130,14 @@
         <p id="extra-translations" class="extra-translations" hidden></p>
         <div id="gradation" class="gradation"></div>
         <p id="word-info" class="muted small"></p>
+        <!-- Sanasta muualla: pyöristetyt linkkipillerit kortin alaosassa (styles.css) -->
+        <section id="word-links" class="word-links" hidden>
+          <h3 class="links-head" data-i18n="elsewhere">Sanasta muualla</h3>
+          <div class="link-pills">
+            <a id="gt-link" class="link-pill gt" target="_blank" rel="noopener" data-i18n-title="gtTitle"><span class="lp-mark">gt</span>Giellatekno<span class="lp-arrow">↗</span></a>
+            <a id="satni-link" class="link-pill satni" target="_blank" rel="noopener" data-i18n-title="satniTitle"><span class="lp-mark">s</span>sátni.org<span class="lp-arrow">↗</span></a>
+          </div>
+        </section>
       </article>
 
       <nav id="tabs" class="tabs" hidden>
@@ -188,6 +192,9 @@
       <div id="ocr-bubble" class="ocr-bubble" role="group" hidden></div>
     </div>
   </div>
+
+  <!-- Sanakortin muodon kupla: kuuntele ja kopioi (app.js: openFormPop) -->
+  <div id="form-pop" class="ocr-bubble form-pop" role="group" hidden></div>
 
   <div id="toast" class="toast" hidden></div>
 
