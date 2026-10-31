@@ -13,6 +13,8 @@ import os
 import shutil
 import sqlite3
 
+import skolt_data
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SOURCE_DB = os.path.join(SCRIPT_DIR, "satni.db")
 OUT_DIR = os.path.join(SCRIPT_DIR, "web", "data")
@@ -61,6 +63,8 @@ def main():
         -- WITHOUT ROWID: avain toimii hakemistona, eikä erillistä indeksiä (sanojen kopiota) tarvita
         CREATE TABLE nob_forms (word TEXT, pos TEXT, forms TEXT, PRIMARY KEY (word, pos)) WITHOUT ROWID;
         CREATE TABLE fin_forms (word TEXT, pos TEXT, forms TEXT, PRIMARY KEY (word, pos)) WITHOUT ROWID;
+        -- Koltansaame (kokeellinen, skolt_data.py): suomen/norjan sanan vahvimmat koltan vastineet ("a, b, c")
+        CREATE TABLE sms (lang TEXT, fold TEXT, pos TEXT, words TEXT, PRIMARY KEY (lang, fold, pos)) WITHOUT ROWID;
     """)
 
     trans_cols = ", ".join(TRANSLATION_COLUMNS.values())
@@ -97,6 +101,10 @@ def main():
         if src.execute("SELECT 1 FROM sqlite_master WHERE name = ?", (table,)).fetchone():
             dst.executemany(f"INSERT INTO {table} VALUES (?,?,?)",
                             src.execute(f"SELECT word, pos, forms FROM {table} ORDER BY word, pos"))
+
+    sms_rows = {(lang, fold(word), pos): words for lang, word, pos, words in skolt_data.rows(SCRIPT_DIR)}
+    dst.executemany("INSERT INTO sms VALUES (?,?,?,?)", ((*k, v) for k, v in sms_rows.items()))
+    print(f"Koltansaame: {len(sms_rows)} riviä" if sms_rows else "Koltansaame: sanakirjoja ei löytynyt (hae_sanakirjat.sh)")
 
     dst.executescript("""
         CREATE INDEX idx_lemma_fold ON dictionary(lemma_fold);

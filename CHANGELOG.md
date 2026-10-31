@@ -2,6 +2,15 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
+## 0.8.2-dev — pre-release for testing (2026-10-31)
+
+- **Experimental: Skolt Sámi.** Switch it on under *Experimental features* in the ☰ menu, and the word card shows
+  Skolt Sámi words from GiellaLT's Skolt Sámi dictionaries: for a Finnish or Norwegian search word directly from the
+  dictionary (*talo* → *tääll, põrtt*), and for a North Sámi word through its Finnish translation, marked
+  "via Finnish". Not yet checked by a Skolt Sámi speaker.
+- **Menu:** *Other languages* are switches, and each experimental feature has its own switch with a short
+  description. Switching one on explains what it does first.
+
 ## 0.8.1 — 2026-10-31
 
 - **Loading ring in the photo search** (Android, experimental): a spinning ring over the photo while the text is

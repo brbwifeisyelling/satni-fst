@@ -50,8 +50,9 @@ const DEFAULT_SETTINGS = {
   // Muut kielet (asetus valikossa): niiden käännökset näkyvät sanakortissa pääkäännöksen lisäksi; oletuksena
   // ei yhtään. Hakuun ne eivät vaikuta.
   extraLangs: [],
-  // Kokeelliset ominaisuudet (valikon lopussa): nyt kuvasta haku Android-sovelluksessa
-  experimental: false,
+  // Kokeelliset ominaisuudet (valikon lopussa), kukin erikseen: ocr = kuvasta haku (Android-sovellus),
+  // sms = koltansaamen sanat sanakortissa. experimental: vanha yhteinen kytkin (= ocr), siirretään exp.ocr:ään.
+  exp: { ocr: false, sms: false },
   // Kuvasta haku: suunta ("sme" = saamen teksti, "ui" = käyttöliittymän kielen teksti), merkintätapa ja väri
   ocrFrom: "sme", ocrStyle: "frame", ocrColor: "#2563eb",
 };
@@ -149,8 +150,8 @@ function closeDrawer() {
 // Muut kielet valikossa: valittujen kielten käännökset näytetään sanakortissa (renderExtraTranslations)
 function renderExtraLangs() {
   $("extra-langs").innerHTML = Object.keys(LANGUAGES).filter((l) => !LANGUAGES[l].main).map((l) =>
-    `<label class="check"><input type="checkbox" value="${l}"${settings.extraLangs.includes(l) ? " checked" : ""}> ` +
-    `${esc(capitalize(langName(l)))}</label>`).join("");
+    `<label class="switch-row"><span>${esc(capitalize(langName(l)))}</span>` +
+    `<input type="checkbox" class="switch" role="switch" value="${l}"${settings.extraLangs.includes(l) ? " checked" : ""}></label>`).join("");
 }
 
 // Käännökset ovat aina käyttöliittymän kielellä (suomi -> suomi, norsk -> norja)
@@ -490,6 +491,8 @@ function selectResult(i, pushHistory = true) {
 
   const data = loadWord(r.id);
   state.via = r.via || null;  // haettu taivutettu käännös (juon = juoda), ks. queryDatabase
+  // Suomen- tai norjankielinen hakusana, jos sana löytyi sen käännöksenä (rank 1.5–4.9, ks. queryDatabase)
+  state.transWord = r.via ? r.via.base : r.rank > 1.2 && r.rank < 5 ? state.query : null;
   state.word = data.word;
   state.paradigm = data.paradigm;
   state.grades = data.grades;
@@ -538,8 +541,36 @@ function renderExtraTranslations(w, groups) {
     const text = own ? splitList(own.translations || own.explanations).slice(0, 4).join(", ") : translationOf(w, 3, lang);
     return text && `<span class="muted">${esc(t("langIn")[lang])}:</span> ${esc(text)}`;
   }).filter(Boolean);
+  const sms = skoltFor(w);
+  if (sms) lines.push(`<span class="muted">${esc(t("langIn").sms)}${sms.via ? ` (${esc(t("smsVia"))})` : ""}:</span> ${esc(sms.text)}`);
   $("extra-translations").hidden = !lines.length;
   $("extra-translations").innerHTML = lines.join("<br>");
+}
+
+// Koltansaame (kokeellinen, tietokannan taulu sms, export_web_data.py / skolt_data.py). Pohjoissaamen ja
+// koltansaamen välillä ei ole sanakirjaa: suomen- tai norjankielisellä haulla koltan sanat ovat hakusanan omia
+// vastineita (talo -> põrtt); muuten sanan suomennosten kautta (via: näytetään "suomen kautta").
+function skoltFor(w) {
+  if (!settings.exp.sms) return null;
+  const lookup = (lang, word) => {
+    try {
+      return all("SELECT words FROM sms WHERE lang = ? AND fold = ? AND pos = ?", [lang, fold(word), w.pos])
+        .flatMap((r) => splitList(r.words));
+    } catch (e) {
+      return [];  // vanha tietokanta ilman taulua
+    }
+  };
+  if (state.transWord) {
+    const own = lookup(settings.lang, state.transWord);
+    if (own.length) return { text: own.join(", ") };
+  }
+  // Ensimmäinen suomennos, jolle löytyy koltan sana (pääkäännös; muut suomennokset toisi muita merkityksiä:
+  // oabbá = sisar, sisko -> vain sisar = vuäʹbb, ei "sisko"-tätisanoja)
+  for (const f of splitList(w.finnish_translation).slice(0, 3)) {
+    const viaFin = lookup("fin", f);
+    if (viaFin.length) return { text: viaFin.join(", "), via: true };
+  }
+  return null;
 }
 
 function renderInfo(w) {
@@ -1304,7 +1335,7 @@ function bindOcrGestures() {
 // --- Lisenssit ---
 // Kaikissa versioissa samat tiedostot (web/licenses/); työpöytäversion build lisää Pythonin ja Debian-kirjastojen
 // lisenssit kansioon licenses/desktop/ ja niiden luettelon tiedostoon files.txt
-const LICENSE_FILES = ["NOTICES.txt", "GPL-3.0.txt", "LGPL-3.0.txt", "CC-BY-4.0.txt", "MPL-2.0.txt", "Apache-2.0.txt",
+const LICENSE_FILES = ["NOTICES.txt", "GPL-3.0.txt", "LGPL-3.0.txt", "CC-BY-4.0.txt", "CC-BY-3.0.txt", "MPL-2.0.txt", "Apache-2.0.txt",
   "../vendor/LICENSE-sql.js.txt"];
 async function showLicenses() {
   let files = LICENSE_FILES;
@@ -1346,18 +1377,41 @@ async function showLicenseFile(file) {
   pre.scrollTop = 0;
 }
 
+// Kokeelliset ominaisuudet: jokainen oma kytkimensä. Päälle kytkettäessä ikkuna kertoo, mitä ominaisuus tekee,
+// ja Peruuta jättää sen pois päältä; pois kytkettäessä ei kysytä mitään.
+function applyExperimental() {
+  for (const box of document.querySelectorAll("[data-exp]")) box.checked = !!settings.exp[box.dataset.exp];
+  $("exp-ocr-row").hidden = !window.SatniOcr;
+  $("ocr-btn").hidden = !(window.SatniOcr && settings.exp.ocr);
+  if (!settings.exp.ocr) $("ocr-view").hidden = true;
+}
+function bindExperimental() {
+  let pending = null;
+  const set = (name, on) => {
+    settings.exp = { ...settings.exp, [name]: on };
+    saveSettings();
+    applyExperimental();
+    if (name === "sms" && state.results.length) searchAgainKeepingWord();
+  };
+  $("experimental-section").addEventListener("change", (e) => {
+    const name = e.target.dataset.exp;
+    if (!name) return;
+    if (!e.target.checked) { set(name, false); return; }
+    e.target.checked = false;  // päälle vasta, kun käyttäjä hyväksyy
+    pending = name;
+    const key = name === "ocr" ? "expOcr" : "expSms";
+    $("exp-dlg-title").textContent = t(key);
+    $("exp-dlg-body").innerHTML = t(key + "Info");
+    $("exp-dlg").showModal();
+  });
+  $("exp-ok").onclick = () => { $("exp-dlg").close(); if (pending) set(pending, true); pending = null; };
+  $("exp-cancel").onclick = () => { $("exp-dlg").close(); pending = null; };
+  $("exp-dlg").addEventListener("close", () => { pending = null; });
+  applyExperimental();
+}
+
 function bindOcr() {
   if (!window.SatniOcr) return;
-  const toggle = $("experimental-toggle");
-  const apply = () => {
-    toggle.checked = settings.experimental;
-    $("experimental-section").classList.toggle("on", settings.experimental);
-    $("ocr-btn").hidden = !settings.experimental;
-    if (!settings.experimental) $("ocr-view").hidden = true;
-  };
-  $("experimental-section").hidden = false;
-  toggle.onchange = () => { settings.experimental = toggle.checked; saveSettings(); apply(); };
-  apply();
   $("ocr-btn").onclick = openOcr;
   $("ocr-camera").onclick = () => scanPhoto("camera");
   $("ocr-gallery").onclick = () => scanPhoto("gallery");
@@ -1577,6 +1631,10 @@ async function main() {
   if (!UI_LANGUAGES[settings.uiLang]) settings.uiLang = "fi";
   // Käännökset käyttöliittymän kielellä. Aiemmin käännöskieleksi valittu muu kieli (englanti, inarin-, luulajan-
   // tai eteläsaame) siirtyy Muut kielet -asetukseen, jolloin sen käännökset näkyvät edelleen sanakortissa.
+  if (settings.experimental) {  // 0.8.1 ja aiemmat: yksi yhteinen kytkin = kuvasta haku
+    settings.exp = { ...settings.exp, ocr: true };
+    delete settings.experimental;
+  }
   settings.extraLangs = (settings.extraLangs || []).filter((l) => LANGUAGES[l] && !LANGUAGES[l].main);
   if (LANGUAGES[settings.lang] && !LANGUAGES[settings.lang].main && !settings.extraLangs.includes(settings.lang)) {
     settings.extraLangs.push(settings.lang);
@@ -1603,6 +1661,7 @@ async function main() {
   ex.appendChild(rnd);
   applyStaticTexts();
   bindEvents();
+  bindExperimental();
   bindOcr();
   renderSidebar();
   if (FIRST_RUN) showFirstRun();

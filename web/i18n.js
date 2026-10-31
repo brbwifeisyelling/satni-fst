@@ -27,7 +27,19 @@ const UI_TEXTS = {
     ocrNoText: "Kuvasta ei löytynyt tekstiä. Kokeile ottaa kuva lähempää ja suoraan edestä.",
     ocrNoWords: "Tekstiä löytyi, mutta ei sanakirjan sanoja.",
     experimental: "Kokeelliset ominaisuudet", experimentalOn: "Käytössä", experimentalOff: "Pois käytöstä",
-    experimentalHint: "Haku valokuvasta (📷 hakukentän vieressä). Kokeiluversio: voi vielä muuttua tai poistua.",
+    experimentalHint: "Kokeiluversioita: voivat vielä muuttua tai poistua.",
+    expOcr: "Hae sanaa valokuvasta", expOcrDesc: "📷 hakukentän vieressä: sanakirjan sanat merkitään kuvaan.",
+    expOcrInfo: `<p>Hakukentän viereen tulee 📷-painike. Ota kuva tekstistä tai valitse kuva, ja sanakirjan sanat merkitään
+      kuvaan. Napauta sanaa, niin näet käännöksen.</p>
+      <p>Teksti tunnistetaan puhelimessa Googlen ML Kitillä, eikä kuva lähde laitteelta. ML Kit voi lähettää Googlelle
+      nimettömiä käyttötilastoja, kun toimintoa käytetään.</p>`,
+    expSms: "Koltansaame", expSmsDesc: "Koltansaamen sanat sanakortissa.",
+    expSmsInfo: `<p>Sanakortissa näytetään koltansaamen sanoja GiellaLT:n koltansaamen sanakirjoista.</p>
+      <p>Kun haet suomeksi (esim. talo), koltan sanat ovat hakusanan vastineita suoraan sanakirjasta. Pohjoissaamen ja
+      koltansaamen välillä ei ole sanakirjaa, joten saamen sanalle ne haetaan sen suomennosten kautta ja merkitään
+      ”suomen kautta”. Ne voivat silloin kuulua sanan toiseen merkitykseen.</p>
+      <p>Koltansaamen osaaja ei ole vielä tarkistanut aineistoa.</p>`,
+    expEnable: "Ota käyttöön", cancel: "Peruuta", smsVia: "suomen kautta",
     ocrError: "Kuvan käsittely ei onnistunut.", ocrNoApp: "Kamerasovellusta ei löytynyt.",
     showGrade: "Näytä aste (GD/HD)",
     settings: "Asetukset", otherLanguages: "Muut kielet",
@@ -99,7 +111,7 @@ const UI_TEXTS = {
     elsewhere: "Sanasta muualla",
     gtTitle: "Taivutus Giellateknon generaattorissa", satniTitle: "Sana sátni.org-sanakirjoissa",
     langName: { fin: "suomi", nob: "norja", eng: "englanti", smn: "inarinsaame", smj: "luulajansaame", sma: "eteläsaame" },
-    langIn: { fin: "Suomeksi", nob: "Norjaksi", eng: "Englanniksi", smn: "Inarinsaameksi", smj: "Luulajansaameksi", sma: "Eteläsaameksi" },
+    langIn: { fin: "Suomeksi", nob: "Norjaksi", eng: "Englanniksi", smn: "Inarinsaameksi", sms: "Koltansaameksi", smj: "Luulajansaameksi", sma: "Eteläsaameksi" },
     // Tietoa-ikkuna. Ääntämisen kuvaus on sovittu Divvunin kanssa (2026-10-29), älä muuta sisältöä.
     aboutWeb: (v) => (v ? `Versio ${v} (web)` : "Web-versio"), aboutDesktop: (v) => `Versio ${v} (työpöytä)`,
     aboutAndroid: (v) => `Versio ${v} (Android)`,
@@ -110,7 +122,8 @@ const UI_TEXTS = {
          Máhtte ja Sunná. Äänet haetaan palvelusta api-giellalt.uit.no samaan tapaan kuin sátni.org-sivustolla.</p>
       <p>Lisenssit: sanakirjat © GiellaLT (CC BY 4.0, yhdistetty ja täydennetty taivutusmuodoilla),
          taivutus GiellaLT lang-sme (GPL-3.0), käännösten taivutus GiellaLT lang-fin (GPL-3.0) ja Norsk ordbank
-         (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Android-sovelluksen kokeellinen
+         (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), koltansaame (kokeellinen) GiellaLT dict-sms-mul, dict-fin-sms ja
+         dict-nob-sms (CC BY 4.0 / 3.0), sql.js (MIT). Android-sovelluksen kokeellinen
          tekstintunnistus: Google ML Kit (Googlen käyttöehdot). Kuva käsitellään puhelimessa eikä lähde laitteelta;
          ML Kit voi lähettää Googlelle nimettömiä käyttötilastoja, kun tekstintunnistusta käytetään. Sátni FST on vapaa ohjelma (GPL-3.0).
          Astevaihtelun ryhmät: Oahpa (Giellatekno). Kaikki lähteet, lisenssit ja tehdyt muutokset: Lisenssit-painike alla.
@@ -142,7 +155,19 @@ const UI_TEXTS = {
     ocrNoText: "Fant ingen tekst i bildet. Prøv å ta bildet nærmere og rett forfra.",
     ocrNoWords: "Fant tekst, men ingen ord fra ordboka.",
     experimental: "Eksperimentelle funksjoner", experimentalOn: "På", experimentalOff: "Av",
-    experimentalHint: "Søk fra bilde (📷 ved søkefeltet). Prøveversjon: kan fortsatt endres eller fjernes.",
+    experimentalHint: "Prøveversjoner: kan fortsatt endres eller fjernes.",
+    expOcr: "Søk etter ord i et bilde", expOcrDesc: "📷 ved søkefeltet: ordene fra ordboka merkes i bildet.",
+    expOcrInfo: `<p>En 📷-knapp vises ved søkefeltet. Ta et bilde av tekst eller velg et bilde, så blir ordene fra ordboka
+      merket i bildet. Trykk på et ord for å se oversettelsen.</p>
+      <p>Teksten gjenkjennes på telefonen med Googles ML Kit, og bildet forlater ikke enheten. ML Kit kan sende anonym
+      bruksstatistikk til Google når funksjonen brukes.</p>`,
+    expSms: "Skoltesamisk", expSmsDesc: "Skoltesamiske ord på ordkortet.",
+    expSmsInfo: `<p>Ordkortet viser skoltesamiske ord fra GiellaLTs skoltesamiske ordbøker.</p>
+      <p>Når du søker på norsk (f.eks. hus), er de skoltesamiske ordene oversettelser av søkeordet rett fra ordboka. Det
+      finnes ingen ordbok mellom nordsamisk og skoltesamisk, så for et samisk ord hentes de via de finske oversettelsene
+      og merkes «via finsk». Da kan de høre til en annen betydning av ordet.</p>
+      <p>Materialet er ennå ikke kontrollert av noen som kan skoltesamisk.</p>`,
+    expEnable: "Slå på", cancel: "Avbryt", smsVia: "via finsk",
     ocrError: "Kunne ikke behandle bildet.", ocrNoApp: "Fant ingen kameraapp.",
     showGrade: "Vis stadium (GD/HD)",
     settings: "Innstillinger", otherLanguages: "Andre språk",
@@ -213,7 +238,7 @@ const UI_TEXTS = {
     elsewhere: "Ordet andre steder",
     gtTitle: "Bøying i Giellateknos generator", satniTitle: "Ordet i ordbøkene på sátni.org",
     langName: { fin: "finsk", nob: "norsk", eng: "engelsk", smn: "enaresamisk", smj: "lulesamisk", sma: "sørsamisk" },
-    langIn: { fin: "På finsk", nob: "På norsk", eng: "På engelsk", smn: "På enaresamisk", smj: "På lulesamisk", sma: "På sørsamisk" },
+    langIn: { fin: "På finsk", nob: "På norsk", eng: "På engelsk", smn: "På enaresamisk", sms: "På skoltesamisk", smj: "På lulesamisk", sma: "På sørsamisk" },
     // Oversettelse av den finske teksten som er avtalt med Divvun (2026-10-29)
     aboutWeb: (v) => (v ? `Versjon ${v} (nett)` : "Nettversjon"), aboutDesktop: (v) => `Versjon ${v} (skrivebord)`,
     aboutAndroid: (v) => `Versjon ${v} (Android)`,
@@ -224,7 +249,8 @@ const UI_TEXTS = {
          Máhtte og Sunná. Lyden hentes fra tjenesten api-giellalt.uit.no på samme måte som på nettstedet sátni.org.</p>
       <p>Lisenser: ordbøkene © GiellaLT (CC BY 4.0, slått sammen og utvidet med bøyingsformer),
          bøying GiellaLT lang-sme (GPL-3.0), bøying av oversettelsene GiellaLT lang-fin (GPL-3.0) og Norsk ordbank
-         (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), sql.js (MIT). Eksperimentell tekstgjenkjenning i
+         (Språkbanken / Nasjonalbiblioteket, CC BY 4.0), skoltesamisk (eksperimentelt) GiellaLT dict-sms-mul, dict-fin-sms og
+         dict-nob-sms (CC BY 4.0 / 3.0), sql.js (MIT). Eksperimentell tekstgjenkjenning i
          Android-appen: Google ML Kit (Googles vilkår). Bildet behandles på telefonen og forlater ikke enheten;
          ML Kit kan sende anonym bruksstatistikk til Google når tekstgjenkjenningen brukes. Sátni FST er fri programvare (GPL-3.0).
          Stadievekslingsgrupper: Oahpa (Giellatekno). Alle kilder, lisenser og endringer: Lisenser-knappen nedenfor.
