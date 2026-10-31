@@ -20,7 +20,7 @@ const UI_TEXTS = {
     search: "Hae",
     ocrTitle: "Hae sanaa valokuvasta", ocrCamera: "📷 Ota kuva", ocrGallery: "🖼️ Valitse kuva",
     ocrIntro: "Ota kuva saamen- tai suomenkielisestä tekstistä tai valitse kuva, ja valitse suunta yltä. Teksti tunnistetaan puhelimessa, eikä kuva lähde laitteelta.",
-    ocrWorking: "Tunnistetaan tekstiä…",
+    ocrWorking: "Tunnistetaan tekstiä…", ocrFinding: "Haetaan sanoja…",
     ocrFound: (n) => `Sanakirjan sanoja ${n} · napauta sanaa · zoomaa sormilla`,
     ocrSami: "Saame", ocrUiLang: "Suomi", ocrDirTitle: "Vaihda suuntaa",
     ocrStyle: "Merkintätapa ja väri", ocrFrame: "Kehys", ocrUnderline: "Alleviivaus",
@@ -118,7 +118,9 @@ const UI_TEXTS = {
       <p>Jos huomaat ongelman, ota yhteyttä sähköpostitse <a href="mailto:satni@somby.fi">satni@somby.fi</a>
          tai tee ilmoitus GitHubissa: <a href="https://github.com/sombyduodji/satni-fst/issues" target="_blank" rel="noopener">github.com/sombyduodji/satni-fst/issues</a>.
          Palaute ja ehdotukset ovat tervetulleita sähköpostitse.</p>
-      <p>Tekijä: Juha Somby</p>`,
+      <p>Tekijä: Juha Somby</p>
+      <p class="about-coffee">Sátni FST on ilmainen. Jos siitä on sinulle hyötyä, voit tarjota tekijälle kahvit:
+         <a class="coffee-btn" href="https://buymeacoffee.com/sombyduodji" target="_blank" rel="noopener"><img src="icons/coffee.svg" alt="">Buy me a coffee</a></p>`,
     close: "Sulje", licenses: "Lisenssit", licensesTitle: "Lisenssit ja tekijänoikeudet",
   },
 
@@ -133,7 +135,7 @@ const UI_TEXTS = {
     search: "Søk",
     ocrTitle: "Søk etter ord i et bilde", ocrCamera: "📷 Ta bilde", ocrGallery: "🖼️ Velg bilde",
     ocrIntro: "Ta et bilde av samisk eller norsk tekst eller velg et bilde, og velg retning ovenfor. Teksten gjenkjennes på telefonen, og bildet forlater ikke enheten.",
-    ocrWorking: "Gjenkjenner tekst…",
+    ocrWorking: "Gjenkjenner tekst…", ocrFinding: "Søker etter ord…",
     ocrFound: (n) => `Ord fra ordboka: ${n} · trykk på et ord · zoom med fingrene`,
     ocrSami: "Samisk", ocrUiLang: "Norsk", ocrDirTitle: "Bytt retning",
     ocrStyle: "Merking og farge", ocrFrame: "Ramme", ocrUnderline: "Understreking",
@@ -230,7 +232,9 @@ const UI_TEXTS = {
       <p>Hvis du finner et problem, ta kontakt på e-post <a href="mailto:satni@somby.fi">satni@somby.fi</a>
          eller meld det på GitHub: <a href="https://github.com/sombyduodji/satni-fst/issues" target="_blank" rel="noopener">github.com/sombyduodji/satni-fst/issues</a>.
          Tilbakemeldinger og forslag tas gjerne imot på e-post.</p>
-      <p>Laget av: Juha Somby</p>`,
+      <p>Laget av: Juha Somby</p>
+      <p class="about-coffee">Sátni FST er gratis. Har du nytte av den, kan du spandere en kaffe på utvikleren:
+         <a class="coffee-btn" href="https://buymeacoffee.com/sombyduodji" target="_blank" rel="noopener"><img src="icons/coffee.svg" alt="">Buy me a coffee</a></p>`,
     close: "Lukk", licenses: "Lisenser", licensesTitle: "Lisenser og opphavsrett",
   },
 };

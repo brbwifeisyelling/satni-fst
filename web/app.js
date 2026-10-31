@@ -1028,8 +1028,21 @@ function backToOcr() {
   return true;
 }
 
+// Pyörivä kehä kuvan päällä, kun tekstiä tunnistetaan tai sanoja haetaan. Sanojen haku on yksi pitkä synkroninen
+// laskenta, joten ennen sitä annetaan sivun piirtyä kerran (nextPaint); kehä pyörii transformilla, jonka selain
+// animoi pääsäikeestä riippumatta, joten se ei pysähdy laskennan ajaksi.
+function setOcrBusy(text) {
+  $("ocr-busy").hidden = !text;
+  if (text) $("ocr-status").textContent = text;
+}
+// (requestAnimationFrame ei aja piilossa olevalla sivulla, joten varalla ajastin)
+const nextPaint = () => new Promise((resolve) => {
+  requestAnimationFrame(() => setTimeout(resolve, 0));
+  setTimeout(resolve, 100);
+});
+
 function scanPhoto(source) {
-  $("ocr-status").textContent = t("ocrWorking");
+  setOcrBusy(t("ocrWorking"));
   window.SatniOcr.scan(source);
 }
 
@@ -1053,12 +1066,23 @@ function ocrGloss(word) {
 }
 
 function ocrResult(r) {
+  setOcrBusy(null);
   if (!r) { $("ocr-status").textContent = ocr ? ocr.status : t("ocrIntro"); return; }  // kuvan otto peruttiin
   if (r.error) { $("ocr-status").textContent = t(r.error === "noApp" ? "ocrNoApp" : "ocrError"); return; }
   for (const w of r.words) w.clean = w.t.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, "");
-  ocr = { r, view: null };
+  ocr = { r, view: null, words: [], status: t("ocrFinding") };
   ocrReturnHash = null;
-  analyzeOcr();
+  // Kuva näkyviin heti; merkinnät tulevat sanojen haun jälkeen
+  $("ocr-photo").innerHTML = `<img src="${r.image}" alt="">`;
+  layoutOcr(true);
+  findOcrWords();
+}
+
+// Sanojen haku kehän kanssa (uusi kuva tai suunnan vaihto)
+async function findOcrWords() {
+  setOcrBusy(t("ocrFinding"));
+  await nextPaint();
+  try { analyzeOcr(); } finally { setOcrBusy(null); }
 }
 
 // Kuvan sanat valitun suunnan mukaan; suunnan vaihto laskee ne uudelleen samasta kuvasta
@@ -1344,7 +1368,8 @@ function bindOcr() {
   $("ocr-dir").onclick = () => {
     settings.ocrFrom = settings.ocrFrom === "ui" ? "sme" : "ui";
     saveSettings();
-    if (ocr) analyzeOcr(); else applyOcrLook();
+    applyOcrLook();  // suuntapainike vaihtuu heti, ennen sanojen hakua
+    if (ocr) findOcrWords();
   };
   $("ocr-style-btn").onclick = (e) => { e.stopPropagation(); $("ocr-style").hidden = !$("ocr-style").hidden; };
   $("ocr-style-seg").onclick = (e) => {

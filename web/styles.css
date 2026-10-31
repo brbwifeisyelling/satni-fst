@@ -294,6 +294,15 @@ dialog {
 }
 dialog::backdrop { background: rgba(0, 0, 0, .4); }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+/* Tietoa-ikkunan lopussa: Buy me a coffee (pyöreä kahvikuppilogo + teksti), sama ulkoasu kuin kotisivulla */
+.about-coffee { color: var(--muted); font-size: 14px; }
+.coffee-btn {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; padding: 4px 14px 4px 4px; border-radius: 999px;
+  background: #fbf1e1; color: #3b2a20; border: 1px solid #ead9bf; font-weight: 700; font-size: 14px;
+  text-decoration: none; white-space: nowrap;
+}
+.coffee-btn img { width: 26px; height: 26px; border-radius: 50%; }
+.coffee-btn:hover { filter: brightness(.97); }
 /* Lisenssit: tiedoston valinta ja teksti vierivänä laatikkona */
 .licenses-dlg { max-width: min(760px, calc(100vw - 32px)); width: 100%; }
 .licenses-dlg h2 { margin-top: 0; }
@@ -424,6 +433,22 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 }
 
 .ocr-bubble svg { width: 18px; height: 18px; }
+
+/* Tekstin tunnistus ja sanojen haku: pyörivä kehä kuvan keskellä (sama kehä kuin kuuntelussa) */
+.ocr-busy {
+  position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; pointer-events: none;
+  background: rgba(0, 0, 0, .18);
+}
+.ocr-busy[hidden] { display: none; }
+.ocr-spinner {
+  width: 56px; height: 56px; border-radius: 50%; background: var(--surface); box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  position: relative;
+}
+.ocr-spinner::after {
+  content: ""; position: absolute; inset: 12px; border-radius: 50%; will-change: transform;
+  border: 3.5px solid transparent; border-top-color: var(--accent); border-left-color: var(--accent);
+  animation: speak-spin .8s linear infinite;
+}
 
 /* Kokeelliset ominaisuudet: kytkin valikon lopussa */
 .experimental { border-top: 1px solid var(--border); padding-top: 14px; }

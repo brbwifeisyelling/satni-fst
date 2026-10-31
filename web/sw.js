@@ -4,7 +4,7 @@ const VERSION = "satni-v4";
 const APP_SHELL = [
   "./", "index.html", "styles.css", "i18n.js", "app.js", "manifest.webmanifest",
   "vendor/sql-wasm.js", "vendor/sql-wasm.wasm",
-  "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png",
+  "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/coffee.svg",
   "voices/biret.wav", "voices/mahtte.wav", "voices/sunna.wav",  // äänivalinnan näytteet
   "licenses/NOTICES.txt", "licenses/GPL-3.0.txt", "licenses/LGPL-3.0.txt", "licenses/CC-BY-4.0.txt",  // Lisenssit
   "licenses/MPL-2.0.txt", "licenses/Apache-2.0.txt", "vendor/LICENSE-sql.js.txt",
