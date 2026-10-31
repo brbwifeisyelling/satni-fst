@@ -2,7 +2,7 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
-## Next version — not released yet
+## 0.8.5-dev — pre-release for testing (2026-10-31)
 
 - **Search in Finnish with a clitic:** *tuletko*, *talossakin*, *tuletkaan* and *teetkö* find *boahtit*, *viessu* and
   *bargat*, and the card shows the Sámi form with the matching Sámi clitic: *tuletko = tulla ≈ boađátgo*,
