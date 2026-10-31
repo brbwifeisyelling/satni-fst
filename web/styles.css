@@ -139,8 +139,12 @@ select {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .word-list li a:hover { background: var(--chip); }
-.extra-langs { display: flex; flex-direction: column; gap: 2px; }
-.extra-langs .check { padding: 3px 8px; font-size: 14px; }
+/* Muut kielet ja kokeelliset ominaisuudet: kytkinrivit */
+.extra-langs, .toggle-list { display: flex; flex-direction: column; gap: 2px; }
+.extra-langs .switch-row, .toggle-list .switch-row { padding: 6px 8px; border-radius: 8px; font-size: 14px; font-weight: 500; }
+.extra-langs .switch-row:hover, .toggle-list .switch-row:hover { background: var(--chip); }
+.toggle-list .switch-row { align-items: flex-start; }
+.toggle-list .switch { margin-top: 2px; }
 .extra-translations { font-size: 15px; margin: -4px 0 10px; }
 .word-list .empty { color: var(--subtle); font-size: 13px; padding: 4px 8px; }
 
@@ -168,6 +172,15 @@ main > * + * { margin-top: 12px; }
 .chips button.selected { background: var(--accent); color: var(--accent-text); }
 .chips button.random { background: var(--speak-bg); color: var(--speak); }
 .results button { font-size: 13px; }
+/* Tarkoititko: sama sana saamen erikoiskirjaimin */
+.did-you-mean { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 14px; color: var(--muted); }
+.did-you-mean[hidden] { display: none; }
+.did-you-mean button {
+  border: 1px dashed var(--accent); background: none; color: var(--text); border-radius: 999px; padding: 4px 12px;
+  font: inherit; cursor: pointer;
+}
+.did-you-mean button b { color: var(--accent); }
+.did-you-mean button:hover { background: var(--chip); }
 .results button .trans { font-weight: 400; opacity: .85; }
 .results button.more-results { background: none; color: var(--accent); border: 1px dashed var(--border); }
 
@@ -452,11 +465,16 @@ dialog::backdrop { background: rgba(0, 0, 0, .4); }
 
 /* Kokeelliset ominaisuudet: kytkin valikon lopussa */
 .experimental { border-top: 1px solid var(--border); padding-top: 14px; }
+.experimental > .small { margin: 0 0 6px; }
+.chip-btn.primary { background: var(--accent); color: var(--accent-text); }
+.chip-btn.primary:hover { background: var(--accent-hover); }
+/* Kokeellisen ominaisuuden käyttöönotto */
+.exp-dlg { max-width: min(460px, calc(100vw - 32px)); }
+.exp-dlg h2 { margin-top: 0; }
+.exp-dlg p { margin: 0 0 10px; line-height: 1.5; }
 .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 600; }
 .switch-text { display: flex; flex-direction: column; gap: 2px; }
 .switch-text .small { font-weight: 400; }
-.experimental .state-on, .experimental.on .state-off { display: none; }
-.experimental.on .state-on { display: inline; }
 .switch {
   appearance: none; -webkit-appearance: none; flex: none; position: relative; margin: 0; cursor: pointer;
   width: 46px; height: 28px; border-radius: 99px; background: var(--border); transition: background .2s;

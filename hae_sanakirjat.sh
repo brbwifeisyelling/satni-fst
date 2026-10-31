@@ -8,7 +8,8 @@
 # suoraan GiellaLT:ltä, jolloin tekijä- ja lisenssitiedot tulevat mukana. Ks. CREDITS.md.
 # dict-sme-fin on tallennettu tähän repoon tiedostoina, eikä sitä päivitetä täällä.
 cd "$(dirname "$0")" || exit 1
-for repo in dict-sme-nob dict-sme-eng dict-sme-smn dict-sme-smj dict-sme-sma dict-fin-sme dict-nob-sme; do
+for repo in dict-sme-nob dict-sme-eng dict-sme-smn dict-sme-smj dict-sme-sma dict-fin-sme dict-nob-sme \
+            dict-sms-mul dict-fin-sms dict-nob-sms; do
     if [ -d "$repo/.git" ]; then
         echo "Päivitetään $repo..."
         git -C "$repo" pull --ff-only --quiet || echo "  $repo: päivitys epäonnistui"
@@ -42,7 +43,8 @@ if [ ! -f giella-fin/analyser-gt-desc.hfstol ] || [ "$1" = "--paivita-fin" ]; th
 fi
 echo
 echo "Versiot:"
-for repo in dict-sme-nob dict-sme-eng dict-sme-smn dict-sme-smj dict-sme-sma dict-fin-sme dict-nob-sme; do
+for repo in dict-sme-nob dict-sme-eng dict-sme-smn dict-sme-smj dict-sme-sma dict-fin-sme dict-nob-sme \
+            dict-sms-mul dict-fin-sms dict-nob-sms; do
     [ -d "$repo/.git" ] && echo "  $repo $(git -C "$repo" log -1 --format='%h %cs')"
 done
 [ -f giella-fin/VERSION ] && echo "  lang-fin $(cat giella-fin/VERSION)"

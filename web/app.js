@@ -7,11 +7,12 @@ const DATA_URL = "data/satni-web.db.gz";
 // Divvunin ja Giellateknon puhesynteesi (UiT), käyttö sovittu Divvunin kanssa 2026-10-29
 const TTS_URL = "https://api-giellalt.uit.no/tts/se/";
 const VOICES = { "Biret": "biret", "Máhtte": "mahtte", "Sunná": "sunna" };
-// Giellateknon taivutusgeneraattori (vain linkki)
-const GIELLATEKNO_URL = "https://gtweb.uit.no/cgi-bin/smi/smi.cgi?text={word}&pos={pos}&lang=sme&mode=full&action=paradigm";
+// Giellateknon Neahttadigisánit-sanakirja (sanit.oahpa.no): käännökset, analyysit, sanahistoria ja haku teksteistä
+// (Korp). Käyttöliittymän kielen sanakirja: saame -> suomi tai saame -> norja. (Aiempi taivutusgeneraattori gtweb.uit.no
+// toisti sovelluksen oman taulukon, eikä palvelin aina vastannut.)
+const SANIT_URL = "https://sanit.oahpa.no/sme/{lang}/?lookup={word}";
 // Haku muista lähteistä: sátni.org (Divvunin ja Giellateknon sanakirjat ja Giellagáldun termit)
 const SATNI_URL = "https://satni.org/{word}";
-const GIELLATEKNO_POS = { N: "N", V: "V", A: "A", ADV: "Adv", NUM: "Num", PRON: "Pron" };
 
 // Käännöskielet (GiellaLT:n dict-sme-*-sanakirjat) ja niiden sarakkeet tietokannassa; main = pääkieli
 // (suomi ja norja, joista on myös käänteinen sanakirja), muut näytetään valikossa omana ryhmänään.
@@ -50,8 +51,9 @@ const DEFAULT_SETTINGS = {
   // Muut kielet (asetus valikossa): niiden käännökset näkyvät sanakortissa pääkäännöksen lisäksi; oletuksena
   // ei yhtään. Hakuun ne eivät vaikuta.
   extraLangs: [],
-  // Kokeelliset ominaisuudet (valikon lopussa): nyt kuvasta haku Android-sovelluksessa
-  experimental: false,
+  // Kokeelliset ominaisuudet (valikon lopussa), kukin erikseen: ocr = kuvasta haku (Android-sovellus),
+  // sms = koltansaamen sanat sanakortissa. experimental: vanha yhteinen kytkin (= ocr), siirretään exp.ocr:ään.
+  exp: { ocr: false, sms: false },
   // Kuvasta haku: suunta ("sme" = saamen teksti, "ui" = käyttöliittymän kielen teksti), merkintätapa ja väri
   ocrFrom: "sme", ocrStyle: "frame", ocrColor: "#2563eb",
 };
@@ -149,8 +151,8 @@ function closeDrawer() {
 // Muut kielet valikossa: valittujen kielten käännökset näytetään sanakortissa (renderExtraTranslations)
 function renderExtraLangs() {
   $("extra-langs").innerHTML = Object.keys(LANGUAGES).filter((l) => !LANGUAGES[l].main).map((l) =>
-    `<label class="check"><input type="checkbox" value="${l}"${settings.extraLangs.includes(l) ? " checked" : ""}> ` +
-    `${esc(capitalize(langName(l)))}</label>`).join("");
+    `<label class="switch-row"><span>${esc(capitalize(langName(l)))}</span>` +
+    `<input type="checkbox" class="switch" role="switch" value="${l}"${settings.extraLangs.includes(l) ? " checked" : ""}></label>`).join("");
 }
 
 // Käännökset ovat aina käyttöliittymän kielellä (suomi -> suomi, norsk -> norja)
@@ -316,11 +318,51 @@ function queryDatabase(query) {
   // Käännösosumien keskinäinen järjestys tulee sanakirjasta (nr), joten frekvenssiä ei käytetä niille.
   const translated = (r) => (r[col] ? 1 : 0);
   const samiFreq = (r) => ([1, 1.2, 5, 5.5].includes(r.rank) ? r.freq || 0 : 0);
-  return [...found.values()]
+  const results = [...found.values()]
     .sort((a, b) => a.rank - b.rank || samiFreq(b) - samiFreq(a) || translated(b) - translated(a)
       || (b.pos === "V") - (a.pos === "V") || a.sme_lemma.localeCompare(b.sme_lemma, "se"))
     .slice(0, 30);
+  if (results.some((r) => r.rank < PREFIX_RANK)) return results;
+  // Ei osumaa: ehkä sanan perässä on liitepartikkeli (boađátgo = boađát + -go, viesusge, dathan, myös dalle-ge ja
+  // kaksi peräkkäin: dahkagohan). Partikkeli irrotetaan ja vartalo haetaan saamen sanana (perusmuoto tai taivutusmuoto).
+  for (const clitic of CLITICS) {
+    for (const end of [clitic, "-" + clitic]) {
+      if (!q.endsWith(end) || q.length - end.length < 2) continue;
+      const stem = q.slice(0, -end.length);
+      // Nopea esitarkistus: onko vartalo saamen perusmuoto tai taivutusmuoto (tai siinä on toinen partikkeli)
+      const exists = all(`SELECT 1 FROM dictionary WHERE lemma_fold = ? UNION ALL
+                          SELECT 1 FROM paradigms WHERE surface IN (?, ?, ?, ?) LIMIT 1`,
+                         [stem, stem, capitalize(stem), nordic(stem), capitalize(nordic(stem))]).length;
+      if (!exists && !CLITICS.some((c) => stem.endsWith(c))) continue;
+      const hits = queryDatabase(stem).filter((r) => r.clitics || SAMI_HIT_RANKS.includes(r.rank));
+      if (hits.length) {
+        return [...hits.map((r) => ({ ...r, clitics: [...(r.clitics || []), clitic], cliticStem: r.cliticStem || stem })),
+          ...results];
+      }
+    }
+  }
+  // Suomen liitepartikkeli (tuletko, talossakin, tuletkaan, talohan): irrotetaan ja vartalo haetaan suomen sanana
+  // (perusmuoto tai taivutettu käännös, rank 1.5–4.9). Norjassa liitteitä ei ole.
+  if (searchLang === "fin") {
+    for (const clitic of FIN_QUERY_CLITICS) {
+      if (!q.endsWith(clitic) || q.length - clitic.length < 2) continue;
+      const stem = q.slice(0, -clitic.length);
+      const hits = queryDatabase(stem).filter((r) => r.rank > 1.2 && r.rank < 5);
+      if (hits.length) return [...hits.map((r) => ({ ...r, finClitic: clitic, finStem: stem })), ...results];
+    }
+  }
+  return results;
 }
+
+// Suomen liitepartikkelit haussa (pisimmät ensin) ja niiden pohjoissaamen vastineet (FIN_CLITICS toisin päin)
+const FIN_QUERY_CLITICS = ["kään", "kaan", "kin", "hän", "han", "kö", "ko"];
+const SME_OF_FIN_CLITIC = { ko: ["go"], kö: ["go"], kin: ["ge", "nai"], kaan: ["ge"], kään: ["ge"], han: ["han"], hän: ["han"] };
+
+// Pohjoissaamen liitepartikkelit (lang-sme: +Qst, +Foc/...), pisimmät ensin. Merkitys näytetään viidelle, joiden
+// merkitys on tarkistettu (sanakirjat ja oppikirja): go, ge, nai, son, han (i18n.js: cliticMeaning).
+const CLITICS = ["gen", "ges", "gis", "nai", "son", "han", "hal", "bai", "bat", "go", "ge", "ba", "be"];
+// Saamen sanan osumat: perusmuoto (1), yleisen sanan muoto (1.2), taivutusmuoto (5), perusmuoto ilman käännöstä (5.5)
+const SAMI_HIT_RANKS = [1, 1.2, 5, 5.5, 6];
 
 // Taivutettu suomen- tai norjankielinen sana -> [{base, cell, pos}] (juon -> juoda, Prs+Sg1, V). forms-sarake on
 // muotoa "Prs+Sg1=juon;Prs+Sg2=juot;..." ja vaihtoehdot /-merkillä (husene/husa), joten haku rajataan erottimin.
@@ -363,12 +405,12 @@ function suggestWords(prefix) {
   const q = fold(prefix.trim());
   if (q.length < 2) return [];
   const rows = all(
-    `SELECT sme_lemma, pos, ${TRANS_COLS} FROM dictionary
+    `SELECT id, sme_lemma, pos, ${TRANS_COLS} FROM dictionary
      WHERE lemma_fold >= ? AND lemma_fold < ? ORDER BY length(sme_lemma), sme_lemma LIMIT 8`, [q, q + "￿"]
   );
   if (rows.length < 8) {
     rows.push(...all(
-      `SELECT DISTINCT d.sme_lemma, d.pos, ${TRANS_COLS.split(", ").map((c) => "d." + c).join(", ")}
+      `SELECT DISTINCT d.id, d.sme_lemma, d.pos, ${TRANS_COLS.split(", ").map((c) => "d." + c).join(", ")}
        FROM trans_search t JOIN dictionary d ON d.id = t.word_id
        WHERE t.lang = ? AND (t.fold LIKE ? OR t.fold LIKE ?) ORDER BY length(d.sme_lemma) LIMIT 8`,
       [settings.lang, `${q}%`, `%, ${q}%`]
@@ -417,6 +459,7 @@ function search(query, index = 0, pushHistory = true) {
   $("search").value = query;
   state.query = query;
   state.results = queryDatabase(query);
+  renderDidYouMean(query, state.results);
   state.showPrefix = false;
   state.index = index;
 
@@ -434,6 +477,8 @@ function search(query, index = 0, pushHistory = true) {
     $("speak-btn").hidden = true;
     $("word-links").hidden = true;
     $("translation").textContent = t("noHitsHint");
+    $("form-translation").hidden = true;  // edellisen sanan rivit pois
+    $("extra-translations").hidden = true;
     $("more-meanings").textContent = "";
     $("gradation").innerHTML = "";
     $("word-info").textContent = "";
@@ -441,6 +486,64 @@ function search(query, index = 0, pushHistory = true) {
   }
   renderResults();
   selectResult(Math.min(index, state.results.length - 1), pushHistory);
+}
+
+// "Tarkoititko": saamen erikoiskirjaimet lisättyinä (a -> á, c -> č, d -> đ, n -> ŋ, s -> š, t -> ŧ, z -> ž). Suomalaisella näppäimistöllä
+// erikoiskirjaimet jäävät helposti pois, ja a/á voi muuttaa sanan kokonaan (boađatgo = boađadit, boađátgo = boahtit).
+// Ehdotus näytetään, jos haku ei löytänyt mitään, tai jos vaihtoehto on korpuksessa selvästi yleisempi sana (10 x).
+// Suomen- tai norjankieliselle haulle (käännösosuma) ei ehdoteta mitään.
+// Vain lisäys (a -> á), ei poistoa: erikoiskirjain jää pois, kun sitä ei saa näppäimistöltä, mutta harvoin kirjoitetaan
+// vahingossa. Poistava ehdotus hämäisi: oikein kirjoitettu áddet (ymmärtää) -> addet (antaa).
+const LETTER_PAIRS = { a: "á", c: "č", d: "đ", n: "ŋ", s: "š", t: "ŧ", z: "ž" };
+function letterVariants(word) {
+  const spots = [...word].map((c, i) => (LETTER_PAIRS[c] ? i : -1)).filter((i) => i >= 0).slice(-10);
+  const out = [];
+  for (let mask = 1; mask < 1 << spots.length; mask++) {
+    const chars = [...word];
+    spots.forEach((pos, b) => { if (mask & (1 << b)) chars[pos] = LETTER_PAIRS[chars[pos]]; });
+    out.push(chars.join(""));
+  }
+  return out;
+}
+let SUGGEST_FACTOR = 10;  // vaihtoehdon oltava näin monta kertaa yleisempi kuin löydetty sana
+function didYouMean(query, results) {
+  const q = fold(query);
+  if (results.some((r) => r.rank > 1.2 && r.rank < 5 && !r.clitics)) return [];
+  const sami = results.filter((r) => r.clitics || SAMI_HIT_RANKS.includes(r.rank));
+  // vaihtoehdot koko sanasta ja liitepartikkelin kanssa vartalosta (boadatgo -> boađát + go)
+  const cands = new Map(letterVariants(q).map((v) => [v, ""]));
+  for (const c of CLITICS) if (q.endsWith(c) && q.length - c.length >= 2) {
+    for (const v of [q.slice(0, -c.length), ...letterVariants(q.slice(0, -c.length))]) if (!cands.has(v)) cands.set(v, c);
+  }
+  if (!cands.size) return [];
+  // myös isolla alkukirjaimella (erisnimet: danmarkun -> Dánmárkun)
+  for (const [v, c] of [...cands]) if (!cands.has(capitalize(v))) cands.set(capitalize(v), c);
+  const words = [...cands.keys()];
+  const marks = words.map(() => "?").join(",");
+  const col = LANGUAGES[settings.lang].col;
+  const rows = all(`SELECT p.surface AS v, d.id, d.sme_lemma, d.pos, d.freq, d.${col} AS tr FROM paradigms p
+                    JOIN dictionary d ON d.id = p.word_id WHERE p.surface IN (${marks})
+                    UNION SELECT d.sme_lemma, d.id, d.sme_lemma, d.pos, d.freq, d.${col} FROM dictionary d
+                    WHERE d.lemma_fold IN (${marks})`, [...words, ...words]);
+  const current = Math.max(0, ...sami.map((r) => r.freq || 0));
+  const shown = new Set(sami.map((r) => r.id));
+  const best = new Map();  // ehdotettu sana -> yleisin perusmuoto
+  for (const r of rows) {
+    if (shown.has(r.id) || !r.tr) continue;
+    if (sami.length && (r.freq || 0) < Math.max(1000, current * SUGGEST_FACTOR)) continue;
+    const word = r.v + (cands.get(r.v) ?? cands.get(fold(r.v)) ?? "");
+    if (fold(word) === q) continue;  // sama kirjoitusasu kuin haussa (toinen sana): ei ehdotusta
+    if (!best.has(word) || (r.freq || 0) > (best.get(word).freq || 0)) best.set(word, r);
+  }
+  return [...best.entries()].sort((a, b) => (b[1].freq || 0) - (a[1].freq || 0)).slice(0, 2)
+    .map(([word, r]) => ({ word, lemma: r.sme_lemma, trans: splitList(r.tr)[0] }));
+}
+function renderDidYouMean(query, results) {
+  const box = $("did-you-mean");
+  const list = didYouMean(query, results);
+  box.hidden = !list.length;
+  box.innerHTML = list.length ? `<span>${esc(t("didYouMean"))}</span>` + list.map((s) =>
+    `<button data-q="${esc(s.word)}"><b>${esc(s.word)}</b> → ${esc(s.lemma)}${s.trans ? ` (${esc(s.trans)})` : ""}</button>`).join("") : "";
 }
 
 // Pelkät "alkaa hakusanalla" -osumat (rank 7, esim. beana -> beanabálvalus) piilotetaan napin taakse,
@@ -490,6 +593,12 @@ function selectResult(i, pushHistory = true) {
 
   const data = loadWord(r.id);
   state.via = r.via || null;  // haettu taivutettu käännös (juon = juoda), ks. queryDatabase
+  // Liitepartikkeli haussa (boađátgo): vartalo (boađát) ja partikkelit järjestyksessä (renderInfo)
+  state.clitic = r.clitics ? { stem: r.cliticStem, clitics: r.clitics } : null;
+  // Suomen- tai norjankielinen hakusana, jos sana löytyi sen käännöksenä (rank 1.5–4.9, ks. queryDatabase)
+  state.transWord = r.via ? r.via.base : r.rank > 1.2 && r.rank < 5 ? r.finStem || state.query : null;
+  // Suomen liitepartikkeli haussa (tuletko): vartalo ja liite (renderInfo)
+  state.finClitic = r.finClitic ? { stem: r.finStem, clitic: r.finClitic } : null;
   state.word = data.word;
   state.paradigm = data.paradigm;
   state.grades = data.grades;
@@ -502,8 +611,8 @@ function selectResult(i, pushHistory = true) {
   $("fav-btn").hidden = false;
   $("speak-btn").hidden = false;
   $("word-links").hidden = false;
-  $("gt-link").href = GIELLATEKNO_URL.replace("{word}", encodeURIComponent(w.sme_lemma))
-    .replace("{pos}", GIELLATEKNO_POS[w.pos.toUpperCase()] || "Any");
+  $("gt-link").href = SANIT_URL.replace("{lang}", settings.lang === "nob" ? "nob" : "fin")
+    .replace("{word}", encodeURIComponent(w.sme_lemma));
   $("satni-link").href = SATNI_URL.replace("{word}", encodeURIComponent(w.sme_lemma));
   updateFavButton();
 
@@ -538,13 +647,53 @@ function renderExtraTranslations(w, groups) {
     const text = own ? splitList(own.translations || own.explanations).slice(0, 4).join(", ") : translationOf(w, 3, lang);
     return text && `<span class="muted">${esc(t("langIn")[lang])}:</span> ${esc(text)}`;
   }).filter(Boolean);
+  const sms = skoltFor(w);
+  if (sms) lines.push(`<span class="muted">${esc(t("langIn").sms)}${sms.via ? ` (${esc(t("smsVia"))})` : ""}:</span> ${esc(sms.text)}`);
   $("extra-translations").hidden = !lines.length;
   $("extra-translations").innerHTML = lines.join("<br>");
 }
 
+// Koltansaame (kokeellinen, tietokannan taulu sms, export_web_data.py / skolt_data.py). Pohjoissaamen ja
+// koltansaamen välillä ei ole sanakirjaa: suomen- tai norjankielisellä haulla koltan sanat ovat hakusanan omia
+// vastineita (talo -> põrtt); muuten sanan suomennosten kautta (via: näytetään "suomen kautta").
+function skoltFor(w) {
+  if (!settings.exp.sms) return null;
+  const lookup = (lang, word) => {
+    try {
+      return all("SELECT words FROM sms WHERE lang = ? AND fold = ? AND pos = ?", [lang, fold(word), w.pos])
+        .flatMap((r) => splitList(r.words));
+    } catch (e) {
+      return [];  // vanha tietokanta ilman taulua
+    }
+  };
+  if (state.transWord) {
+    const own = lookup(settings.lang, state.transWord);
+    if (own.length) return { text: own.join(", ") };
+  }
+  // Ensimmäinen suomennos, jolle löytyy koltan sana (pääkäännös; muut suomennokset toisi muita merkityksiä:
+  // oabbá = sisar, sisko -> vain sisar = vuäʹbb, ei "sisko"-tätisanoja)
+  for (const f of splitList(w.finnish_translation).slice(0, 3)) {
+    const viaFin = lookup("fin", f);
+    if (viaFin.length) return { text: viaFin.join(", "), via: true };
+  }
+  return null;
+}
+
 function renderInfo(w) {
   const info = [];
-  const q = fold(state.query);
+  // Liitepartikkeli: muodon tunnistus vartalosta (boađátgo -> boađát) ja selitys omalle rivilleen
+  if (state.clitic) {
+    const parts = state.clitic.clitics.map((c) => {
+      const m = t("cliticMeaning")[c];
+      return `-${c}${m ? ` (${m})` : ""}`;
+    });
+    info.push(t("cliticInfo", state.query, state.clitic.stem, parts.join(" + ")));
+  }
+  if (state.finClitic) {
+    const sme = SME_OF_FIN_CLITIC[state.finClitic.clitic].map((c) => "-" + c).join(", ");
+    info.push(t("finCliticInfo", state.query, state.finClitic.stem, state.finClitic.clitic, sme));
+  }
+  const q = fold(state.clitic ? state.clitic.stem : state.query);
   const matches = [];
   for (const [tag, forms] of state.paradigm) {
     for (const f of forms) {
@@ -555,17 +704,28 @@ function renderInfo(w) {
     }
   }
   let formTrans = "";
+  // Liitepartikkeli: suomeksi sama liite suomen muotoon (boađátgo ≈ tuletko); norjassa liitettä ei ole, joten
+  // rivillä on vartalo (boađát ≈ du kommer). Partikkeleille, joilla ei ole suomen vastinetta, sama kuin norjassa.
+  const finClitics = state.clitic && settings.lang === "fin" && state.clitic.clitics.every((c) => FIN_CLITICS[c])
+    ? state.clitic.clitics : null;
+  const formLabel = state.clitic && !finClitics ? state.clitic.stem : state.query;
   if (matches.length && q !== fold(w.sme_lemma)) {
-    info.push(t("searchedForm", state.query, [...new Set(matches)].join(", ")));
-    if (FORM_PHRASES[settings.lang]) formTrans = translationOfForm(w, matches.map((m) => m.split(" ")[0]));
+    info.push(t("searchedForm", state.clitic ? state.clitic.stem : state.query, [...new Set(matches)].join(", ")));
+    if (FORM_PHRASES[settings.lang]) formTrans = translationOfForm(w, matches.map((m) => m.split(" ")[0]), finClitics);
   }
   // Haetun muodon käännös omalle rivilleen käännöksen alle (viesus ≈ talossa / talosta, i huset / fra huset).
   // Toiseen suuntaan: taivutettu käännös (juon = juoda ≈ jugan), jos haku ei ollut saamen muoto.
-  let html = formTrans ? t("formIn", esc(state.query), esc(formTrans), settings.lang) : "";
+  let html = formTrans ? t("formIn", esc(formLabel), esc(formTrans), settings.lang) : "";
   if (!html && state.via) {
     const tag = settings.lang === "fin" ? samiTagOfFinCell(state.via.cell, w.pos.toUpperCase()) : null;
     const sme = tag && (state.paradigm.get(tag) || [])[0];
-    html = t("viaForm", esc(state.query), esc(state.via.base), sme ? esc(sme) : "", sme ? tag : "");
+    // tuletko = tulla ≈ boađátgo: saamen muotoon sama liite saamen vastineena (-kin: -ge / -nai)
+    // Saamen 3. persoonan ja mii-imperatiiviin (boahtos, boahtit) liitettä ei voi lisätä (lang-sme ei hyväksy): muoto ilman
+    // (myös monikon 2. persoonan muoto -hket: čuggejehket)
+    const noClitic = /^Imprt\+(Sg3|Du1|Du3|Pl1|Pl3)$/.test(tag || "") || (tag === "Imprt+Pl2" && /hket$/.test(sme || ""));
+    const smeForm = sme && state.finClitic && !noClitic
+      ? SME_OF_FIN_CLITIC[state.finClitic.clitic].map((c) => sme + c).join(" / ") : sme;
+    html = t("viaForm", esc(state.query), esc(state.via.base), smeForm ? esc(smeForm) : "", sme ? tag : "");
   }
   $("form-translation").hidden = !html;
   $("form-translation").innerHTML = html;
@@ -584,8 +744,12 @@ const FIN_PERSON = { Sg1: "Sg1", Sg2: "Sg2", Sg3: "Sg3", Du1: "Pl1", Du2: "Pl2",
 // "Sg+Indef=hus;Sg+Def=huset;..." -> {"Sg+Indef": "hus", ...}; vaihtoehdoista (husene/husa) ensimmäinen
 function translationForms(lang, word, pos) {
   try {
-    const row = all(`SELECT forms FROM ${lang}_forms WHERE word = ? AND pos = ?`, [word, pos])[0];
-    return row && Object.fromEntries(row.forms.split(";").map((c) => c.split("=")).map(([k, v]) => [k, v.split("/")[0]]));
+    const row = all(`SELECT * FROM ${lang}_forms WHERE word = ? AND pos = ?`, [word, pos])[0];
+    if (!row) return null;
+    const forms = Object.fromEntries(row.forms.split(";").map((c) => c.split("=")).map(([k, v]) => [k, v.split("/")[0]]));
+    // Suomen vokaalisointu liitepartikkelia varten (1/0; puuttuu vanhasta tietokannasta)
+    forms.__back = row.back === undefined || row.back === null ? null : !!row.back;
+    return forms;
   } catch (e) {
     return null;  // vanha tietokanta ilman taulua
   }
@@ -669,14 +833,61 @@ function finPhrase(tag, pos, f) {
 const FORM_PHRASES = { fin: finPhrase, nob: nobPhrase };
 
 // Haetun muodon tagit -> "jeg lager, jeg gjør" (yksi ilmaus käännöstä kohden, tagien vaihtoehdot /-merkillä)
-function translationOfForm(w, tags) {
+// Pohjoissaamen liitepartikkeli suomeksi (GiellaLT lang-fin: +Qst, +Foc/kin, +Foc/kaan, +Foc/han):
+// takavokaalinen ja etuvokaalinen muoto. -ge on myönteisessä lauseessa -kin, kielteisessä -kaan, joten molemmat.
+const FIN_CLITICS = { go: [["ko", "kö"]], nai: [["kin", "kin"]], ge: [["kin", "kin"], ["kaan", "kään"]],
+                      son: [["han", "hän"]], han: [["han", "hän"]] };
+// Vokaalisointu sanan viimeisestä a/o/u- tai ä/ö/y-vokaalista: vain varalla, jos tietokannassa ei ole fin_forms.back-
+// merkintää (yhdyssanan jälkiosan mukaan, export_web_data.py: fin_harmony)
+function finBackVowels(word) {
+  const m = word.toLowerCase().match(/[aouäöy](?=[^aouäöy]*$)/);
+  return !!m && "aou".includes(m[0]);
+}
+// Taivutuspäätteen vokaali kertoo soinnun (maanteistä -> maanteistähän, talossa -> talossako): päätteessä (sanan
+// viimeiset 4 kirjainta) oleva a/o/u tai ä/ö/y ratkaisee. null, jos päätteessä ei ole (postimerkeille -> perusmuodon mukaan).
+function finEndingBack(word) {
+  const m = word.toLowerCase().slice(-4).match(/[aouäöy](?=[^aouäöy]*$)/);
+  return m ? "aou".includes(m[0]) : null;
+}
+// Liite fraasin viimeiseen sanaan: tulet -> tuletko, (ei) tule -> (ei) tulekaan, talon kanssa -> talon kanssako.
+// back: perusmuodon sointu (postimerkki -> postimerkillekö); -ge antaa kaksi muotoa (tuletkin / tuletkaan).
+// Kieltoverbin kanssa (ei/älä + pääverbi) suomessa kysymys- ja -han-liite tulevat kieltoverbiin: eikö tuleskele,
+// eihän tule (ei *tuleskeleko). -kaan jää pääverbiin (ei tulekaan), ja -kin ei käy kieltolauseeseen lainkaan.
+const FIN_NEG = /^\((ei|älä)\) (.+)$/;
+const FIN_NEG_CLITIC = { go: "kö", son: "hän", han: "hän" };
+
+function finWithClitics(phrase, clitics, back) {
+  // "talossa / talosta" (paikallissija) on kaksi vaihtoehtoa: liite kumpaankin
+  let variants = phrase.split(" / ");
+  const neg = variants.length === 1 && phrase.match(FIN_NEG);
+  if (neg) {
+    let [, aux, verb] = neg;
+    for (const c of clitics) {
+      if (FIN_NEG_CLITIC[c]) aux += FIN_NEG_CLITIC[c];
+      else verb += (finEndingBack(verb) ?? back ?? finBackVowels(verb)) ? "kaan" : "kään";  // -ge, -nai: ei tulekaan
+    }
+    return `(${aux}) ${verb}`;
+  }
+  for (const c of clitics) {
+    variants = variants.flatMap((p) => FIN_CLITICS[c].map(([b, f]) => {
+      const words = p.split(" ");
+      const last = words.pop();
+      const isBack = last === "kanssa" ? true : finEndingBack(last) ?? back ?? finBackVowels(last);
+      return [...words, last + (isBack ? b : f)].join(" ");
+    }));
+  }
+  return variants.join(" / ");
+}
+
+function translationOfForm(w, tags, finClitics = null) {
   const pos = ["N", "V", "A"].find((p) => p === w.pos.toUpperCase());
   if (!pos) return "";
   const out = [];
   for (const word of state.transWords || []) {
     const forms = translationForms(settings.lang, word.replace(/\(.*?\)/g, "").trim(), pos);
     if (!forms) continue;
-    const phrases = [...new Set(tags.map((tag) => FORM_PHRASES[settings.lang](tag, pos, forms)).filter(Boolean))];
+    let phrases = [...new Set(tags.map((tag) => FORM_PHRASES[settings.lang](tag, pos, forms)).filter(Boolean))];
+    if (finClitics) phrases = phrases.map((p) => finWithClitics(p, finClitics, forms.__back));
     if (phrases.length) out.push(phrases.join(" / "));
   }
   return [...new Set(out)].join(", ");
@@ -862,7 +1073,20 @@ const memoryCache = new Map();
 const IS_DESKTOP = location.protocol === "satni:";
 // Android-sovellus (android/) näyttää tiedostot APK:sta tällä osoitteella
 const IS_ANDROID = location.hostname === "appassets.androidplatform.net";
+// Selain soittaa äänen vain heti napautuksen jälkeen. Ääni haetaan ensin palvelimelta, ja jos haku kestää, selain
+// ei enää laske soittoa napautukseksi ("not allowed by the user agent", erityisesti Safari). Siksi yhteinen soitin
+// avataan jo napautuksessa lyhyellä hiljaisuudella, ja haettu ääni soitetaan samalla soittimella.
+const ttsAudio = typeof Audio === "function" ? new Audio() : null;
+const SILENCE = "data:audio/wav;base64,UklGRnQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+let ttsUnlocked = false;
+function unlockTtsAudio() {
+  if (!ttsAudio || ttsUnlocked) return;
+  ttsAudio.src = SILENCE;
+  ttsAudio.play().then(() => { ttsUnlocked = true; }).catch(() => {});
+}
+
 async function speak(text, button, voiceName = settings.voice) {
+  unlockTtsAudio();  // ennen ensimmäistä awaitia: vielä napautuksen sisällä
   const voice = VOICES[voiceName] || "biret";
   const key = `tts-cache/${voice}/${encodeURIComponent(text)}`;
   if (button) { button.disabled = true; button.classList.add("loading"); }  // pyörivä kehä (styles.css)
@@ -891,8 +1115,17 @@ async function speak(text, button, voiceName = settings.voice) {
       if (cache) cache.put(key, new Response(blob, { headers: { "Content-Type": "audio/wav" } })).catch(() => {});
     }
     memoryCache.set(key, blob);
-    const audio = new Audio(URL.createObjectURL(blob));
-    await audio.play();
+    const audio = ttsAudio || new Audio();
+    if (audio.src.startsWith("blob:")) URL.revokeObjectURL(audio.src);
+    audio.src = URL.createObjectURL(blob);
+    try {
+      await audio.play();
+    } catch (e) {
+      // Selain esti soiton (napautuksesta ehti kulua liian kauan): ääni on jo muistissa, joten seuraava napautus soittaa
+      // sen heti. Ei virheilmoitusta, vaan ohje.
+      if (e.name === "NotAllowedError") { toast(t("ttsTapAgain")); return; }
+      throw e;
+    }
   } catch (e) {
     toast(t("ttsFailed", e.message));
   } finally {
@@ -949,6 +1182,11 @@ function updateSuggestions() {
   list.hidden = false;
 }
 function hideSuggestions() { $("suggestions").hidden = true; activeSuggestion = -1; }
+// Ehdotuksesta avataan juuri valittu sana: samannäköisistä (vuostá = vastaan / juusto) muuten avautuisi ensimmäinen
+function pickSuggestion(s) {
+  const index = queryDatabase(s.sme_lemma).findIndex((r) => r.id === s.id);
+  search(s.sme_lemma, Math.max(index, 0));
+}
 function moveSuggestion(delta) {
   const items = $("suggestions").children;
   if ($("suggestions").hidden || !items.length) return false;
@@ -1304,7 +1542,7 @@ function bindOcrGestures() {
 // --- Lisenssit ---
 // Kaikissa versioissa samat tiedostot (web/licenses/); työpöytäversion build lisää Pythonin ja Debian-kirjastojen
 // lisenssit kansioon licenses/desktop/ ja niiden luettelon tiedostoon files.txt
-const LICENSE_FILES = ["NOTICES.txt", "GPL-3.0.txt", "LGPL-3.0.txt", "CC-BY-4.0.txt", "MPL-2.0.txt", "Apache-2.0.txt",
+const LICENSE_FILES = ["NOTICES.txt", "GPL-3.0.txt", "LGPL-3.0.txt", "CC-BY-4.0.txt", "CC-BY-3.0.txt", "MPL-2.0.txt", "Apache-2.0.txt",
   "../vendor/LICENSE-sql.js.txt"];
 async function showLicenses() {
   let files = LICENSE_FILES;
@@ -1346,18 +1584,41 @@ async function showLicenseFile(file) {
   pre.scrollTop = 0;
 }
 
+// Kokeelliset ominaisuudet: jokainen oma kytkimensä. Päälle kytkettäessä ikkuna kertoo, mitä ominaisuus tekee,
+// ja Peruuta jättää sen pois päältä; pois kytkettäessä ei kysytä mitään.
+function applyExperimental() {
+  for (const box of document.querySelectorAll("[data-exp]")) box.checked = !!settings.exp[box.dataset.exp];
+  $("exp-ocr-row").hidden = !window.SatniOcr;
+  $("ocr-btn").hidden = !(window.SatniOcr && settings.exp.ocr);
+  if (!settings.exp.ocr) $("ocr-view").hidden = true;
+}
+function bindExperimental() {
+  let pending = null;
+  const set = (name, on) => {
+    settings.exp = { ...settings.exp, [name]: on };
+    saveSettings();
+    applyExperimental();
+    if (name === "sms" && state.results.length) searchAgainKeepingWord();
+  };
+  $("experimental-section").addEventListener("change", (e) => {
+    const name = e.target.dataset.exp;
+    if (!name) return;
+    if (!e.target.checked) { set(name, false); return; }
+    e.target.checked = false;  // päälle vasta, kun käyttäjä hyväksyy
+    pending = name;
+    const key = name === "ocr" ? "expOcr" : "expSms";
+    $("exp-dlg-title").textContent = t(key);
+    $("exp-dlg-body").innerHTML = t(key + "Info");
+    $("exp-dlg").showModal();
+  });
+  $("exp-ok").onclick = () => { $("exp-dlg").close(); if (pending) set(pending, true); pending = null; };
+  $("exp-cancel").onclick = () => { $("exp-dlg").close(); pending = null; };
+  $("exp-dlg").addEventListener("close", () => { pending = null; });
+  applyExperimental();
+}
+
 function bindOcr() {
   if (!window.SatniOcr) return;
-  const toggle = $("experimental-toggle");
-  const apply = () => {
-    toggle.checked = settings.experimental;
-    $("experimental-section").classList.toggle("on", settings.experimental);
-    $("ocr-btn").hidden = !settings.experimental;
-    if (!settings.experimental) $("ocr-view").hidden = true;
-  };
-  $("experimental-section").hidden = false;
-  toggle.onchange = () => { settings.experimental = toggle.checked; saveSettings(); apply(); };
-  apply();
   $("ocr-btn").onclick = openOcr;
   $("ocr-camera").onclick = () => scanPhoto("camera");
   $("ocr-gallery").onclick = () => scanPhoto("gallery");
@@ -1515,14 +1776,14 @@ function bindEvents() {
     else if (e.key === "Enter") {
       e.preventDefault();
       const s = activeSuggestion >= 0 ? suggestions[activeSuggestion] : null;
-      search(s ? s.sme_lemma : input.value);
+      if (s) pickSuggestion(s); else search(input.value);
       input.blur();
     }
   });
   input.addEventListener("blur", () => setTimeout(hideSuggestions, 150));
   $("suggestions").addEventListener("mousedown", (e) => {
     const li = e.target.closest("li");
-    if (li) { e.preventDefault(); search(suggestions[li.dataset.i].sme_lemma); input.blur(); }
+    if (li) { e.preventDefault(); pickSuggestion(suggestions[li.dataset.i]); input.blur(); }
   });
   $("search-btn").onclick = () => search(input.value);
 
@@ -1556,6 +1817,7 @@ function bindEvents() {
   bindFormPop();
   $("about-btn").onclick = () => $("about").showModal();
   $("licenses-btn").onclick = showLicenses;
+  $("did-you-mean").onclick = (e) => { const b = e.target.closest("[data-q]"); if (b) search(b.dataset.q); };
   $("lic-select").onchange = (e) => showLicenseFile(e.target.value);
   $("welcome-lang").addEventListener("click", (e) => {
     const b = e.target.closest("[data-lang]");
@@ -1577,6 +1839,10 @@ async function main() {
   if (!UI_LANGUAGES[settings.uiLang]) settings.uiLang = "fi";
   // Käännökset käyttöliittymän kielellä. Aiemmin käännöskieleksi valittu muu kieli (englanti, inarin-, luulajan-
   // tai eteläsaame) siirtyy Muut kielet -asetukseen, jolloin sen käännökset näkyvät edelleen sanakortissa.
+  if (settings.experimental) {  // 0.8.1 ja aiemmat: yksi yhteinen kytkin = kuvasta haku
+    settings.exp = { ...settings.exp, ocr: true };
+    delete settings.experimental;
+  }
   settings.extraLangs = (settings.extraLangs || []).filter((l) => LANGUAGES[l] && !LANGUAGES[l].main);
   if (LANGUAGES[settings.lang] && !LANGUAGES[settings.lang].main && !settings.extraLangs.includes(settings.lang)) {
     settings.extraLangs.push(settings.lang);
@@ -1603,6 +1869,7 @@ async function main() {
   ex.appendChild(rnd);
   applyStaticTexts();
   bindEvents();
+  bindExperimental();
   bindOcr();
   renderSidebar();
   if (FIRST_RUN) showFirstRun();

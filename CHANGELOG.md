@@ -2,6 +2,37 @@
 
 All releases of Sátni FST. Downloads: [GitHub releases](https://github.com/sombyduodji/satni-fst/releases).
 
+## 0.9 — 2026-10-31
+
+Includes the test versions 0.8.2-dev–0.8.5-dev.
+
+- **Search finds words with clitics.** *boađátgo*, *viesusge*, *mungo*, *dathan* and *sonnai* find *boahtit*,
+  *viessu*, *mun*, *dat* and *son*, also with two clitics (*buorregohan*) or a hyphen (*dalle-ge*). The word card
+  explains the clitic: *boađátgo = boađát + -go (kysymys: -ko, -kö)*. Meanings are shown for -go, -ge, -nai, -son and
+  -han (checked against the dictionaries and a North Sámi textbook); the other clitics the analyser knows (-gen,
+  -ges, -gis, -hal, -ba, -bai, -bat, -be) are recognised without a meaning. Tested with 2 000 words checked by the
+  North Sámi analyser: the right word was found for 1 998.
+- **Clitics in Finnish too.** The Finnish form line gets the matching Finnish clitic (*boađátgo ≈ tuletko*,
+  *viesusge ≈ talossakin / talossakaan*), and searching in Finnish with a clitic works: *tuletko*, *talossakin* and
+  *teetkö* find *boahtit*, *viessu* and *bargat* and show the Sámi form with its clitic (*tuletko = tulla ≈
+  boađátgo*). With negative verbs the Finnish clitic goes where it belongs: *(eikö) tuleskele*, *(ei) tulekaan*.
+  Vowel harmony follows the word's ending or the last part of a compound (*lainausmerkissäkö*). Checked both ways
+  with 1 000 words and with the GiellaLT analysers for Finnish and North Sámi.
+- **"Did you mean":** when a search finds nothing, or only a much rarer word, the app suggests the same word with
+  the Sámi letters added: *boadatgo* → *boađátgo* (boahtit), *cahci* → *čáhci*, *Danmarkun* → *Dánmárkun*. Tested
+  with 2 000 typed words without Sámi letters: the right word was found for 96–97 %.
+- **Experimental: Skolt Sámi.** Switch it on under *Experimental features* in the ☰ menu, and the word card shows
+  Skolt Sámi words from GiellaLT's Skolt Sámi dictionaries: for a Finnish or Norwegian search word directly from the
+  dictionary (*talo* → *tääll, põrtt*), and for a North Sámi word through its Finnish translation, marked "via
+  Finnish". Not yet checked by a Skolt Sámi speaker.
+- **Menu:** *Other languages* are switches, and each experimental feature has its own switch with a short
+  description; switching one on first explains what it does. If you had the photo search on, it stays on.
+- **Neahttadigisánit** instead of the Giellatekno paradigm page: the button opens the word in Giellatekno's
+  dictionary (sanit.oahpa.no) with translations, word history and a search in texts (Korp).
+- **Fixes:** search box suggestions open the word you picked (*vuostá* = juusto / vastaan used to open the first
+  one); pronunciation no longer fails with "not allowed by the user agent" when fetching the voice takes a moment;
+  an empty search no longer shows lines left over from the previous word.
+
 ## 0.8.1 — 2026-10-31
 
 - **Loading ring in the photo search** (Android, experimental): a spinning ring over the photo while the text is
