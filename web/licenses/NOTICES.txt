@@ -1,0 +1,133 @@
+Sátni FST — copyright and licence notices
+==========================================
+
+Sátni FST
+---------
+Copyright (C) 2026 Juha Somby <satni@somby.fi>
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the Free
+Software Foundation, version 3 (GPL-3.0.txt), with the additional
+permission below. This program is distributed in the hope that it will be
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details.
+
+Source code: https://github.com/sombyduodji/satni-fst
+(each release has a tag, e.g. v0.8)
+
+Additional permission under GNU GPL version 3 section 7:
+If you modify this Program, or any covered work, by linking or combining
+it with Google ML Kit (including ML Kit Text Recognition and the libraries
+it depends on, or a modified version of them), containing parts covered by
+the terms of the ML Kit Terms of Service, the licensor of this Program
+grants you additional permission to convey the resulting work.
+Corresponding Source for a non-source form of such a combination shall not
+include the source code for the parts of Google ML Kit used, as well as
+that of the covered work.
+
+
+Language data (all versions)
+----------------------------
+Dictionaries: GiellaLT dict-sme-fin, dict-sme-nob, dict-sme-eng,
+dict-sme-smn, dict-sme-smj, dict-sme-sma, dict-fin-sme and dict-nob-sme
+  © GiellaLT / Divvun / Giellatekno, UiT The Arctic University of Norway,
+  and contributors.
+  Licence: Creative Commons Attribution 4.0 International
+  (CC-BY-4.0.txt, https://creativecommons.org/licenses/by/4.0/)
+  Source: https://github.com/giellalt
+  Changes: the dictionaries were merged into one database and extended
+  with words recognised by the North Sámi FST, inflection tables,
+  consonant gradation and hand-made corrections (korjaukset.tsv in the
+  source code); Norwegian letters in Finnish translations were fixed.
+
+North Sámi morphology: GiellaLT lang-sme
+  Authors: Linda Wiechetek, Katri Hiovain-Asikainen, Inga Lill Sigga
+  Mikkelsen, Sjur N. Moshagen, Flammie A Pirinen, Trond Trosterud,
+  Børre Gaup and the lang-sme contributors.
+  Licence: GNU GPL version 3 (GPL-3.0.txt)
+  Source: https://github.com/giellalt/lang-sme
+  The inflection tables were generated with it.
+
+Finnish inflection: GiellaLT lang-fin, based on the Omorfi lexicon
+(Tommi A. Pirinen and others)
+  Licence: GNU GPL version 3 (GPL-3.0.txt)
+  Source: https://github.com/giellalt/lang-fin
+
+Norwegian inflection: Norsk ordbank – bokmål 2005 (dump of 2022-02-01)
+  © Språkbanken / Nasjonalbiblioteket
+  Licence: CC BY 4.0 (CC-BY-4.0.txt)
+  Source: https://www.nb.no/sprakbanken/ressurskatalog/oai-nb-no-sbr-5/
+  Changes: only the forms of words used as translations are kept;
+  compounds missing from the word bank are inflected by their last part.
+
+Consonant gradation groups: Oahpa (Giellatekno, UiT)
+  https://oahpa.no/sme/gramm/tabell_stadieveksling.html
+
+Pronunciation: speech synthesis of Divvun and Giellatekno (UiT The Arctic
+University of Norway), voices Biret, Máhtte and Sunná
+  Used through the network service api-giellalt.uit.no with Divvun's
+  permission. The voice samples in voices/ were generated with the same
+  service and are included with Divvun's permission.
+
+Logo: the Sámi flag (designed by Astrid Båhl, 1986) drawn as a drop.
+
+
+Software in all versions
+------------------------
+sql.js 1.10.3 (SQLite compiled to WebAssembly)
+  Licence: MIT (sql.js.txt). SQLite itself is in the public domain.
+  Source: https://github.com/sql-js/sql.js
+
+
+Desktop apps (Linux and Windows) only
+-------------------------------------
+Qt 6.9.3 and Qt for Python (PySide6, Shiboken6) 6.9.3, incl. Qt WebEngine
+  © The Qt Company Ltd and other contributors.
+  Licence: GNU LGPL version 3 (LGPL-3.0.txt, which builds on the GPL,
+  GPL-3.0.txt). The Qt libraries are included as separate, unmodified
+  library files and can be replaced.
+  Source: https://download.qt.io/official_releases/qt/6.9/6.9.3/
+  and https://download.qt.io/official_releases/QtForPython/pyside6/
+  Qt WebEngine contains Chromium and its third-party components, each
+  under its own licence: https://doc.qt.io/qt-6/qtwebengine-licensing.html
+
+Python 3.12
+  © Python Software Foundation.
+  Licence: PSF License Agreement and the licences of the third-party
+  software included with Python (python-LICENSE.txt)
+
+certifi (Mozilla's CA certificate bundle)
+  © Kenneth Reitz and Mozilla contributors.
+  Licence: Mozilla Public License 2.0 (MPL-2.0.txt)
+  Source: https://github.com/certifi/python-certifi
+
+PyInstaller bootloader
+  © PyInstaller Development Team.
+  Licence: GNU GPL version 2 with an exception that allows it to be used
+  with programs under any licence.
+  Source: https://github.com/pyinstaller/pyinstaller
+
+Linux app only: system libraries from Debian 11 (bullseye), such as
+GLib, OpenSSL, NSS, Cairo, HarfBuzz, FriBidi and Kerberos
+  Their copyright and licence files are listed after python-LICENSE.txt,
+  one per Debian package.
+  Source: https://sources.debian.org/
+
+
+Android app only
+----------------
+Google ML Kit Text Recognition v2 16.0.1 (experimental photo search)
+  Closed source, used under the ML Kit Terms of Service:
+  https://developers.google.com/ml-kit/terms
+  It runs on the phone; according to Google, it may send anonymous usage
+  statistics to Google.
+
+AndroidX libraries (incl. AndroidX Core 1.13.1) and the Kotlin standard
+library
+  © The Android Open Source Project and JetBrains s.r.o.
+  Licence: Apache License 2.0 (Apache-2.0.txt)
+
+Google Play services base libraries (dependencies of ML Kit)
+  Android Software Development Kit License:
+  https://developer.android.com/studio/terms

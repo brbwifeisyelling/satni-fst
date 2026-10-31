@@ -57,6 +57,11 @@ Set-Location src
 cmd /c "..\venv\Scripts\pyinstaller.exe --clean --noconfirm --windowed --onedir -n satni-fst --icon C:\satni-build\src\sami_icon.ico --add-data C:\satni-build\src\web;web --collect-data certifi --workpath C:\satni-build\work --distpath C:\satni-build\dist --specpath C:\satni-build\work satni_desktop.py > C:\satni-build\pyinstaller.log 2>&1"
 if ($LASTEXITCODE -ne 0) { Get-Content C:\satni-build\pyinstaller.log -Tail 30; exit 1 }
 Select-String -Path C:\satni-build\pyinstaller.log -Pattern "completed successfully" | Select-Object -Last 1
+# Lisenssit: Pythonin lisenssi (sis. mukana tulevat OpenSSL, libffi, zlib ym.) Tietoa-ikkunan Lisenssit-kohtaan
+$lic = "C:\satni-build\dist\satni-fst\_internal\web\licenses\desktop"
+New-Item -ItemType Directory -Force $lic | Out-Null
+Copy-Item "C:\Program Files\Python312\LICENSE.txt" "$lic\python-LICENSE.txt"
+Set-Content -Path "$lic\files.txt" -Value "python-LICENSE.txt" -Encoding ascii
 Remove-Item -Force C:\satni-build\satni-fst-windows.zip -ErrorAction SilentlyContinue
 Compress-Archive -Path C:\satni-build\dist\satni-fst -DestinationPath C:\satni-build\satni-fst-windows.zip
 if (-not (Test-Path C:\satni-build\satni-fst-windows.zip)) { exit 1 }

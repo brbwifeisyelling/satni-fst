@@ -34,6 +34,18 @@ done
 # (apuohjelma ei ole Python-moduuli) ja jota kaikissa jakeluissa ei ole valmiina
 cp -L /usr/lib/x86_64-linux-gnu/libatomic.so.1 "$INTERNAL/"
 
+# Lisenssit: mukana olevien järjestelmäkirjastojen Debian-paketin copyright-tiedostot ja Pythonin lisenssi
+# (web/licenses/desktop/, näkyvät Tietoa-ikkunan Lisenssit-kohdassa; luettelo files.txt)
+LIC="$INTERNAL/web/licenses/desktop"
+mkdir -p "$LIC/debian"
+cp /usr/local/lib/python3.12/LICENSE.txt "$LIC/python-LICENSE.txt"
+for lib in "$INTERNAL"/*.so*; do
+    pkg=$(dpkg -S "*/$(basename "$lib")" 2>/dev/null | head -1 | cut -d: -f1)
+    [ -n "$pkg" ] && [ -f "/usr/share/doc/$pkg/copyright" ] && cp "/usr/share/doc/$pkg/copyright" "$LIC/debian/$pkg.txt"
+done
+(cd "$LIC" && ls python-LICENSE.txt debian/*.txt) > "$LIC/files.txt"
+echo "Lisenssit: $(ls "$LIC/debian" | wc -l) Debian-pakettia"
+
 cat > "$APPDIR/AppRun" <<'EOF'
 #!/bin/sh
 HERE="$(dirname "$(readlink -f "$0")")"
